@@ -1,4 +1,5 @@
 name: Deploy site to GitHub Pages
+# Deploys to https://equity24.io
 
 # Publishes only the public product — landing page, app prototype and the
 # mandatory ECSPR art 19 disclosure pages. The licence package, audit records,
