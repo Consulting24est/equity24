@@ -44,7 +44,7 @@ mkdirSync(join(dist, 'app'), { recursive: true });
 writeFileSync(join(dist, 'app', 'index.html'), HEAD + readFileSync(join(src, 'app-prototype-v1.html'), 'utf8'));
 
 // Mandatory ECSPR art 19 disclosure pages, at clean URLs and as .html
-for (const p of ['how-we-choose', 'risks', 'complaints']) {
+for (const p of ['how-we-choose', 'risks', 'complaints', 'terms', 'privacy', 'pricing']) {
   page(`${p}.html`, `${p}/index.html`);
   page(`${p}.html`, `${p}.html`);
 }
