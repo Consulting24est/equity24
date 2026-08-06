@@ -231,9 +231,11 @@ create table commitments (
   kiis_version_shown text not null,
   status            commitment_status not null default 'reflection',
   committed_at      timestamptz not null default now(),
-  -- ECSPR art 22: four CALENDAR days, server-side, UTC
-  reflection_ends_at timestamptz not null
-    generated always as (committed_at + interval '4 days') stored,
+  -- ECSPR art 22: four CALENDAR days, server-side, UTC.
+  -- Set by the commitments_reflection trigger below, never by the client. It
+  -- cannot be a generated column: timestamptz + interval is only STABLE, not
+  -- IMMUTABLE, because the result depends on the session time zone.
+  reflection_ends_at timestamptz not null,
   withdrawn_at      timestamptz,
   settled_at        timestamptz,
   payment_method    text,          -- 'sepa' | 'card'
@@ -242,7 +244,25 @@ create table commitments (
 create index on commitments (offer_id, status);
 create index on commitments (profile_id, status);
 comment on column commitments.reflection_ends_at is
-  'Generated, not application-supplied: ECSPR art 22 four calendar days cannot be shortened by a bug.';
+  'Trigger-set, not application-supplied: ECSPR art 22 four calendar days cannot be shortened by a bug.';
+
+-- The reflection period is computed from committed_at in UTC and overwritten on
+-- every insert and on any change to committed_at, so nothing the application
+-- sends can shorten it. Fires before the constraint check, so the not-null
+-- column needs no default.
+create or replace function set_reflection_ends_at()
+returns trigger language plpgsql as $$
+begin
+  -- 96 hours, not '4 days': adding a day-interval to a timestamptz is resolved
+  -- in the session time zone, so a DST change could make the period 95 hours.
+  -- Hours are absolute and can never come out shorter than four full days.
+  new.reflection_ends_at := new.committed_at + interval '96 hours';
+  return new;
+end;
+$$;
+create trigger commitments_reflection
+  before insert or update of committed_at on commitments
+  for each row execute function set_reflection_ends_at();
 
 -- Compliance gate: an investment may only be recorded when every
 -- precondition is satisfied at that moment (lisa 19 §8).
