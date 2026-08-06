@@ -71,7 +71,8 @@
     -webkit-font-smoothing: antialiased;
     padding-bottom: 88px; /* fixed risk status line */
   }
-  @media (max-width: 700px) { body { padding-bottom: 150px; } }
+  @media (max-width: 700px) { body { padding-bottom: 260px; } }
+  @media (max-width: 420px) { body { padding-bottom: 300px; } }
   .wrap { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
   h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: -0.015em; text-wrap: balance; }
   a { color: var(--accent); text-decoration: none; }
@@ -119,6 +120,10 @@
   .btn.ghost { border-color: var(--hairline); color: var(--ink); background: transparent; }
   .btn.ghost:hover { border-color: var(--accent); color: var(--accent); text-decoration: none; }
   @media (max-width: 1000px) { nav.main { display: none; } }
+  /* The chip is white-space:nowrap, so below ~560px it pushed the header past
+     the viewport and gave the whole page a horizontal scrollbar. The same
+     statement appears in the hero and the footer, so hiding it loses nothing. */
+  @media (max-width: 560px) { .pending-chip { display: none; } }
 
   /* ============ SECTION CHROME ============ */
   section.band { border-top: 1px solid var(--hairline); padding: 88px 0; }

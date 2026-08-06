@@ -22,7 +22,8 @@ body {
   font-family: var(--font-sans); font-size: 16px; line-height: 1.6;
   -webkit-font-smoothing: antialiased; padding-bottom: 96px;
 }
-@media (max-width: 700px) { body { padding-bottom: 150px; } }
+@media (max-width: 700px) { body { padding-bottom: 260px; } }
+  @media (max-width: 420px) { body { padding-bottom: 300px; } }
 .wrap { max-width: 880px; margin: 0 auto; padding: 0 24px; }
 a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
