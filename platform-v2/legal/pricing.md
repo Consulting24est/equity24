@@ -32,32 +32,34 @@
 
 | Fee | Amount | When |
 |---|---|---|
-| **Application** | **EUR 0** | Applying and being screened costs nothing |
-| **Listing fee** | **EUR 1,000** | Charged only if we accept you, before the offer opens. Non-refundable |
+| **Application fee** | **EUR 1,000** | Payable when you apply. Covers screening and due diligence. Non-refundable |
+| **Listing fee** | **EUR 1,000** | Charged if we accept you, before the offer opens. Non-refundable |
 | **Success fee** | **6% of funds raised** | Only on a successful closing |
 | **Post-closing reporting administration** | **EUR 500 per year for 3 years** | Annually after a successful closing |
 
-**If the round does not close, you pay nothing beyond the listing fee.** No success fee, no reporting fee.
+**If the round does not close, you pay nothing beyond the application fee and the listing fee.** No success fee, no reporting fee.
 
 ### Worked example — a EUR 200,000 raise
 
 | | |
 |---|---|
+| Application fee | EUR 1,000 |
 | Listing fee | EUR 1,000 |
 | Success fee — 6% of EUR 200,000 | EUR 12,000 |
 | Reporting administration — EUR 500 × 3 years | EUR 1,500 |
-| **Total over three years** | **EUR 14,500** |
-| **Effective cost of capital** | **7.25%** |
+| **Total over three years** | **EUR 15,500** |
+| **Effective cost of capital** | **7.75%** |
 
 ### Worked example — a EUR 1,000,000 raise
 
 | | |
 |---|---|
+| Application fee | EUR 1,000 |
 | Listing fee | EUR 1,000 |
 | Success fee — 6% of EUR 1,000,000 | EUR 60,000 |
 | Reporting administration — EUR 500 × 3 years | EUR 1,500 |
-| **Total over three years** | **EUR 62,500** |
-| **Effective cost of capital** | **6.25%** |
+| **Total over three years** | **EUR 63,500** |
+| **Effective cost of capital** | **6.35%** |
 
 ### What is included
 

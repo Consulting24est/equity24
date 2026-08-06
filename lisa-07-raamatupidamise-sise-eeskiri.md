@@ -24,7 +24,8 @@ Kontoplaan on üles ehitatud nii, et art 11 omavahendite arvutus, püsivate üld
 
 | Tuluvoog | Kajastamise hetk | Alus |
 |---|---|---|
-| Nimekirja lisamise tasu | Projektiomaniku vastuvõtmisel ja hoolsusmeetmete alustamisel | Teenus osutatud; tagastamatu |
+| Taotlemistasu | Taotluse laekumisel — sõelumine ja hoolsusmeetmed algavad | Teenus osutatud; tagastamatu |
+| Nimekirja lisamise tasu | Projektiomaniku vastuvõtmisel | Teenus osutatud; tagastamatu |
 | **Edukustasu** | **Pakkumise eduka sulgemise hetkel** — st kui sihtsumma on saavutatud, kõigi osalenud investorite järelemõtlemisajad on lõppenud, makseteenuse pakkuja on vahendid vabastanud ning osade emiteerimine või võõrandamine on registreeritud | Kohustus täidetud ühel ajahetkel |
 | Sulgemisjärgne haldustasu | Lineaarselt teenuse perioodi jooksul | Kohustus täidetud aja jooksul |
 | Investorite tasud | Ei kohaldu — ei võeta | — |

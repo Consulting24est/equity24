@@ -442,7 +442,7 @@ const state = {
 const ACCOUNT_TYPES = {
   raise:     { label: 'RAISING CAPITAL',    title: 'I want to raise capital',  glyph: '\u25B2',
                desc: 'For startups, SMEs, founders, and companies seeking equity investment.',
-               facts: [['You can raise','EUR 100k \u2013 5M'],['Listing fee','EUR 1 000'],['Success fee','6% on success'],['If the round fails','no further fee']] },
+               facts: [['You can raise','EUR 100k \u2013 5M'],['Application fee','EUR 1 000'],['Listing fee','EUR 1 000'],['Success fee','6% on success']] },
   private:   { label: 'PRIVATE INVESTOR',   title: "I'm a private investor",   glyph: '\u25C6',
                desc: 'For individuals looking to invest in private companies.',
                facts: [['Minimum investment','EUR 100'],['Investor fees','EUR 0'],['Reflection period','4 calendar days'],['Onboarding','residents of Estonia']] },
@@ -1184,7 +1184,7 @@ function viewCoOverview() {
     ${state.application ? '' : `<div class="apply-hero">
       <div class="txt">
         <h3>Raise on Equity24.io</h3>
-        <p>Applying is free and takes three steps. The EUR 1 000 listing fee is charged only if we accept you.</p>
+        <p>Three steps. The EUR 1 000 application fee covers screening and due diligence; a further EUR 1 000 listing fee applies if we accept you.</p>
       </div>
       <button class="btn solid big" onclick="nav('company/apply')">Submit application</button>
     </div>`}
@@ -1209,6 +1209,7 @@ function viewCoRaise() {
       <div class="r"><span class="k">Equity offered</span><span class="v">${p.equity}</span></div>
       <div class="r"><span class="k">Pre-money valuation</span><span class="v">${p.premoney}</span></div>
       <div class="r"><span class="k">KIIS version</span><span class="v">v1.2 · completeness check passed 2026-07-28</span></div>
+      <div class="r"><span class="k">Application fee</span><span class="v">EUR 1 000 · paid</span></div>
       <div class="r"><span class="k">Listing fee</span><span class="v">EUR 1 000 · paid</span></div>
       <div class="r"><span class="k">Success fee on completion</span><span class="v">6% of funds raised</span></div>
     </div></div>`);
@@ -1396,8 +1397,8 @@ function viewCoApply() {
       </div>
     </div>
     <p style="font-size:12.5px; color:var(--ink); margin-top:16px; border-left:2px solid var(--hairline); padding-left:12px; max-width:72ch;">
-      Listing fee EUR 1 000 on acceptance · 6% success fee on funds raised · EUR 500 per year for 3 years post-closing reporting administration.
-      Nothing beyond the listing fee is charged if the round does not close. Acceptance is not a recommendation of your company to investors,
+      Application fee EUR 1 000 on applying · listing fee EUR 1 000 on acceptance · 6% success fee on funds raised · EUR 500 per year for 3 years post-closing reporting administration.
+      Nothing beyond the application and listing fees is charged if the round does not close. Acceptance is not a recommendation of your company to investors,
       and no offer on this platform is approved by any authority.
     </p>`);
 }
@@ -1444,7 +1445,7 @@ function applyForm() {
       The valuation is yours and is not verified or endorsed by Equity24.io. You will state its basis in the KIIS.</p>
     <button class="btn solid big" onclick="submitApp()">Submit application</button>`;
   return `
-    <div class="page-head"><h2>Raise on Equity24.io</h2><span class="sub">Applying is free. The EUR 1 000 listing fee is charged only if we accept you.</span></div>
+    <div class="page-head"><h2>Raise on Equity24.io</h2><span class="sub">EUR 1 000 application fee, payable on applying. A further EUR 1 000 listing fee applies if we accept you.</span></div>
     <div class="apply-hero">
       <div class="txt">
         <h3>Start your application</h3>

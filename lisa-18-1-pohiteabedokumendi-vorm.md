@@ -306,7 +306,8 @@
 
 | Tasu | Summa |
 |---|---|
-| Nimekirja lisamise tasu | [SUMMA] eurot |
+| Taotlemistasu | [1000] eurot |
+| Nimekirja lisamise tasu | [1000] eurot |
 | Edukustasu | [X]% kaasatud summast = [SUMMA] eurot maksimaalse sihtsumma korral |
 | Sulgemisjärgne haldustasu | [SUMMA] eurot aastas [X] aasta jooksul |
 

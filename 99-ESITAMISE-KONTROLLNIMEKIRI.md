@@ -79,6 +79,7 @@ Iga fakt peab olema **identne** kõigis dokumentides. Kontrolli rida-realt.
 | Juhatuse liikmed | | 01, 04, 05, 12, 13 |
 | Vastavusjuht | | 04, 06, 13 |
 | Edukustasu % | | 05, 18.1, T3, T4 |
+| Taotlemistasu | | 05, 18.1, T3, T4 |
 | Nimekirja lisamise tasu | | 05, 18.1, T3, T4 |
 | Investorite tasud (0 €) | | 05, 18.1, T2, T4 |
 | Turunduskanalid | | 05, 14 |

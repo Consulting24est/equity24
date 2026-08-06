@@ -84,7 +84,8 @@ Pakkumist ei avata enne, kui kõik järgnevad tingimused on täidetud ja platvor
 
 | Tasu | Summa | Maksetähtaeg |
 |---|---|---|
-| Nimekirja lisamise tasu | [SUMMA] eurot | Lepingu sõlmimisel, **tagastamatu** |
+| Taotlemistasu | [1000] eurot | Taotluse esitamisel, **tagastamatu** — katab sõelumise ja hoolsusmeetmed |
+| Nimekirja lisamise tasu | [1000] eurot | Lepingu sõlmimisel, **tagastamatu** |
 | Edukustasu | **[X]%** kaasatud summast | [10] tööpäeva jooksul sulgemisest |
 | Sulgemisjärgne haldustasu | [SUMMA] eurot aastas | Aasta ette, [3] aastat |
 

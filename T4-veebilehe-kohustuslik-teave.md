@@ -77,7 +77,8 @@ Platvormile lubatakse pakkumine üksnes juhul, kui projektiomanik vastab kõigil
 ### Projektiomanikult
 | Tasu | Summa |
 |---|---|
-| Nimekirja lisamise tasu | [SUMMA] € |
+| Taotlemistasu | [1000] € — taotluse esitamisel, tagastamatu |
+| Nimekirja lisamise tasu | [1000] € — vastuvõtmisel, tagastamatu |
 | Edukustasu | [X]% kaasatud summast |
 | Sulgemisjärgne haldustasu | [SUMMA] € aastas, [3] aastat |
 

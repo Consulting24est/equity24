@@ -156,7 +156,8 @@ Platvorm peab iga investori kohta digitaalset registrit osaluste, tehinguajaloo,
 
 | Maksja | Tasu | Summa |
 |---|---|---|
-| Projektiomanik | Nimekirja lisamise tasu | [1000] eurot, tagastamatu |
+| Projektiomanik | **Taotlemistasu** | **[1000] eurot, tasutakse taotluse esitamisel, tagastamatu** |
+| Projektiomanik | Nimekirja lisamise tasu | [1000] eurot, tasutakse vastuvõtmisel, tagastamatu |
 | Projektiomanik | Edukustasu | **[6]%** kaasatud summast, makstav üksnes eduka sulgemise korral |
 | Projektiomanik | Sulgemisjärgne aruandluse haldustasu | [500] eurot aastas [3] aasta jooksul |
 | Investor | Investeerimistasu | **0 eurot** |
