@@ -1,0 +1,3 @@
+.env
+node_modules/
+kyc-store.json

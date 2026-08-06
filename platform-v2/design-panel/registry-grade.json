@@ -1,0 +1,136 @@
+{
+ "concept_name": "Registry Grade",
+ "thesis": "Tech founders and tech-literate investors calibrate trust by whether a site meets the craft bar of the SaaS tools they use daily — Stripe's typographic confidence, Mercury's calm depth, Linear's product-as-proof. So the hero artifact is not a lifestyle photo but the product itself: an investor dashboard whose centerpiece is a Business Register entry with the investor's own name on it — the one thing no competitor can screenshot. Regulatory furniture is designed as first-class system chrome (Mercury treats FDIC language as part of its design system, not a nuisance), which itself signals institutional seriousness. Copy is the primary design material: tabular numbers, sentence case, zero adjectives doing load-bearing work.",
+ "palette": [
+  {
+   "token": "--bg",
+   "light": "#F9FAF8",
+   "dark": "#0C110F",
+   "use": "page background — warm paper-white / near-black with a green cast"
+  },
+  {
+   "token": "--surface",
+   "light": "#FFFFFF",
+   "dark": "#131917",
+   "use": "cards, nav, dashboard frame, panels"
+  },
+  {
+   "token": "--surface-2",
+   "light": "#F1F3EF",
+   "dark": "#1B2320",
+   "use": "inset/layered surfaces: fee tables, disclosure blocks, code-like artifacts, chip fills"
+  },
+  {
+   "token": "--ink",
+   "light": "#17211C",
+   "dark": "#E9EDEA",
+   "use": "primary text AND all risk copy (risk text never drops to secondary contrast)"
+  },
+  {
+   "token": "--ink-2",
+   "light": "#52605A",
+   "dark": "#A3AFA8",
+   "use": "secondary text, captions, table labels — never for risk or disclosure copy"
+  },
+  {
+   "token": "--line",
+   "light": "#E2E6E1",
+   "dark": "#27312C",
+   "use": "hairline borders, table rules, dividers (1px everywhere)"
+  },
+  {
+   "token": "--accent",
+   "light": "#0E5138",
+   "dark": "#62B892",
+   "use": "pine green: links, primary CTA fill (light) / CTA text+border (dark), progress fill, focus rings, the ledger rule atop cards"
+  },
+  {
+   "token": "--accent-wash",
+   "light": "#E9F2ED",
+   "dark": "#12291F",
+   "use": "tinted fills: sector chips, progress track, hero artifact highlight rows"
+  },
+  {
+   "token": "--warn-bg",
+   "light": "#FBF3E4",
+   "dark": "#241C0F",
+   "use": "persistent risk bar background and fraud-warning strip"
+  },
+  {
+   "token": "--warn-ink",
+   "light": "#6E4708",
+   "dark": "#E8C079",
+   "use": "risk bar text — 14px minimum, passes AA on warn-bg in both modes"
+  }
+ ],
+ "typography": {
+  "display": "System grotesk, self-hosted nothing: font-family: -apple-system, 'SF Pro Display', 'Segoe UI Variable Display', 'Segoe UI', system-ui, 'Helvetica Neue', Arial, sans-serif. Weight 650 (fallback 700), letter-spacing -0.022em, used for H1 (clamp(2.4rem, 5vw, 3.5rem)/1.08), H2 (2rem/1.15, weight 600), H3 (1.25rem/1.3, weight 600). One serif accent face reserved EXCLUSIVELY for the register-entry artifact and one editorial pull-line in the how-it-works section: font-family: Charter, 'Bitstream Charter', 'Iowan Old Style', Georgia, serif — this is the prospectus-serif thread carried over from brand v1, now used as a document texture rather than the display voice.",
+  "body": "Same system stack at 400/450 weight, 17px/1.6 for body, 15px/1.55 for card copy and table cells, 14px/1.5 for microcopy. Max line length 68ch on prose blocks. Sentence case everywhere including buttons and nav.",
+  "data": "All numerals set with font-variant-numeric: tabular-nums lining-nums; key figures (targets, valuations) at weight 600 in the sans. Mono face for eyebrow labels, registry codes, KIIS file rows, and dashboard chrome: font-family: ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace at 12px/1.4, letter-spacing 0.03em, sentence case (never uppercase — tone rule). Example mono uses: 'Registry code 16942817', 'KIIS — Veokraft OÜ (PDF, 6 pages)', 'ECSPR (EU) 2020/1503'.",
+  "scale_notes": "Type scale: 12 / 14 / 15 / 17 / 20 / 25 / 32 / 44-56 (fluid top end). Spacing scale is 4px base: 4, 8, 12, 16, 24, 32, 48, 64, 96, 128. Headline-to-body gap is always 16px; section head to first content 48px. No text below 12px anywhere; no risk/disclosure text below 14px."
+ },
+ "layout": "Single column of full-width sections, content constrained to max-width 1120px (12-col grid, 24px gutters), padding-inline 24px mobile / 40px desktop. Section vertical padding 112px desktop / 64px mobile, separated by 1px --line hairlines (no alternating background stripes — depth comes from cards on --bg, not zebra sections). Order: (1) pending-authorisation ribbon — 40px tall, --surface-2, mono 12px, centered: 'Osalus Capital OÜ has applied for a crowdfunding service provider authorisation from Finantsinspektsioon. Services will not be provided before authorisation is granted.' Non-dismissable, in normal flow. (2) Nav — 64px, --surface, hairline bottom border; wordmark 'Osalus' left (display 600, 20px); center links: Invest, Raise, How it works, Fees, About; right: 'ET / EN' toggle + single CTA 'Join the waitlist' (solid --accent, white text, 8px radius, 40px tall). Sticky with backdrop-blur(8px) and 92% opacity surface. (3) Hero, asymmetric 7/5 split (stacks on mobile, copy first). (4) Proof strip — 4 structural facts. (5) Open offerings — section head + 3-card grid (repeat(auto-fit, minmax(320px, 1fr)), 24px gap) + fraud-warning strip directly beneath the grid. (6) How direct ownership works — 5 steps as a vertical ledger (numbered rows with hairline rules, 2px accent left-rule on the active/hovered row). (7) EU gateway for international founders — 2-col: copy left, 3-step incorporation artifact right. (8) Raise on Osalus — eligibility checklist + fee table side by side. (9) Bulletin board teaser — one wide card. (10) Disclosures & FAQ — accordions allowed here for FAQ only, all disclosure text non-collapsible. (11) Footer — 4 columns + full regulatory block. (12) Persistent risk bar — position: fixed bottom, full-width; body carries padding-bottom equal to bar height (measure with JS or reserve 92px mobile / 56px desktop).",
+ "hero": "Left column (7/12): mono eyebrow 'Real companies. Real shares. Fully digital.' in --accent; H1 in display 650: 'Equity in operating tech companies, held in your own name.'; sub-paragraph 17px --ink-2, 60ch max (see sample_copy.sub); CTA row: primary 'Join the waitlist' (solid --accent) + secondary 'How it works' (ghost: 1px --line border, --ink text); directly under the CTAs a 14px --ink disclosure block on --surface-2 with 2px --line left border: 'Osalus does not provide investment advice. Crowdfunding offers are not approved by Finantsinspektsioon or any other authority. Capital at risk.' Right column (5/12): the product artifact — a browser-frame card (--surface, 12px radius, 1px --line border, shadow 0 1px 2px rgb(0 0 0 / 4%), 0 12px 32px rgb(0 0 0 / 7%)) titled in mono 'app.osalus.ee — portfolio'. Inside: (a) a compact holdings table, 3 rows, tabular numerals: 'Veokraft OÜ — 1,250 shares — 0.9%', 'Selgema AI OÜ — 480 shares — 0.2%', 'Rahakiht OÜ — 2,000 shares — 1.1%' — columns Company / Shares / Holding, NO value or performance column (no returns, ever); (b) overlapping it at bottom-right, offset -24px, a second smaller card styled as a paper document in the Charter serif on --surface with an --accent-wash top strip: 'E-äriregister — Registry entry' (mono caption), then serif 15px: 'Osaühing Veokraft OÜ · Registry code 16942817 · Shareholder: [Your name] · 1,250 shares' — this register-entry document IS the pitch: direct ownership rendered as product truth; (c) a slim pill above the document card, --accent-wash bg, 13px: 'Reflection period — you can withdraw within 4 calendar days'. No gradient, no photo, no illustration people. The two-card overlap is the only layering flourish on the page.",
+ "offering_card": "Anatomy top to bottom: (1) a 2px --accent rule across the very top of the card — the 'ledger line' motif, the card's signature; (2) header row: company name (display 600, 20px) + sector chip (mono 12px on --accent-wash, 999px radius, e.g. 'SaaS') + city in --ink-2 14px ('Tartu'); (3) one factual sentence, 15px --ink-2, no adjectives: what it does + founding year + last-year revenue (revenue is a historical fact, permitted — projections are not); (4) data mini-table: 4 rows separated by 1px --line rules, label left in --ink-2 14px, value right in tabular 600 15px — 'Target · EUR 450,000', 'Equity offered · 8.0%', 'Pre-money valuation · EUR 5.2M', 'Instrument · OÜ shares (direct entry)'; (5) progress block: 6px track in --accent-wash, fill in --accent, a 1px --ink tick mark at the minimum-target position with mono caption 'min'; beneath it one line, tabular: 'EUR 287,400 raised · minimum EUR 300,000 · maximum EUR 450,000'; then a plain date line, 14px --ink-2, 'Open until 12 October 2026' — never a countdown, never 'days left'; (6) footer row split: left a KIIS document row (mono 13px, underlined, --accent): 'Key investment information sheet (PDF)'; right a status chip in neutral --surface-2/--ink-2 ('Open', 'Minimum reached', 'Funded', 'Upcoming') — status chips never use red/amber/urgency colors. Card container: --surface, 1px --line border, 12px radius, 24px padding, no shadow at rest. States: hover = border-color darkens one step + translateY(-2px) + shadow 0 8px 24px rgb(0 0 0 / 6%), 180ms ease-out; focus-visible = 2px --accent ring, 2px offset; Funded = ledger line and progress fill switch to --ink-2, chip reads 'Funded', card stays fully readable (no opacity fade). Whole card is a link EXCEPT the KIIS row, which is its own anchor. What makes it distinctive: it reads like a cap-table row, not a campaign poster — no cover photo, no faces, the 2px ledger line + tabular mini-table carry the identity.",
+ "components": [
+  "Proof strip: 4 equal cells divided by 1px --line vertical rules, each a structural fact not a growth stat (pre-launch honesty): big tabular figure in display 600 32px + mono caption 14px --ink-2 — 'EUR 0 / investor fees, permanently', '4 days / reflection period on every investment', '100% / shares registered in your own name', 'EUR 150k–800k / typical raise size'. No count-up animation.",
+  "Trust strip (below proof strip): three text-badges on --surface-2, 1px --line border, 8px radius, mono 13px --ink: 'ECSPR — Regulation (EU) 2020/1503', 'Supervisor: Finantsinspektsioon (authorisation pending)', 'Registry: Estonian Business Register (e-äriregister)'. Text badges only — no invented logos, no implication of endorsement.",
+  "Sector chip row above the offerings grid: static chips (not filters at launch — nothing to filter yet), mono 13px on --accent-wash: SaaS · AI · Fintech · Internet · Digital platforms. A 14px --ink-2 line beneath: 'Sample offerings shown for illustration. Live offerings follow authorisation.'",
+  "Fraud-warning strip directly under the offerings grid: full-width row on --warn-bg with --warn-ink 14px, 1px --line border, 8px radius: 'Never pay a project owner directly. All payments on Osalus run through a segregated payment account. Anyone asking you to transfer money outside the platform is not acting for Osalus.'",
+  "How-it-works ledger: 5 numbered rows (mono numerals 01–05) with hairline rules — 1 'Verify your identity (5 minutes, e-ID or passport)', 2 'Complete the knowledge test and simulation of ability to bear loss (ECSPR appropriateness assessment)', 3 'Invest from EUR 100 — funds sit in a segregated account until the minimum target is met', 4 'Reflection period: withdraw within 4 calendar days, no reason needed, no cost', 5 'Your shares are entered in the Estonian Business Register under your own name — no nominee, no SPV'. One serif pull-line closes the section, Charter 25px: 'The register entry is the product. Everything else is workflow.'",
+  "EU gateway module (international founders): left copy column headed 'Your EU entry point'; right column a 3-step artifact card styled like the hero document — mono steps: '1 · e-Residency digital ID (from anywhere, ~1 month)', '2 · Estonian OÜ incorporated online (1–2 days)', '3 · Raise EUR 150k–800k from EU investors on Osalus'. Beneath, a 14px --ink qualifier: 'Issuer criteria apply to the operating business: 3+ years trading and EUR 0.5–3M annual revenue, including via a foreign parent establishing its EU entity in Estonia.' CTA: ghost button 'Talk to us about raising'.",
+  "Founder module ('Raise on Osalus'): two panels side by side on --surface. Panel A eligibility checklist with plain checkmarks in --accent: 'Operating company, 3+ years trading', 'EUR 0.5–3M annual revenue', 'Raising EUR 150,000–800,000', 'Offering 5–15% equity', 'Technology: SaaS, AI, fintech, internet, digital platforms'. Panel B the fee table on --surface-2 (see regulatory_furniture) — fee transparency rendered as a designed artifact, not footer text.",
+  "Bulletin board teaser: one wide card, --surface, with a mono header 'Bulletin board — Article 25, ECSPR' and a mock two-row interest table (Company / Shares / Indicated price / Posted) in tabular figures, visually watermarked 'Illustration'. Copy: 'After a round closes, investors can post buying and selling interest. Osalus displays interest only — it does not match orders, execute trades, or operate a trading venue. Transfers are completed digitally, without a notary.'",
+  "Waitlist form (appears in hero CTA target + pre-footer band): single email input (48px tall, --surface, 1px --line, 8px radius) + solid --accent button 'Join the waitlist'; microcopy 14px --ink beneath: 'We will email you when Osalus is authorised and the first offerings open. No marketing without consent. Joining the waitlist is not an investment commitment.' No account creation, no password field.",
+  "FAQ block: 6 accordions (FAQ may collapse; disclosures may not), 1px --line separated, chevron rotates 180ms: 'What exactly do I own?', 'What does investing cost?' (answer: 'Nothing. EUR 0 fees for investors, permanently. Companies raising pay EUR 1,000 at listing plus 6% of funds successfully raised.'), 'Can I sell my shares?' (honest liquidity answer referencing the bulletin board and the risk that no buyer appears), 'What is the reflection period?', 'What happens if the minimum target is not reached?' (full refund from the segregated account), 'Who supervises Osalus?'",
+  "Sticky risk bar + footer (specified in regulatory_furniture)."
+ ],
+ "motion": "Motion budget is deliberately small — calm is the brand. (1) Hover transitions on cards/buttons/links: 150–180ms ease-out, transform and border-color only, max translateY(-2px). (2) One-time scroll reveal per section: opacity 0→1 + translateY(8px)→0 over 250ms via IntersectionObserver, threshold 0.2, never re-triggers. (3) Offer-card progress bars animate width from 0 to value over 400ms ease-out on first reveal only. (4) Accordion height transitions 200ms. Nothing else: no parallax, no auto-playing carousels, no count-up numbers, no marquees, no pulsing CTAs, no countdowns (urgency mechanics are banned by tone rules). prefers-reduced-motion: reduce → all transitions/animations set to 0.01ms, elements render at final state, progress bars render at full value immediately; the sticky nav backdrop-blur is retained (it is not motion). Focus-visible states never depend on motion.",
+ "regulatory_furniture": "The furniture is styled as system chrome using the same tokens as the product — the Mercury pattern where compliance language shares the design system's craft. (1) Persistent risk bar: position fixed bottom, full-width, --warn-bg with 1px --line top border, --warn-ink text at 14px/1.45, 12px vertical padding, left-aligned, max-width 1120px inner. Verbatim, one continuous paragraph, no icon, no close affordance rendered at all (non-collapsible by construction): 'Investing in crowdfunding projects involves risks, including the loss of all of the money invested. Your investment is not covered by deposit guarantee or investor compensation schemes. You may not be able to sell your investment when you wish, and you may receive no return.' Body padding-bottom reserves its height (≈56px desktop, ≈92px mobile where it wraps to 3 lines — text never shrinks below 14px to fit). (2) CTA-adjacent disclosure blocks: every CTA cluster (hero, offerings, raise, waitlist band) is followed within 24px by a 14px --ink block on --surface-2, 2px --line left border, 12px padding: 'Osalus does not provide investment advice. Crowdfunding offers are not approved by Finantsinspektsioon or any other authority.' Full contrast --ink, never --ink-2. (3) KIIS row on every offer card: a designed document affordance — mono 13px underlined --accent link 'Key investment information sheet (PDF)' with a small file glyph drawn in CSS (12×14px rectangle with folded corner), separated from the card body by a 1px --line rule so it reads as the card's document drawer. (4) Fee transparency: a two-column table artifact on --surface-2 with hairline rules and tabular figures — 'Investors: account EUR 0 · investing EUR 0 · holding EUR 0 · selling on the bulletin board EUR 0' / 'Companies raising: listing fee EUR 1,000 · success fee 6% of funds raised · nothing if the minimum target is not met'. Rendered in the Raise section AND linked from the footer. (5) Fraud warning: the --warn-bg strip under the offerings grid (spec in components) — same amber family as the risk bar so warning surfaces form one recognizable class. (6) Footer regulatory block: beneath the 4 link columns, separated by a 1px --line rule, 14px --ink on --bg: authorisation status line ('Osalus Capital OÜ, registry code 17xxxxxx, has applied to Finantsinspektsioon for authorisation as a crowdfunding service provider under Regulation (EU) 2020/1503. Osalus does not provide crowdfunding services before authorisation is granted.'), complaints line ('Complaints are handled free of charge. How to complain →'), register links ('Finantsinspektsioon register → · ESMA register of crowdfunding service providers → · Estonian Business Register →'), and the language note ('KIIS documents are provided in Estonian and English.').",
+ "tech_focus": "The tech focus is expressed through artifacts, not slogans. (a) The hero product frame is a real-looking SaaS dashboard — the audience's native habitat — and the holdings table lists recognizably technical companies (fleet-routing SaaS, document AI, invoice-financing infrastructure). (b) Offer-card descriptions speak the sector's factual dialect: founding year, last-year revenue, customer count — historical facts that double as credibility signals for revenue-generating tech businesses, while staying inside the no-projections rule. (c) Sector chips (SaaS · AI · Fintech · Internet · Digital platforms) appear in the hero eyebrow area and above the grid, in mono — reading like tags in an issue tracker, not marketing badges. (d) The mono face carries registry codes, regulation numbers, and file rows, giving the whole page a quiet infrastructure-tool texture familiar from Stripe docs and Linear. (e) For international founders, the EU gateway section reframes e-Residency (142,000+ e-residents, 43,000+ companies — figures observed on e-resident.gov.ee and usable as context copy with attribution 'Source: e-resident.gov.ee') as a capital-markets on-ramp: incorporate an Estonian OÜ online in 1–2 days, then raise EU capital on Osalus under one EU-wide regime (ECSPR passporting). The copy addresses them directly in sentence case: 'You do not need to be in Estonia. You need an Estonian company.' This section is the page's only outward-facing growth pitch and still contains zero return language.",
+ "invesdor_audit": {
+  "steal": [
+   "The three-figure stats banner discipline ('614M+ EUR invested · 209K+ investors · 1,076 projects') — concrete numbers as the trust spine; we mirror the pattern with structural facts since we are pre-launch (EUR 0 fees / 4 days / 100% direct / 150k–800k).",
+   "Dual invest/raise navigation paths from the first screen — two audiences, two clear doors; our nav and section order preserve this split.",
+   "Card data-field discipline: every Invesdor card shows invested amount, price per unit, and status in a consistent slot layout — we adopt the fixed-slot mini-table so cards are comparable at a glance.",
+   "The comprehensive compliance footer with a dedicated complaint-management link — we elevate complaints to a named footer line, free of charge, per ECSPR.",
+   "Placing the EU ECSP regime identification visibly on the marketing page (their ECSP badge) — ours becomes a text badge with 'authorisation pending' honesty."
+  ],
+  "avoid": [
+   "Per-annum yield figures on product cards (their '8.75% Interest p.a.' on bond cards) — on equity offers any return figure violates ECSPR art 27 and our tone; our cards show target/equity/valuation/instrument only.",
+   "'3 days left' countdown badges — urgency mechanics; we state a plain closing date ('Open until 12 October 2026').",
+   "The aspirational hero ('Together we fund the future.') — adjectives and abstraction where our audience wants mechanics; our H1 states what you own and where it is registered.",
+   "Risk language demoted to a single legal-notice line deep in the page — ours is a persistent full-contrast bar plus CTA-adjacent blocks.",
+   "'Invest now' as CTA verb — pressure phrasing; ours is 'View offer' / 'Join the waitlist'."
+  ]
+ },
+ "sample_copy": {
+  "h1": "Equity in operating tech companies, held in your own name.",
+  "sub": "Osalus lists Estonian and EU technology companies with 3+ years of trading history raising EUR 150,000–800,000 for 5–15% equity. You buy OÜ or AS shares entered in the Estonian Business Register under your name — no nominee, no SPV, no custody. Investors pay EUR 0, permanently.",
+  "chips": [
+   "SaaS",
+   "AI",
+   "Fintech",
+   "Internet",
+   "Digital platforms",
+   "EUR 0 investor fees",
+   "Direct register entry",
+   "4-day reflection period",
+   "Notary-free transfers"
+  ],
+  "section_heads": [
+   "Open offerings",
+   "How direct ownership works",
+   "Your EU entry point",
+   "Raise on Osalus",
+   "Fees, in full",
+   "The bulletin board",
+   "Questions and disclosures"
+  ],
+  "sample_offers": [
+   "Veokraft OÜ — SaaS (logistics) — Tartu. Fleet-routing software for road carriers, founded 2019, EUR 1.4M revenue in 2025, 210 fleet customers in 6 countries. Target EUR 450,000 for 8.0% equity · pre-money valuation EUR 5.2M · instrument OÜ shares (direct entry). Progress: EUR 287,400 raised · minimum EUR 300,000 · maximum EUR 450,000 · open until 12 October 2026. Status: Open. Key investment information sheet (PDF).",
+   "Selgema AI OÜ — AI (document processing) — Tallinn. Machine-reading of freight and customs documents, founded 2020, EUR 0.9M revenue in 2025, 38 enterprise customers. Target EUR 600,000 for 10.0% equity · pre-money valuation EUR 5.4M · instrument OÜ shares (direct entry). Progress: EUR 415,200 raised · minimum EUR 350,000 · maximum EUR 600,000 · open until 30 September 2026. Status: Minimum reached. Key investment information sheet (PDF).",
+   "Rahakiht OÜ — Fintech (invoice financing infrastructure) — Tallinn. API platform banks use to run invoice-financing programmes, founded 2018, EUR 2.1M revenue in 2025, 12 bank and lender integrations. Target EUR 750,000 for 12.0% equity · pre-money valuation EUR 5.5M · instrument OÜ shares (direct entry). Progress: EUR 158,000 raised · minimum EUR 400,000 · maximum EUR 750,000 · open until 9 November 2026. Status: Open. Key investment information sheet (PDF)."
+  ]
+ }
+}

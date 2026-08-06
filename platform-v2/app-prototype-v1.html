@@ -1,0 +1,1598 @@
+<title>Equity24.io — App prototype v1</title>
+<style>
+  :root {
+    --bg: #0B0D10; --surface: #10151A; --surface-raised: #19202A;
+    --ink: #E8EBF0; --ink-muted: #9AA4B1; --hairline: #273040;
+    --accent: #5C8DFF; --on-accent: #081226;
+    --risk-bg: #221B0B; --risk-ink: #F2D588; --risk-border: #4A3D1D;
+    --ok: #4DB380; --warn: #D9A441;
+    --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", SFMono-Regular, "Cascadia Mono", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: light) {
+    :root { --bg:#F6F7F9; --surface:#FFFFFF; --surface-raised:#EDF1F6; --ink:#141A22; --ink-muted:#556070;
+      --hairline:#DEE3EA; --accent:#0052FF; --on-accent:#FFFFFF; --risk-bg:#FBF1D6; --risk-ink:#5F4A0E; --risk-border:#E4D2A0; }
+  }
+  :root[data-theme="light"] { --bg:#F6F7F9; --surface:#FFFFFF; --surface-raised:#EDF1F6; --ink:#141A22; --ink-muted:#556070;
+    --hairline:#DEE3EA; --accent:#0052FF; --on-accent:#FFFFFF; --risk-bg:#FBF1D6; --risk-ink:#5F4A0E; --risk-border:#E4D2A0; }
+  :root[data-theme="dark"] { --bg:#0B0D10; --surface:#10151A; --surface-raised:#19202A; --ink:#E8EBF0; --ink-muted:#9AA4B1;
+    --hairline:#273040; --accent:#5C8DFF; --on-accent:#081226; --risk-bg:#221B0B; --risk-ink:#F2D588; --risk-border:#4A3D1D; }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: var(--font-sans); font-size: 15px; line-height: 1.55;
+    -webkit-font-smoothing: antialiased; padding-bottom: 74px;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+  .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  .microlabel { font-family: var(--font-mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-muted); }
+  h1,h2,h3 { margin: 0; font-weight: 600; letter-spacing: -.01em; }
+
+  /* ---- top bar ---- */
+  .topbar {
+    position: sticky; top: 0; z-index: 40; display: flex; align-items: center; gap: 14px;
+    padding: 10px 18px; background: color-mix(in srgb, var(--surface) 92%, transparent);
+    backdrop-filter: blur(10px); border-bottom: 1px solid var(--hairline);
+  }
+  .wordmark { font-size: 17px; font-weight: 650; letter-spacing: .02em; }
+  .env-chip { font-family: var(--font-mono); font-size: 10px; letter-spacing: .08em; border: 1px solid var(--hairline);
+    border-radius: 999px; padding: 3px 9px; color: var(--ink-muted); white-space: nowrap; }
+  .top-right { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+  .role-switch { display: flex; border: 1px solid var(--hairline); border-radius: 6px; overflow: hidden; }
+  .role-switch button {
+    font-family: var(--font-mono); font-size: 10px; letter-spacing: .07em; padding: 6px 10px;
+    background: transparent; color: var(--ink-muted); border: 0; cursor: pointer;
+  }
+  .role-switch button.on { background: var(--accent); color: var(--on-accent); }
+  .icon-btn { font-family: var(--font-mono); width: 30px; height: 30px; border: 1px solid var(--hairline);
+    background: none; color: var(--ink); border-radius: 6px; cursor: pointer; font-size: 14px; }
+  .user-chip { display: flex; gap: 8px; align-items: center; font-size: 13px; border: 1px solid var(--hairline);
+    padding: 4px 10px 4px 4px; border-radius: 999px; }
+  .avatar { width: 24px; height: 24px; border-radius: 50%; background: var(--accent); color: var(--on-accent);
+    display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-mono);
+    font-size: 10px; font-weight: 700; flex: 0 0 auto; }
+  .avatar.muted { background: var(--surface-raised); color: var(--ink); border: 1px solid var(--hairline); }
+
+  /* ---- terms gate ---- */
+  .terms-wrap { display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 150px); padding: 40px 20px; }
+  .terms-card { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px;
+    padding: 34px; max-width: 560px; width: 100%; }
+  .terms-brand { display: flex; align-items: center; gap: 14px; margin-bottom: 22px; }
+  .terms-mark { width: 44px; height: 44px; border-radius: 10px; background: var(--accent); color: var(--on-accent);
+    display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 17px; font-weight: 700; }
+  .terms-brand h2 { font-size: 19px; }
+  .terms-card p.lede { font-size: 14.5px; color: var(--ink-muted); margin: 0 0 20px; }
+  .terms-check { display: flex; gap: 11px; align-items: flex-start; font-size: 14px;
+    border: 1px solid var(--hairline); border-radius: 8px; padding: 14px; background: var(--bg); }
+  .terms-check input { margin-top: 3px; accent-color: var(--accent); }
+  .terms-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 22px; flex-wrap: wrap; }
+  .terms-stamp { font-family: var(--font-mono); font-size: 11px; color: var(--ink-muted); letter-spacing: .05em; }
+
+  /* ---- icon rail ---- */
+  .rail { width: 74px; flex: 0 0 74px; background: var(--surface-raised); border-right: 1px solid var(--hairline);
+    display: flex; flex-direction: column; align-items: center; padding: 14px 0; gap: 6px; }
+  .rail-btn { width: 52px; border: 0; background: none; cursor: pointer; color: var(--ink-muted);
+    display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 8px 0; border-radius: 8px; font-family: var(--font-sans); }
+  .rail-btn:hover { background: var(--surface); color: var(--ink); }
+  .rail-btn .ico { width: 34px; height: 34px; border-radius: 9px; border: 1px solid var(--hairline);
+    background: var(--surface); display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-mono); font-size: 14px; position: relative; }
+  .rail-btn .lbl { font-size: 9.5px; letter-spacing: .04em; text-transform: uppercase; font-family: var(--font-mono); }
+  .rail-btn.on { color: var(--accent); }
+  .rail-btn.on .ico { border-color: var(--accent); color: var(--accent); }
+  .rail-btn.on .ico::after { content: "✓"; position: absolute; right: -4px; top: -4px; width: 14px; height: 14px;
+    border-radius: 50%; background: var(--accent); color: var(--on-accent); font-size: 8px;
+    display: flex; align-items: center; justify-content: center; }
+  .rail-spacer { flex: 1; }
+  .rail-foot { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  @media (max-width: 780px) { .rail { display: none; } }
+
+  /* ---- context nav head ---- */
+  .side-head { padding: 4px 10px 14px; border-bottom: 1px solid var(--hairline); margin-bottom: 14px; }
+  .side-head .who { font-size: 14px; font-weight: 600; }
+  .plan-badge { display: inline-block; margin-top: 7px; font-family: var(--font-mono); font-size: 10px;
+    letter-spacing: .07em; text-transform: uppercase; border: 1px solid var(--hairline);
+    border-radius: 999px; padding: 3px 9px; color: var(--ink-muted); }
+
+  /* ---- resource cards ---- */
+  .res-card { background: var(--surface); border: 1px solid var(--hairline); border-radius: 8px; padding: 18px;
+    display: flex; flex-direction: column; gap: 8px; }
+  .res-card h4 { margin: 0; font-size: 14.5px; font-weight: 600; }
+  .res-card p { margin: 0; font-size: 13px; color: var(--ink-muted); flex: 1; }
+  .wiz-step { display: grid; grid-template-columns: 26px 1fr; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--hairline); }
+  .wiz-step:last-child { border-bottom: 0; }
+  .wiz-step .n { width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--hairline);
+    display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 11px; color: var(--accent); }
+  .wiz-step .t { font-size: 14px; font-weight: 600; }
+  .wiz-step .d { font-size: 12.5px; color: var(--ink-muted); }
+
+  /* ---- shell ---- */
+  .shell { display: flex; min-height: calc(100vh - 130px); }
+  .side { width: 216px; flex: 0 0 216px; border-right: 1px solid var(--hairline); padding: 18px 12px; }
+  .side .sec { margin-bottom: 18px; }
+  .side .sec .microlabel { display: block; padding: 0 10px 6px; }
+  .navlink {
+    display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: 6px;
+    color: var(--ink); font-size: 14px; cursor: pointer; border: 0; background: none; width: 100%; text-align: left;
+    font-family: var(--font-sans);
+  }
+  .navlink:hover { background: var(--surface-raised); text-decoration: none; }
+  .navlink.on { background: var(--surface-raised); color: var(--accent); font-weight: 600; }
+  .navlink .glyph { font-family: var(--font-mono); font-size: 12px; width: 16px; text-align: center; color: var(--ink-muted); }
+  .navlink.on .glyph { color: var(--accent); }
+  .navlink .badge { margin-left: auto; font-family: var(--font-mono); font-size: 10px; background: var(--accent);
+    color: var(--on-accent); border-radius: 999px; padding: 1px 7px; }
+  .main { flex: 1; padding: 26px 30px 40px; min-width: 0; }
+  .page-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 22px; flex-wrap: wrap; }
+  .page-head h2 { font-size: 22px; }
+  .page-head .sub { color: var(--ink-muted); font-size: 13.5px; }
+
+  /* ---- components ---- */
+  .card { background: var(--surface); border: 1px solid var(--hairline); border-radius: 8px; padding: 18px; }
+  .grid { display: grid; gap: 16px; }
+  .g3 { grid-template-columns: repeat(3, 1fr); }
+  .g2 { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 1100px) { .g3 { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 780px) { .g3, .g2 { grid-template-columns: 1fr; } .side { display: none; } .main { padding: 18px; } }
+  .stat .microlabel { display: block; margin-bottom: 6px; }
+  .stat .big { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 26px; }
+  .kv { display: flex; flex-direction: column; }
+  .kv .r { display: flex; justify-content: space-between; gap: 12px; padding: 7px 0; border-bottom: 1px solid var(--hairline); font-size: 13.5px; }
+  .kv .r:last-child { border-bottom: 0; }
+  .kv .k { color: var(--ink-muted); }
+  .kv .v { font-family: var(--font-mono); font-variant-numeric: tabular-nums; text-align: right; }
+  .btn { display: inline-block; border-radius: 6px; padding: 8px 15px; font-size: 13.5px; font-weight: 600;
+    border: 1px solid transparent; cursor: pointer; font-family: var(--font-sans); }
+  .btn.solid { background: var(--accent); color: var(--on-accent); }
+  .btn.solid:hover { filter: brightness(1.1); }
+  .btn.ghost { border-color: var(--hairline); color: var(--ink); background: transparent; }
+  .btn.ghost:hover { border-color: var(--accent); color: var(--accent); }
+  .btn.small { padding: 5px 11px; font-size: 12.5px; }
+  .btn[disabled] { opacity: .5; cursor: not-allowed; }
+  .tag { font-family: var(--font-mono); font-size: 10px; letter-spacing: .07em; border: 1px solid var(--hairline);
+    border-radius: 999px; padding: 2px 8px; color: var(--ink-muted); white-space: nowrap; }
+  .tag.ok { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 45%, var(--hairline)); }
+  .tag.warn { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 45%, var(--hairline)); }
+  .tag.acc { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, var(--hairline)); }
+  .meter { position: relative; height: 4px; background: var(--surface-raised); border-radius: 2px; }
+  .meter span { position: absolute; inset: 0 auto 0 0; background: var(--accent); border-radius: 2px; }
+  .meter i { position: absolute; top: -3px; bottom: -3px; width: 1px; background: var(--ink-muted); }
+  table.list { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  table.list th { font-family: var(--font-mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: .07em;
+    color: var(--ink-muted); text-align: left; padding: 9px 12px; background: var(--surface-raised); font-weight: 500; }
+  table.list td { padding: 10px 12px; border-bottom: 1px solid var(--hairline); }
+  table.list tr:last-child td { border-bottom: 0; }
+  .tbl-wrap { overflow-x: auto; border: 1px solid var(--hairline); border-radius: 8px; background: var(--surface); }
+  input.field, select.field, textarea.field {
+    width: 100%; background: var(--bg); border: 1px solid var(--hairline); border-radius: 6px;
+    padding: 9px 12px; font-size: 14px; color: var(--ink); font-family: var(--font-sans);
+  }
+  input.field::placeholder { color: var(--ink-muted); }
+  label.f { display: block; margin-bottom: 12px; }
+  label.f .microlabel { display: block; margin-bottom: 5px; }
+
+  /* ---- auth: split screen ---- */
+  .auth-split { display: grid; grid-template-columns: 1.05fr .95fr; min-height: calc(100vh - 130px); }
+  @media (max-width: 900px) { .auth-split { grid-template-columns: 1fr; } .auth-proof { display: none; } }
+  .auth-left { display: flex; align-items: center; justify-content: center; padding: 40px 24px; }
+  .auth-inner { width: 100%; max-width: 440px; }
+  .auth-proof { background: var(--surface); border-left: 1px solid var(--hairline); padding: 48px 40px;
+    display: flex; flex-direction: column; justify-content: center; gap: 22px; }
+  .proof-kv { display: flex; flex-direction: column; }
+  .proof-kv .r { display: flex; justify-content: space-between; gap: 14px; padding: 11px 0; border-bottom: 1px solid var(--hairline); font-size: 13.5px; }
+  .proof-kv .r:last-child { border-bottom: 0; }
+  .proof-kv .k { color: var(--ink-muted); }
+  .proof-kv .v { font-family: var(--font-mono); font-variant-numeric: tabular-nums; text-align: right; }
+  .proof-note { font-size: 12.5px; color: var(--ink); border-left: 2px solid var(--hairline); padding-left: 12px; }
+
+  /* ---- role chooser ---- */
+  .role-card { display: flex; align-items: center; gap: 16px; width: 100%; text-align: left; cursor: pointer;
+    background: var(--surface); border: 1px solid var(--hairline); border-radius: 8px; padding: 18px;
+    color: var(--ink); font-family: var(--font-sans); margin-bottom: 12px;
+    transition: border-color 150ms ease-out, background 150ms ease-out; }
+  .role-card:hover { border-color: var(--accent); background: var(--surface-raised); }
+  .role-card .rc-glyph { width: 38px; height: 38px; flex: 0 0 38px; border-radius: 8px; background: var(--surface-raised);
+    border: 1px solid var(--hairline); display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-mono); font-size: 15px; color: var(--accent); }
+  .role-card .rc-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+  .role-card .rc-t { display: block; font-size: 15.5px; font-weight: 600; line-height: 1.3; }
+  .role-card .rc-d { display: block; font-size: 13px; color: var(--ink-muted); line-height: 1.45; }
+  .role-card .rc-arr { font-family: var(--font-mono); color: var(--ink-muted); }
+  .role-card:hover .rc-arr { color: var(--accent); }
+
+  /* ---- oauth ---- */
+  .oauth-btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%;
+    border: 1px solid var(--hairline); border-radius: 6px; background: var(--surface); color: var(--ink);
+    padding: 11px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: var(--font-sans); margin-bottom: 10px; }
+  .oauth-btn:hover { border-color: var(--accent); }
+  .oauth-btn svg { width: 16px; height: 16px; fill: currentColor; }
+  .divider-or { display: flex; align-items: center; gap: 12px; margin: 18px 0; }
+  .divider-or::before, .divider-or::after { content: ""; flex: 1; height: 1px; background: var(--hairline); }
+  .divider-or span { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .1em; color: var(--ink-muted); }
+  .checkline { display: flex; gap: 9px; align-items: flex-start; font-size: 13px; margin: 14px 0 16px; }
+  .checkline input { margin-top: 3px; accent-color: var(--accent); }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 520px) { .field-row { grid-template-columns: 1fr; } }
+
+  /* ---- payment ---- */
+  .pay-opt { display: flex; gap: 14px; align-items: flex-start; width: 100%; text-align: left; cursor: pointer;
+    background: var(--surface); border: 1px solid var(--hairline); border-radius: 8px; padding: 16px;
+    color: var(--ink); font-family: var(--font-sans); margin-bottom: 10px;
+    transition: border-color 150ms ease-out, background 150ms ease-out; }
+  .pay-opt:hover { border-color: var(--accent); background: var(--surface-raised); }
+  .pay-opt.on { border-color: var(--accent); }
+  .pay-opt .mark { width: 40px; height: 40px; flex: 0 0 40px; border-radius: 8px; border: 1px solid var(--hairline);
+    background: var(--surface-raised); display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: .04em; color: var(--accent); }
+  .pay-opt .b { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+  .pay-opt .t { display: block; font-size: 14.5px; font-weight: 600; }
+  .pay-opt .d { display: block; font-size: 12.5px; color: var(--ink-muted); line-height: 1.45; }
+  .pay-opt .meta { display: block; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .06em;
+    color: var(--ink-muted); text-transform: uppercase; margin-top: 3px; }
+  .gate { border: 1px solid var(--risk-border); background: var(--risk-bg); color: var(--risk-ink);
+    border-radius: 8px; padding: 16px; margin-bottom: 14px; font-size: 13.5px; line-height: 1.5; }
+  .gate b { display: block; margin-bottom: 5px; }
+  .gate label { display: flex; gap: 9px; align-items: flex-start; margin-top: 12px; font-size: 13px; }
+  .gate input { margin-top: 3px; accent-color: var(--accent); }
+
+  /* ---- application ---- */
+  .btn.big { padding: 14px 26px; font-size: 15.5px; border-radius: 8px; }
+  .apply-hero { background: var(--surface); border: 1px solid var(--hairline); border-radius: 10px;
+    padding: 26px; margin-bottom: 18px; display: flex; gap: 22px; align-items: center; flex-wrap: wrap; }
+  .apply-hero .txt { flex: 1; min-width: 260px; }
+  .apply-hero h3 { font-size: 19px; margin-bottom: 5px; }
+  .apply-hero p { margin: 0; font-size: 13.5px; color: var(--ink-muted); }
+  .pipe { display: flex; flex-direction: column; }
+  .pipe-row { display: grid; grid-template-columns: 30px 1fr auto; gap: 14px; align-items: flex-start;
+    padding: 15px 0; border-bottom: 1px solid var(--hairline); }
+  .pipe-row:last-child { border-bottom: 0; }
+  .pipe-dot { width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--hairline);
+    display: flex; align-items: center; justify-content: center; font-family: var(--font-mono);
+    font-size: 10px; color: var(--ink-muted); margin-top: 1px; }
+  .pipe-row.done .pipe-dot { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  .pipe-row.now .pipe-dot { border-color: var(--accent); color: var(--accent); }
+  .pipe-row.now .pipe-t { color: var(--accent); }
+  .pipe-t { font-size: 14.5px; font-weight: 600; }
+  .pipe-d { font-size: 12.5px; color: var(--ink-muted); margin-top: 2px; }
+  .pipe-who { font-family: var(--font-mono); font-size: 10px; letter-spacing: .07em;
+    text-transform: uppercase; color: var(--ink-muted); white-space: nowrap; margin-top: 3px; }
+
+  /* ---- kyc ---- */
+  .kyc-panel { border: 1px solid var(--hairline); border-radius: 8px; padding: 16px; background: var(--surface); margin-bottom: 14px; }
+  .kyc-row { display: flex; align-items: center; gap: 10px; justify-content: space-between; flex-wrap: wrap; }
+  .kyc-status { font-family: var(--font-mono); font-size: 11px; letter-spacing: .07em; text-transform: uppercase; }
+  .kyc-hint { font-size: 12.5px; color: var(--ink-muted); margin: 10px 0 0; }
+
+  /* ---- profile ---- */
+  .prof-head { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
+  .avatar-xl { width: 88px; height: 88px; border-radius: 10px; flex: 0 0 88px; overflow: hidden;
+    background: var(--accent); color: var(--on-accent); display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-mono); font-size: 28px; font-weight: 700; border: 1px solid var(--hairline); }
+  .avatar-xl img { width: 100%; height: 100%; object-fit: cover; }
+  .avatar img.avatar-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+  .type-chip { display: inline-flex; align-items: center; gap: 7px; border: 1px solid var(--hairline);
+    border-radius: 999px; padding: 4px 12px; font-family: var(--font-mono); font-size: 10.5px;
+    letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+  .type-chip .d { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+  .file-btn { position: relative; overflow: hidden; display: inline-block; }
+  .file-btn input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
+  .avatar { overflow: hidden; }
+
+  /* ---- auth ---- */
+  .auth-wrap { max-width: 460px; margin: 48px auto; padding: 0 20px; }
+  .auth-card { background: var(--surface); border: 1px solid var(--hairline); border-radius: 10px; padding: 30px; }
+  .auth-card h2 { font-size: 21px; margin-bottom: 4px; }
+  .auth-card .sub { color: var(--ink-muted); font-size: 13.5px; margin: 0 0 20px; }
+  .eid-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+  .eid-btn { border: 1px solid var(--hairline); border-radius: 6px; background: none; color: var(--ink);
+    padding: 12px; cursor: pointer; font-family: var(--font-mono); font-size: 11px; letter-spacing: .06em; }
+  .eid-btn:hover, .eid-btn.on { border-color: var(--accent); color: var(--accent); }
+  .steps-dots { display: flex; gap: 6px; margin-bottom: 18px; }
+  .steps-dots span { width: 22px; height: 3px; border-radius: 2px; background: var(--surface-raised); }
+  .steps-dots span.on { background: var(--accent); }
+  .auth-note { font-size: 12.5px; color: var(--ink); border-left: 2px solid var(--hairline); padding-left: 10px; margin-top: 16px; }
+
+  /* ---- project page ---- */
+  .proj-head { display: flex; justify-content: space-between; gap: 18px; align-items: flex-start; flex-wrap: wrap; }
+  .proj-title h2 { font-size: 24px; }
+  .proj-title .meta { color: var(--ink-muted); font-size: 13.5px; margin-top: 3px; }
+  .tabs2 { display: flex; gap: 0; border-bottom: 1px solid var(--hairline); margin: 20px 0 18px; }
+  .tabs2 button { background: none; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px;
+    padding: 9px 14px; font-size: 13.5px; font-weight: 600; color: var(--ink-muted); cursor: pointer; font-family: var(--font-sans); }
+  .tabs2 button.on { color: var(--ink); border-bottom-color: var(--accent); }
+
+  /* ---- messages ---- */
+  .msg-shell { display: flex; gap: 0; border: 1px solid var(--hairline); border-radius: 8px; overflow: hidden;
+    background: var(--surface); height: calc(100vh - 270px); min-height: 420px; }
+  .chan-col { width: 230px; flex: 0 0 230px; border-right: 1px solid var(--hairline); overflow-y: auto; padding: 12px 8px; }
+  .chan { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 6px; cursor: pointer; font-size: 13.5px; }
+  .chan:hover { background: var(--surface-raised); }
+  .chan.on { background: var(--surface-raised); color: var(--accent); font-weight: 600; }
+  .chan .cnt { margin-left: auto; font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-muted); }
+  .chat-col { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .chat-head { display: flex; align-items: center; gap: 10px; padding: 11px 16px; border-bottom: 1px solid var(--hairline); }
+  .chat-head .who { font-weight: 600; font-size: 14px; }
+  .chat-pin { font-size: 12px; color: var(--risk-ink); background: var(--risk-bg); border-bottom: 1px solid var(--risk-border); padding: 7px 16px; }
+  .chat-feed { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 13px; }
+  .msg { display: flex; gap: 10px; max-width: 640px; }
+  .msg .body .who-line { font-size: 12px; margin-bottom: 2px; }
+  .msg .body .who-line b { font-size: 12.5px; }
+  .msg .body .who-line .t { color: var(--ink-muted); font-family: var(--font-mono); font-size: 10.5px; margin-left: 6px; }
+  .msg .body p { margin: 0; font-size: 13.5px; background: var(--surface-raised); border: 1px solid var(--hairline);
+    padding: 8px 12px; border-radius: 0 8px 8px 8px; }
+  .chat-input { display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--hairline); }
+  .chat-input input { flex: 1; }
+  .mem-col { width: 220px; flex: 0 0 220px; border-left: 1px solid var(--hairline); overflow-y: auto; padding: 12px; }
+  .mem { display: flex; align-items: center; gap: 9px; padding: 6px 4px; font-size: 13px; }
+  .mem .r { margin-left: auto; }
+  @media (max-width: 1000px) { .mem-col { display: none; } }
+  @media (max-width: 720px) { .chan-col { width: 170px; flex-basis: 170px; } }
+  .empty { color: var(--ink-muted); font-size: 13.5px; padding: 30px; text-align: center; }
+
+  /* ---- toast + risk ---- */
+  .toast-wrap { position: fixed; right: 16px; bottom: 86px; z-index: 70; display: flex; flex-direction: column; gap: 8px; }
+  .toast { background: var(--ink); color: var(--bg); font-size: 13px; padding: 9px 14px; border-radius: 6px; opacity: .93; }
+  .risk-line { position: fixed; inset: auto 0 0 0; z-index: 60; background: var(--risk-bg);
+    border-top: 1px solid var(--risk-border); padding: 9px 18px; display: flex; gap: 12px; align-items: flex-start; }
+  .risk-line .pill { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: .1em; font-weight: 700;
+    border: 1px solid var(--risk-ink); border-radius: 999px; padding: 2px 8px; color: var(--risk-ink); white-space: nowrap; margin-top: 2px; }
+  .risk-line .txt { font-size: 12.5px; color: var(--risk-ink); line-height: 1.4; }
+  .proto-tag { position: fixed; left: 14px; bottom: 84px; z-index: 50; font-family: var(--font-mono); font-size: 10.5px;
+    letter-spacing: .05em; background: var(--ink); color: var(--bg); border-radius: 999px; padding: 5px 11px; opacity: .8; }
+</style>
+
+<div class="topbar">
+  <span class="wordmark">EQUITY24.IO</span>
+  <span class="env-chip">APP PROTOTYPE · SIMULATED DATA</span>
+  <div class="top-right" id="topRight"></div>
+</div>
+<div id="app"></div>
+
+<div class="toast-wrap" id="toasts"></div>
+<div class="proto-tag">PROTOTYPE V1 · NOT A LIVE SERVICE</div>
+<div class="risk-line" role="note" aria-label="Risk warning">
+  <span class="pill">RISK</span>
+  <span class="txt">Investing in crowdfunding projects is risky and may result in the loss of all of the capital invested. Your investment is not covered by a deposit guarantee scheme (Directive 2014/49/EU) or an investor compensation scheme (Directive 97/9/EC). You may not receive any return on your investment and you may not be able to sell the instruments when you wish. Do not invest more than you can afford to lose.</span>
+</div>
+
+<script>
+/* =============== DATA =============== */
+const PROJECTS = {
+  laine: {
+    id: 'laine', name: 'Laine Metrics OÜ', sector: 'SAAS', city: 'Tallinn',
+    desc: 'Product analytics for industrial IoT operators',
+    target: 'EUR 450 000', equity: '8.0%', premoney: 'EUR 5.2M', instrument: 'OÜ shares · via nominee',
+    revenue: 'EUR 1.9M', lead: 'EstBAN syndicate · EUR 40 000',
+    committed: 287500, min: 300000, max: 450000, closes: '2026-09-14', investors: 214, status: 'LIVE'
+  },
+  kratt: {
+    id: 'kratt', name: 'Kratt Compliance OÜ', sector: 'AI', city: 'Tartu',
+    desc: 'Automated AML screening for EU payment institutions',
+    target: 'EUR 300 000', equity: '6.5%', premoney: 'EUR 4.3M', instrument: 'OÜ shares · via nominee',
+    revenue: 'EUR 0.9M', lead: 'T. Sild · EUR 25 000',
+    committed: 214000, min: 200000, max: 300000, closes: '2026-08-29', investors: 158, status: 'LIVE'
+  },
+  sonum: {
+    id: 'sonum', name: 'Sõnum Relay OÜ', sector: 'INTERNET', city: 'Tallinn',
+    desc: 'Messaging infrastructure for logistics platforms in 14 countries',
+    target: 'EUR 650 000', equity: '11.0%', premoney: 'EUR 5.3M', instrument: 'OÜ shares · via nominee',
+    revenue: 'EUR 2.4M', lead: '—',
+    committed: 158000, min: 400000, max: 650000, closes: '2026-10-02', investors: 96, status: 'LIVE'
+  }
+};
+const MEMBERS = {
+  laine: [
+    { n: 'Marten Tamm', r: 'FOUNDER' }, { n: 'Kadi Ilves', r: 'TEAM' },
+    { n: 'Priit Kask', r: 'INVESTOR' }, { n: 'Liis Rebane', r: 'INVESTOR' }, { n: 'Jaan Kuusk', r: 'INVESTOR' },
+    { n: 'Anu Lepik', r: 'INVESTOR' }, { n: 'Tõnu Vaher', r: 'INVESTOR' }, { n: 'Maarja Saar', r: 'INVESTOR' },
+    { n: 'Rein Oja', r: 'INVESTOR' }, { n: 'Kertu Mägi', r: 'INVESTOR' }
+  ],
+  kratt: [
+    { n: 'Silver Kütt', r: 'FOUNDER' }, { n: 'Eva Laur', r: 'TEAM' },
+    { n: 'Tarmo Sild', r: 'INVESTOR' }, { n: 'Helen Puu', r: 'INVESTOR' }, { n: 'Andres Kivi', r: 'INVESTOR' },
+    { n: 'Piret Alas', r: 'INVESTOR' }, { n: 'Margus Toom', r: 'INVESTOR' }
+  ],
+  sonum: [
+    { n: 'Dana Whitfield', r: 'FOUNDER' }, { n: 'Oliver Ots', r: 'TEAM' },
+    { n: 'Karin Meri', r: 'INVESTOR' }, { n: 'Uku Laan', r: 'INVESTOR' }, { n: 'Grete Palm', r: 'INVESTOR' }
+  ]
+};
+const SEED_MSGS = {
+  laine: [
+    { who: 'Marten Tamm', r: 'FOUNDER', t: '2026-08-04 09:12', txt: 'Welcome to the Laine Metrics community. I will post our monthly metrics summary here — same numbers as in the KIIS, nothing more, nothing less.' },
+    { who: 'Priit Kask', r: 'INVESTOR', t: '2026-08-04 10:03', txt: 'How does the FY2025 revenue split between the Baltics and the Nordics?' },
+    { who: 'Marten Tamm', r: 'FOUNDER', t: '2026-08-04 10:41', txt: 'Roughly 60/40 Baltics/Nordics — the exact split is in the KIIS annex, section A.4.' },
+    { who: 'Liis Rebane', r: 'INVESTOR', t: '2026-08-05 14:20', txt: 'Joined after the Tartu demo day. The industrial-IoT angle is what convinced me to read the KIIS.' }
+  ],
+  kratt: [
+    { who: 'Silver Kütt', r: 'FOUNDER', t: '2026-08-03 11:05', txt: 'Tere! Questions about the AML screening product are welcome here. For offer terms, always read the KIIS first.' },
+    { who: 'Helen Puu', r: 'INVESTOR', t: '2026-08-03 16:44', txt: 'Which payment institutions are reference customers?' }
+  ],
+  sonum: [
+    { who: 'Dana Whitfield', r: 'FOUNDER', t: '2026-08-02 08:30', txt: 'Hello from the Sõnum Relay team — founded from Toronto through e-Residency, built in Tallinn. AMA about the logistics messaging space.' }
+  ]
+};
+
+/* =============== STATE =============== */
+const store = JSON.parse(localStorage.getItem('osalus-proto') || '{}');
+const state = {
+  role: store.role || 'guest',
+  userName: store.userName || 'Demo Investor',
+  joined: new Set(store.joined || []),
+  msgs: store.msgs || JSON.parse(JSON.stringify(SEED_MSGS)),
+  commitments: store.commitments || [
+    { p: 'laine', amount: 500, date: '2026-08-04', reflectEnds: '2026-08-08', status: 'REFLECTION' },
+    { p: 'kratt', amount: 250, date: '2026-07-20', reflectEnds: '2026-07-24', status: 'SETTLED' }
+  ],
+  holdings: [ { p: 'kratt', shares: 31 } ],
+  chan: store.chan || 'support',
+  accountType: store.accountType || 'private',
+  avatar: store.avatar || null,
+  profile: store.profile || { email: 'demo@equity24.io', country: 'Estonia', company: '', phone: '' },
+  kyc: store.kyc || null,
+  terms: store.terms || null,
+  application: store.application || null,
+  invest: null,
+  applyStep: 1,
+  signupStep: 1
+};
+const ACCOUNT_TYPES = {
+  raise:     { label: 'RAISING CAPITAL',    title: 'I want to raise capital',  glyph: '\u25B2',
+               desc: 'For startups, SMEs, founders, and companies seeking equity investment.',
+               facts: [['You can raise','EUR 100k \u2013 5M'],['Listing fee','EUR 1 000'],['Success fee','6% on success'],['If the round fails','no further fee']] },
+  private:   { label: 'PRIVATE INVESTOR',   title: "I'm a private investor",   glyph: '\u25C6',
+               desc: 'For individuals looking to invest in private companies.',
+               facts: [['Minimum investment','EUR 100'],['Investor fees','EUR 0'],['Reflection period','4 calendar days'],['Onboarding','residents of Estonia']] },
+  corporate: { label: 'CORPORATE INVESTOR', title: "I'm a corporate investor", glyph: '\u25A0',
+               desc: 'For companies, family offices, venture capital firms, and investment funds.',
+               facts: [['Minimum investment','EUR 100'],['Investor fees','EUR 0'],['Reflection period','4 calendar days'],['Onboarding','EU member state companies']] }
+};
+function persist() {
+  localStorage.setItem('osalus-proto', JSON.stringify({
+    role: state.role, userName: state.userName, joined: [...state.joined],
+    msgs: state.msgs, commitments: state.commitments, chan: state.chan,
+    accountType: state.accountType, avatar: state.avatar, profile: state.profile, kyc: state.kyc, terms: state.terms, application: state.application
+  }));
+}
+function toast(t) {
+  const el = document.createElement('div'); el.className = 'toast'; el.textContent = t;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(() => el.remove(), 3200);
+}
+function initials(n) { return n.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase(); }
+function eur(n) { return 'EUR ' + n.toLocaleString('en-US').replace(/,/g, ' '); }
+
+/* =============== ROUTER =============== */
+function nav(hash) { location.hash = hash; }
+window.addEventListener('hashchange', render);
+
+function route() {
+  const h = location.hash.replace(/^#\/?/, '') || (state.role === 'guest' ? 'login' : home());
+  return h.split('/');
+}
+function home() { return state.role === 'admin' ? 'admin/pipeline' : state.role === 'company' ? 'company/overview' : 'app/dashboard'; }
+function setRole(r) { state.role = r; persist(); nav(home()); }
+function logout() { state.role = 'guest'; persist(); nav('login'); }
+
+/* =============== SHARED UI =============== */
+function topRight() {
+  if (state.role === 'guest') {
+    return '<button class="icon-btn" onclick="toggleTheme()" aria-label="Theme">◐</button>' +
+      '<a class="btn ghost small" href="#/login">Log in</a><a class="btn solid small" href="#/signup">Sign up</a>';
+  }
+  const roles = ['investor', 'company', 'admin'].map(r =>
+    `<button class="${state.role === r ? 'on' : ''}" onclick="setRole('${r}')">${r.toUpperCase()}</button>`).join('');
+  return `<div class="role-switch" title="Demo: switch interface">${roles}</div>
+    <button class="icon-btn" onclick="toggleTheme()" aria-label="Theme">◐</button>
+    <a class="user-chip" href="#/${state.role === 'company' ? 'company' : 'app'}/profile" title="Profile">
+      <span class="avatar">${avatarInner()}</span>${state.userName}</a>
+    <button class="icon-btn" onclick="logout()" title="Log out" aria-label="Log out">⏻</button>`;
+}
+function toggleTheme() {
+  const root = document.documentElement;
+  const cur = root.getAttribute('data-theme') || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+  root.setAttribute('data-theme', cur === 'dark' ? 'light' : 'dark');
+}
+function sideNav(items, active) {
+  const head = `<div class="side-head"><div class="who">${state.userName}</div>
+    <span class="plan-badge">${state.accountType === 'raise' ? 'Company account' : state.accountType === 'corporate' ? 'Corporate investor' : 'Private investor'}</span></div>`;
+  return '<aside class="side">' + head + items.map(sec =>
+    `<div class="sec"><span class="microlabel">${sec.label}</span>` +
+    sec.links.map(l =>
+      `<button class="navlink ${active === l.route ? 'on' : ''}" onclick="nav('${l.route}')">
+        <span class="glyph">${l.g}</span>${l.t}${l.badge ? `<span class="badge">${l.badge}</span>` : ''}</button>`).join('') +
+    '</div>').join('') + '</aside>';
+}
+function investorNav(active) {
+  const joined = state.joined.size;
+  return sideNav([
+    { label: 'INVEST', links: [
+      { route: 'app/dashboard', g: '◧', t: 'Dashboard' },
+      { route: 'app/offers', g: '▤', t: 'Offers' },
+      { route: 'app/portfolio', g: '◫', t: 'Portfolio' },
+      { route: 'app/board', g: '≡', t: 'Bulletin board' } ] },
+    { label: 'COMMUNITY', links: [
+      { route: 'app/messages', g: '◩', t: 'Messages', badge: joined || '' } ] },
+    { label: 'ACCOUNT', links: [
+      { route: 'app/verify', g: '◉', t: 'Verify', badge: verifyBadge() },
+      { route: 'app/profile', g: '◍', t: 'Profile' } ] }
+  ], active);
+}
+function companyNav(active) {
+  return sideNav([
+    { label: 'RAISE', links: [
+      { route: 'company/overview', g: '◧', t: 'Overview' },
+      { route: 'company/apply', g: '✎', t: 'Application', badge: state.application ? '' : '!' },
+      { route: 'company/raise', g: '▤', t: 'My raise' },
+      { route: 'company/documents', g: '⎘', t: 'Documents' } ] },
+    { label: 'COMMUNITY', links: [
+      { route: 'company/community', g: '◩', t: 'My community' } ] },
+    { label: 'ACCOUNT', links: [
+      { route: 'company/verify', g: '◉', t: 'Verify', badge: verifyBadge() },
+      { route: 'company/profile', g: '◍', t: 'Profile' } ] }
+  ], active);
+}
+function adminNav(active) {
+  return sideNav([
+    { label: 'SUPERVISION', links: [
+      { route: 'admin/pipeline', g: '▤', t: 'Offer pipeline' },
+      { route: 'admin/users', g: '◫', t: 'Users · KYC' },
+      { route: 'admin/communities', g: '◩', t: 'Communities' },
+      { route: 'admin/registers', g: '≡', t: 'Registers' } ] },
+    { label: 'ACCOUNT', links: [
+      { route: 'admin/profile', g: '◍', t: 'Profile' } ] }
+  ], active);
+}
+function iconRail() {
+  const ctx = [
+    { role: 'investor', g: '◈', t: 'Investor' },
+    { role: 'company',  g: '▣', t: 'Company' },
+    { role: 'admin',    g: '⌗', t: 'Admin' }
+  ];
+  return `<nav class="rail" aria-label="Workspace">
+    ${ctx.map(c => `<button class="rail-btn ${state.role === c.role ? 'on' : ''}" onclick="setRole('${c.role}')" title="${c.t}">
+      <span class="ico">${c.g}</span><span class="lbl">${c.t}</span></button>`).join('')}
+    <span class="rail-spacer"></span>
+    <div class="rail-foot">
+      <button class="rail-btn" onclick="state.chan='support';persist();nav('app/messages')" title="Support">
+        <span class="ico">☏</span></button>
+      <button class="rail-btn" onclick="nav(state.role === 'company' ? 'company/profile' : 'app/profile')" title="Profile">
+        <span class="ico">${state.avatar ? `<img class="avatar-img" src="${state.avatar}" alt="" style="width:100%;height:100%;border-radius:8px">` : initials(state.userName)}</span></button>
+    </div>
+  </nav>`;
+}
+function shell(nav_, content) {
+  return `<div class="shell">${iconRail()}${nav_}<main class="main">${content}</main></div>`;
+}
+
+/* =============== AUTH VIEWS =============== */
+function viewLogin() {
+  return `<div class="auth-split"><div class="auth-left"><div class="auth-inner">
+    <h2>Log in to Equity24.io</h2>
+    <p class="sub">Sign in with an Estonian e-ID method. Identity verification for investing is separate and handled after sign-in.</p>
+    <div class="eid-grid">
+      <button class="eid-btn" onclick="demoLogin('investor')">ID-CARD</button>
+      <button class="eid-btn" onclick="demoLogin('investor')">SMART-ID</button>
+      <button class="eid-btn" onclick="demoLogin('investor')">MOBIIL-ID</button>
+      <button class="eid-btn" onclick="demoLogin('investor')">eIDAS</button>
+    </div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      <button class="btn ghost small" onclick="demoLogin('investor')">Demo: investor</button>
+      <button class="btn ghost small" onclick="demoLogin('company')">Demo: company</button>
+      <button class="btn ghost small" onclick="demoLogin('admin')">Demo: admin</button>
+    </div>
+    <p class="auth-note">No account? <a href="#/signup">Sign up</a>. We onboard investors resident in Estonia and companies registered in an EU member state.</p>
+    <p class="auth-note">Equity24.io does not provide investment advice. No authority has approved any offer on this platform.</p>
+  </div></div>${proofPanel(null)}</div>`;
+}
+function demoLogin(role) {
+  state.role = role;
+  state.userName = role === 'admin' ? 'Compliance Admin' : role === 'company' ? 'Marten Tamm' : 'Demo Investor';
+  persist(); nav(home()); toast('Logged in — simulated session');
+}
+function avatarInner() {
+  return state.avatar ? `<img class="avatar-img" src="${state.avatar}" alt="">` : initials(state.userName);
+}
+function proofPanel(typeKey) {
+  const t = ACCOUNT_TYPES[typeKey];
+  const rows = t
+    ? t.facts.map(f => `<div class="r"><span class="k">${f[0]}</span><span class="v">${f[1]}</span></div>`).join('')
+    : [['Investor fees','EUR 0'],['Minimum investment','EUR 100'],['Reflection period','4 calendar days'],['Issuer bar','3+ years trading']]
+        .map(f => `<div class="r"><span class="k">${f[0]}</span><span class="v">${f[1]}</span></div>`).join('');
+  return `<div class="auth-proof">
+    <span class="microlabel">${t ? t.label + ' — WHAT APPLIES TO YOU' : 'PLATFORM PARAMETERS'}</span>
+    <div class="proof-kv">${rows}</div>
+    <p class="proof-note">AureviaFund OÜ has applied for authorisation as a crowdfunding service provider under Regulation (EU) 2020/1503. Signing up creates an account only — no investments can be made before authorisation is granted.</p>
+    <span class="microlabel">AUTHORISATION PENDING · FINANTSINSPEKTSIOON</span>
+  </div>`;
+}
+const G_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 11v3.2h5.4c-.2 1.4-1.6 4.1-5.4 4.1-3.3 0-6-2.7-6-6s2.7-6 6-6c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.7 3.7 14.6 2.8 12 2.8 6.9 2.8 2.8 6.9 2.8 12S6.9 21.2 12 21.2c5.3 0 8.8-3.7 8.8-8.9 0-.6-.1-1-.1-1.3H12z"/></svg>';
+const L_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.9 8.4H3.6V21h3.3V8.4zM5.2 3A1.9 1.9 0 105.2 6.8 1.9 1.9 0 005.2 3zM20.4 21h-3.3v-6.1c0-1.5-.5-2.5-1.8-2.5-1 0-1.6.7-1.9 1.3-.1.2-.1.6-.1.9V21H10s.1-11.4 0-12.6h3.3v1.8c.4-.7 1.2-1.7 3.1-1.7 2.3 0 4 1.5 4 4.7V21z"/></svg>';
+
+function viewSignup() {
+  const s = state.signupStep;
+  const dots = [1,2,3].map(i => `<span class="${i <= s ? 'on' : ''}"></span>`).join('');
+  let body = '';
+  if (s === 1) {
+    body = `<h2>What best describes you?</h2>
+      <p class="sub">Choose your primary role. You can switch views later from your profile.</p>
+      ${Object.keys(ACCOUNT_TYPES).map(k => {
+        const t = ACCOUNT_TYPES[k];
+        return `<button class="role-card" onclick="pickType('${k}')">
+          <span class="rc-glyph">${t.glyph}</span>
+          <span class="rc-body"><span class="rc-t">${t.title}</span><span class="rc-d">${t.desc}</span></span>
+          <span class="rc-arr">→</span></button>`;
+      }).join('')}
+      <p class="auth-note">We onboard private investors resident in Estonia, and corporate investors and companies registered in an EU member state.</p>`;
+  } else if (s === 2) {
+    const t = ACCOUNT_TYPES[state.accountType];
+    body = `<h2>Register your account</h2>
+      <p class="sub">Continuing as <b>${t.title.replace("I'm a ", "").replace('I want to ', '')}</b> · <a href="javascript:backToType()">change</a></p>
+      <button class="oauth-btn" onclick="sgNext()">${G_SVG} Continue with Google</button>
+      <button class="oauth-btn" onclick="sgNext()">${L_SVG} Continue with LinkedIn</button>
+      <div class="divider-or"><span>OR</span></div>
+      <div class="field-row">
+        <label class="f"><span class="microlabel">FIRST NAME</span><input class="field" id="sgFirst" placeholder="Mari"></label>
+        <label class="f"><span class="microlabel">LAST NAME</span><input class="field" id="sgLast" placeholder="Maasikas"></label>
+      </div>
+      ${state.accountType !== 'private' ? `<label class="f"><span class="microlabel">COMPANY</span><input class="field" id="sgCompany" placeholder="Company OÜ"></label>` : ''}
+      <label class="f"><span class="microlabel">EMAIL</span><input class="field" id="sgEmail" type="email" placeholder="you@company.eu"></label>
+      <label class="f"><span class="microlabel">PASSWORD</span><input class="field" type="password" placeholder="At least 12 characters"></label>
+      <label class="checkline"><input type="checkbox" id="sgTerms"> I agree to the Terms of Use and the Privacy Notice.</label>
+      <button class="btn solid" style="width:100%" onclick="sgNext()">Create account</button>
+      <p class="auth-note">Already have an account? <a href="#/login">Log in</a></p>`;
+  } else {
+    body = `<h2>Verify your identity</h2>
+      <p class="sub">Required before investing — a social login alone cannot satisfy identity verification.</p>
+      <div class="kyc-panel">
+        <div class="kyc-row">
+          <div>
+            <div style="font-weight:600; font-size:14.5px">Document &amp; liveness check</div>
+            <div style="font-size:12.5px; color:var(--ink-muted)">Provider: Didit · takes about 2 minutes</div>
+          </div>
+          <button class="btn solid" id="kycStart" onclick="startKyc()">Start verification</button>
+        </div>
+        <p class="kyc-hint" id="kycHint">Your ID document and a selfie are checked by our verification provider. Equity24.io stores the decision, not your document images.</p>
+      </div>
+      <p style="font-size:13px; color:var(--ink-muted)">Before your first investment you also take a short knowledge test and a simulation of your ability to bear a loss of 10% of your net worth. If the test suggests the service may not be appropriate for you, we show a warning and you may still proceed — but <b>investing stays blocked until identity verification, the knowledge test and the loss simulation are all complete and valid</b>.</p>
+      <button class="btn ghost" style="width:100%" onclick="sgFinish()">Do this later — browse the platform</button>`;
+  }
+  return `<div class="auth-split">
+    <div class="auth-left"><div class="auth-inner">
+      <div class="steps-dots">${dots}</div>${body}
+    </div></div>
+    ${proofPanel(s === 1 ? null : state.accountType)}
+  </div>`;
+}
+/* =============== KYC (Didit) — all provider calls go through our server =============== */
+async function startKyc() {
+  const btn = document.getElementById('kycStart');
+  const hint = document.getElementById('kycHint');
+  if (btn) { btn.disabled = true; btn.textContent = 'Starting…'; }
+  try {
+    const res = await fetch('/api/kyc/session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_id: state.profile.email || state.userName,
+        account_type: state.accountType,
+        kind: state.accountType === 'raise' ? 'business' : 'user',
+        email: state.profile.email,
+        language: 'en',
+        // KYB pre-fill — shortens the applicant's journey at Didit
+        company_name: state.application ? state.application.company : state.profile.company,
+        registry_code: state.application ? state.application.registry : '',
+        country: state.profile.country
+      })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Verification could not be started');
+    state.kyc = { session_id: data.session_id, status: data.status || 'Not Started', started: '2026-08-06',
+      kind: data.kind || (state.accountType === 'raise' ? 'business' : 'user') };
+    persist();
+    if (hint) hint.textContent = 'Session ' + data.session_id.slice(0, 8) + '… created. Complete the check in the window that opened, then return here.';
+    window.open(data.url, '_blank', 'noopener');
+    if (btn) { btn.disabled = false; btn.textContent = 'Check status'; btn.setAttribute('onclick', 'pollKyc()'); }
+    toast('Verification session created');
+  } catch (e) {
+    if (btn) { btn.disabled = false; btn.textContent = 'Start verification'; }
+    if (hint) hint.textContent = e.message + ' — the KYC service must be running (node kyc-service/server.js) and DIDIT_WORKFLOW_ID set.';
+    toast('Could not start verification');
+  }
+}
+async function pollKyc() {
+  if (!state.kyc || !state.kyc.session_id) return;
+  try {
+    const res = await fetch('/api/kyc/session/' + state.kyc.session_id);
+    const data = await res.json();
+    if (res.ok) {
+      state.kyc.status = data.status; persist(); render();
+      toast('Verification status: ' + data.status);
+    }
+  } catch { toast('Status check failed'); }
+}
+function kycTagClass(st) {
+  if (st === 'Approved') return 'ok';
+  if (st === 'Declined' || st === 'Expired' || st === 'Kyc Expired') return 'warn';
+  return '';
+}
+
+function pickType(k) { state.accountType = k; state.signupStep = 2; persist(); render(); }
+function backToType() { state.signupStep = 1; render(); }
+function sgNext() { state.signupStep = Math.min(3, state.signupStep + 1); render(); }
+function sgFinish() {
+  const f = document.getElementById('sgFirst'), l = document.getElementById('sgLast'),
+        e = document.getElementById('sgEmail'), c = document.getElementById('sgCompany');
+  if (f && f.value) state.userName = (f.value + ' ' + (l && l.value ? l.value : '')).trim();
+  else if (state.userName === 'Demo Investor' && state.accountType === 'raise') state.userName = 'Marten Tamm';
+  if (e && e.value) state.profile.email = e.value;
+  if (c && c.value) state.profile.company = c.value;
+  state.role = state.accountType === 'raise' ? 'company' : 'investor';
+  state.signupStep = 1; persist(); nav(home()); toast('Account created — simulated');
+}
+
+function goVerify() { nav(state.role === 'company' ? 'company/verify' : 'app/verify'); }
+function verifyBadge() {
+  const st = state.kyc && state.kyc.status;
+  if (st === 'Approved') return '';
+  if (st) return '·';
+  return '!';
+}
+
+/* =============== VERIFICATION =============== */
+function viewVerify() {
+  const isCompany = state.role === 'company';
+  const nav_ = isCompany ? companyNav('company/verify') : investorNav('app/verify');
+  const st = state.kyc && state.kyc.status;
+  const done = st === 'Approved';
+  const steps = isCompany
+    ? [['Company identity', 'Registry extract and legal form confirmed against the national business register'],
+       ['Representative', 'The person acting for the company is identified and their authority checked'],
+       ['Beneficial owners', 'Owners above the disclosure threshold are identified and screened'],
+       ['Sanctions and PEP screening', 'Company, representatives and owners screened at onboarding and daily thereafter']]
+    : [['Identity document', 'Passport, national ID or residence permit — checked for authenticity'],
+       ['Liveness and face match', 'A short selfie check confirms the document belongs to you'],
+       ['Residency', 'Confirms you are resident in Estonia, our onboarding scope at launch'],
+       ['Sanctions and PEP screening', 'Screened at onboarding and daily thereafter']];
+  return shell(nav_, `
+    <div class="page-head"><h2>${isCompany ? 'Company verification (KYB)' : 'Identity verification (KYC)'}</h2>
+      <span class="sub">${isCompany ? 'Required before your application can pass screening — an offer cannot be published without it.' : 'Required before your first investment.'}</span></div>
+
+    <div class="kyc-panel" style="margin-bottom:16px;">
+      <div class="kyc-row">
+        <div>
+          <span class="microlabel">STATUS</span>
+          <div style="margin-top:7px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+            <span class="tag ${kycTagClass(st)}">${st ? st.toUpperCase() : 'NOT STARTED'}</span>
+            ${state.kyc ? `<span class="mono" style="font-size:11.5px; color:var(--ink-muted)">session ${state.kyc.session_id.slice(0, 8)}… · started ${state.kyc.started}</span>` : ''}
+          </div>
+        </div>
+        <div style="display:flex; gap:8px;">
+          ${state.kyc ? `<button class="btn ghost" onclick="pollKyc()">Refresh status</button>` : ''}
+          <button class="btn ${done ? 'ghost' : 'solid'}" id="kycStart" onclick="startKyc()">${state.kyc ? 'Start again' : 'Start verification'}</button>
+        </div>
+      </div>
+      <p class="kyc-hint" id="kycHint">${isCompany
+        ? 'Company verification is handled by our provider, Didit. You will be asked for the registry extract and ownership documents, and the people who represent or own the company complete a linked identity check. Equity24.io stores the decision and its timestamp — not your documents.'
+        : 'Verification is handled by our provider, Didit. It takes about two minutes on a phone or laptop with a camera. Equity24.io stores the decision and its timestamp — not your document images.'}</p>
+    </div>
+
+    <div class="grid g2">
+      <div class="card">
+        <span class="microlabel">WHAT IS CHECKED</span>
+        <div class="kv" style="margin-top:10px">
+          ${steps.map(x => `<div class="r"><span class="k" style="max-width:60%">${x[0]}</span><span class="v" style="font-family:var(--font-sans); color:var(--ink-muted); text-align:right; max-width:55%">${x[1]}</span></div>`).join('')}
+        </div>
+      </div>
+      <div class="card">
+        <span class="microlabel">${isCompany ? 'BEFORE YOUR OFFER OPENS' : 'BEFORE YOU CAN INVEST'}</span>
+        <div class="kv" style="margin-top:10px">
+          <div class="r"><span class="k">${isCompany ? 'Company verification' : 'Identity verification'}</span><span class="v"><span class="tag ${kycTagClass(st)}">${st ? st.toUpperCase() : 'NOT STARTED'}</span></span></div>
+          ${isCompany
+            ? `<div class="r"><span class="k">Admission criteria review</span><span class="v"><span class="tag">PENDING</span></span></div>
+               <div class="r"><span class="k">KIIS completeness check</span><span class="v"><span class="tag">PENDING</span></span></div>`
+            : `<div class="r"><span class="k">Knowledge test</span><span class="v"><span class="tag">NOT TAKEN</span></span></div>
+               <div class="r"><span class="k">Loss-bearing simulation</span><span class="v"><span class="tag">NOT TAKEN</span></span></div>`}
+        </div>
+        <p style="font-size:12.5px; color:var(--ink-muted); margin:14px 0 0;">
+          ${isCompany
+            ? 'All three must be complete before an offer can be published. Nothing here commits you to raising.'
+            : 'All three must be complete and valid before an investment can be made. The knowledge test is valid for 2 years and the simulation for 1 year; investing is blocked once either expires.'}
+        </p>
+      </div>
+    </div>
+
+    <p style="font-size:12.5px; color:var(--ink); margin-top:16px; border-left:2px solid var(--hairline); padding-left:12px; max-width:70ch;">
+      Equity24.io does not provide investment advice, and no offer on this platform is approved by any authority.
+      Verification data is processed by Didit as our processor; see the privacy notice.
+    </p>`);
+}
+
+/* =============== PROFILE =============== */
+function viewProfile() {
+  const t = ACCOUNT_TYPES[state.accountType];
+  const nav_ = state.role === 'company' ? companyNav('company/profile')
+    : state.role === 'admin' ? adminNav('admin/profile') : investorNav('app/profile');
+  return shell(nav_, `
+    <div class="page-head"><h2>Profile</h2><span class="sub">Your account type decides which views and rules apply to you.</span></div>
+    <div class="card" style="margin-bottom:16px;">
+      <div class="prof-head">
+        <span class="avatar-xl">${state.avatar ? `<img src="${state.avatar}" alt="">` : initials(state.userName)}</span>
+        <div style="flex:1; min-width:180px;">
+          <h3 style="font-size:19px">${state.userName}</h3>
+          <div style="margin-top:7px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+            <span class="type-chip"><span class="d"></span>${t.label}</span>
+            <span class="tag">${state.profile.email}</span>
+          </div>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <span class="btn ghost small file-btn">Change photo<input type="file" accept="image/*" onchange="uploadAvatar(event)"></span>
+          ${state.avatar ? `<button class="btn ghost small" onclick="clearAvatar()">Remove</button>` : ''}
+        </div>
+      </div>
+    </div>
+
+    <div class="grid g2">
+      <div class="card">
+        <span class="microlabel">ACCOUNT TYPE</span>
+        <p style="font-size:13px; color:var(--ink-muted); margin:8px 0 14px;">Switching type changes your onboarding requirements and which app you see.</p>
+        ${Object.keys(ACCOUNT_TYPES).map(k => {
+          const a = ACCOUNT_TYPES[k];
+          return `<button class="role-card" style="${k === state.accountType ? 'border-color:var(--accent)' : ''}" onclick="changeType('${k}')">
+            <span class="rc-glyph">${a.glyph}</span>
+            <span class="rc-body"><span class="rc-t">${a.title}</span><span class="rc-d">${a.desc}</span></span>
+            <span class="rc-arr">${k === state.accountType ? '✓' : '→'}</span></button>`;
+        }).join('')}
+      </div>
+      <div class="card">
+        <span class="microlabel">DETAILS</span>
+        <div style="margin-top:12px">
+          <label class="f"><span class="microlabel">FULL NAME</span><input class="field" id="pfName" value="${state.userName}"></label>
+          <label class="f"><span class="microlabel">EMAIL</span><input class="field" id="pfEmail" value="${state.profile.email}"></label>
+          ${state.accountType !== 'private' ? `<label class="f"><span class="microlabel">COMPANY</span><input class="field" id="pfCompany" value="${state.profile.company || ''}" placeholder="Company OÜ"></label>` : ''}
+          <label class="f"><span class="microlabel">COUNTRY</span><input class="field" id="pfCountry" value="${state.profile.country || ''}"></label>
+          <button class="btn solid" onclick="saveProfile()">Save changes</button>
+        </div>
+        <div class="kyc-panel" style="margin-top:18px">
+          <div class="kyc-row">
+            <div>
+              <span class="microlabel">IDENTITY VERIFICATION · DIDIT</span>
+              <div class="kyc-status" style="margin-top:6px">
+                <span class="tag ${kycTagClass(state.kyc && state.kyc.status)}">${state.kyc ? state.kyc.status : 'NOT STARTED'}</span>
+              </div>
+            </div>
+            <button class="btn ${state.kyc && state.kyc.status === 'Approved' ? 'ghost' : 'solid'} small"
+              onclick="goVerify()">Open verification</button>
+          </div>
+          <p class="kyc-hint" id="kycHint">${state.kyc ? 'Session ' + state.kyc.session_id.slice(0, 8) + '… · started ' + state.kyc.started : 'Required before your first investment. Equity24.io stores the decision, not your document images.'}</p>
+        </div>
+        <div class="kv" style="margin-top:14px">
+          <div class="r"><span class="k">Knowledge test</span><span class="v">${state.accountType === 'raise' ? 'n/a' : 'valid to 2028-08'}</span></div>
+          <div class="r"><span class="k">Member since</span><span class="v">2026-08-06</span></div>
+        </div>
+      </div>
+    </div>`);
+}
+function uploadAvatar(ev) {
+  const file = ev.target.files && ev.target.files[0];
+  if (!file) return;
+  const rd = new FileReader();
+  rd.onload = function () {
+    const img = new Image();
+    img.onload = function () {
+      const c = document.createElement('canvas'), S = 240;
+      c.width = S; c.height = S;
+      const ctx = c.getContext('2d');
+      const side = Math.min(img.width, img.height);
+      ctx.drawImage(img, (img.width - side) / 2, (img.height - side) / 2, side, side, 0, 0, S, S);
+      state.avatar = c.toDataURL('image/jpeg', 0.82);
+      persist(); render(); toast('Photo updated');
+    };
+    img.src = rd.result;
+  };
+  rd.readAsDataURL(file);
+}
+function clearAvatar() { state.avatar = null; persist(); render(); toast('Photo removed'); }
+function changeType(k) {
+  state.accountType = k;
+  state.role = k === 'raise' ? 'company' : 'investor';
+  persist(); nav(k === 'raise' ? 'company/profile' : 'app/profile');
+  toast('Account type changed to ' + ACCOUNT_TYPES[k].label.toLowerCase());
+}
+function saveProfile() {
+  const n = document.getElementById('pfName'), e = document.getElementById('pfEmail'),
+        c = document.getElementById('pfCompany'), co = document.getElementById('pfCountry');
+  if (n && n.value.trim()) state.userName = n.value.trim();
+  if (e) state.profile.email = e.value;
+  if (c) state.profile.company = c.value;
+  if (co) state.profile.country = co.value;
+  persist(); render(); toast('Profile saved');
+}
+
+/* =============== TERMS GATE — first screen after sign-in =============== */
+function viewTerms() {
+  return `<div class="terms-wrap"><div class="terms-card">
+    <div class="terms-brand">
+      <span class="terms-mark">E24</span>
+      <div><h2>Equity24.io</h2><span class="microlabel">EQUITY24.IO · AUTHORISATION PENDING</span></div>
+    </div>
+    <p class="lede">Before you can access Equity24.io, please review and accept our terms.</p>
+    <label class="terms-check">
+      <input type="checkbox" id="tcBox" onchange="document.getElementById('tcGo').disabled = !this.checked">
+      <span>I accept the <a href="javascript:toast('Prototype: investor terms of use (T2) open here.')">terms of use</a>
+      and the <a href="javascript:toast('Prototype: privacy notice opens here.')">privacy notice</a>, and I understand that
+      Equity24.io does not provide investment advice and that no offer on this platform is approved by any authority.</span>
+    </label>
+    <div class="terms-foot">
+      <span class="terms-stamp">YOUR ACCEPTANCE IS RECORDED WITH A TIMESTAMP</span>
+      <button class="btn solid" id="tcGo" disabled onclick="acceptTerms()">Continue</button>
+    </div>
+  </div></div>`;
+}
+function acceptTerms() {
+  state.terms = { version: '1.0', accepted_at: '2026-08-06 11:42 EET' };
+  persist(); nav(home()); toast('Terms accepted — recorded');
+}
+
+/* =============== INVESTOR VIEWS =============== */
+function offerCard(p) {
+  const pct = Math.round(p.committed / p.min * 100);
+  const w = Math.min(100, Math.round(p.committed / p.max * 100));
+  const tick = Math.round(p.min / p.max * 100);
+  return `<div class="card">
+    <div style="display:flex; justify-content:space-between; gap:8px; margin-bottom:8px;">
+      <span class="tag acc">OPEN · CLOSES ${p.closes}</span><span class="tag">${p.sector}</span>
+    </div>
+    <h3 style="font-size:16.5px">${p.name}</h3>
+    <div style="font-size:13px; color:var(--ink-muted); margin:2px 0 10px;">${p.desc} · ${p.city}</div>
+    <div class="kv">
+      <div class="r"><span class="k">Target</span><span class="v">${p.target}</span></div>
+      <div class="r"><span class="k">Equity offered</span><span class="v">${p.equity}</span></div>
+      <div class="r"><span class="k">Revenue (FY2025)</span><span class="v">${p.revenue}</span></div>
+    </div>
+    <div style="margin:12px 0 6px;" class="meter"><span style="width:${w}%"></span><i style="left:${tick}%"></i></div>
+    <div class="mono" style="font-size:11.5px; color:var(--ink-muted); margin-bottom:12px;">${eur(p.committed)} committed · ${pct}% of minimum</div>
+    <div style="display:flex; gap:8px;">
+      <button class="btn solid small" onclick="nav('app/project/${p.id}')">View offer</button>
+      <button class="btn ghost small" onclick="nav('app/project/${p.id}')">KIIS (PDF)</button>
+    </div>
+  </div>`;
+}
+function viewDashboard() {
+  const refl = state.commitments.filter(c => c.status === 'REFLECTION');
+  return shell(investorNav('app/dashboard'), `
+    <div class="page-head"><h2>Dashboard</h2><span class="sub">Welcome back, ${state.userName}</span></div>
+    <div class="grid g3" style="margin-bottom:16px;">
+      <div class="card stat"><span class="microlabel">HOLDINGS · VIA NOMINEE</span><span class="big">1 company</span><span class="microlabel" style="display:block;margin-top:4px">31 SHARES</span></div>
+      <div class="card stat"><span class="microlabel">ACTIVE COMMITMENTS</span><span class="big">${state.commitments.filter(c=>c.status==='REFLECTION').length}</span></div>
+      <div class="card stat"><span class="microlabel">COMMUNITIES JOINED</span><span class="big">${state.joined.size}</span></div>
+    </div>
+    ${refl.length ? `<div class="card" style="margin-bottom:16px;">
+      <span class="microlabel">REFLECTION PERIOD — YOU CAN STILL WITHDRAW, FREE, NO REASON NEEDED</span>
+      ${refl.map(c => `<div class="kv"><div class="r">
+        <span class="k">${PROJECTS[c.p].name} · ${eur(c.amount)} · committed ${c.date}</span>
+        <span class="v">ends ${c.reflectEnds} · <a href="javascript:withdraw('${c.p}')">Withdraw</a></span></div></div>`).join('')}
+    </div>` : ''}
+    <div class="page-head" style="margin-top:8px;"><h2 style="font-size:17px">Open offers</h2></div>
+    <div class="grid g3" style="margin-bottom:26px;">${Object.values(PROJECTS).map(offerCard).join('')}</div>
+    <div class="page-head"><h2 style="font-size:17px">Resources</h2></div>
+    <div class="grid g3">
+      <div class="res-card"><h4>What does the nominee structure mean for me?</h4>
+        <p>How AureviaFund OÜ holds shares on your behalf, and which rights pass through to you.</p>
+        <a class="btn ghost small" style="align-self:flex-start" href="javascript:toast('Prototype: knowledge-base article opens here.')">Learn more ↗</a></div>
+      <div class="res-card"><h4>How to read a KIIS</h4>
+        <p>The Key Investment Information Sheet section by section — and which parts matter most.</p>
+        <a class="btn ghost small" style="align-self:flex-start" href="javascript:toast('Prototype: knowledge-base article opens here.')">Learn more ↗</a></div>
+      <div class="res-card"><h4>Your 4 calendar days to withdraw</h4>
+        <p>How to withdraw a commitment, what happens to your money, and when the right ends.</p>
+        <a class="btn ghost small" style="align-self:flex-start" href="javascript:toast('Prototype: knowledge-base article opens here.')">Learn more ↗</a></div>
+    </div>`);
+}
+function withdraw(pid) {
+  state.commitments = state.commitments.filter(c => !(c.p === pid && c.status === 'REFLECTION'));
+  persist(); render(); toast('Commitment withdrawn. Funds are returned within 5 business days.');
+}
+function viewOffers() {
+  return shell(investorNav('app/offers'), `
+    <div class="page-head"><h2>Open offers</h2><span class="sub">All listed companies are EU-registered technology businesses. Read the KIIS before investing.</span></div>
+    <div class="grid g3">${Object.values(PROJECTS).map(offerCard).join('')}</div>`);
+}
+function viewProject(pid) {
+  const p = PROJECTS[pid]; if (!p) return viewOffers();
+  const joined = state.joined.has(pid);
+  const mem = MEMBERS[pid];
+  const w = Math.min(100, Math.round(p.committed / p.max * 100));
+  const tick = Math.round(p.min / p.max * 100);
+  return shell(investorNav('app/offers'), `
+    <div class="proj-head">
+      <div class="proj-title">
+        <div style="display:flex; gap:8px; margin-bottom:6px;"><span class="tag acc">OPEN · CLOSES ${p.closes}</span><span class="tag">${p.sector}</span><span class="tag">${p.city}</span></div>
+        <h2>${p.name}</h2>
+        <div class="meta">${p.desc}</div>
+      </div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn solid" onclick="nav('app/invest/${p.id}')">Invest from EUR 100</button>
+        <button class="btn ghost" onclick="toast('Prototype: KIIS PDF opens here (ET/EN).')">KIIS (PDF, ET/EN)</button>
+      </div>
+    </div>
+
+    <div class="grid g2" style="margin-top:20px;">
+      <div class="card">
+        <span class="microlabel">OFFER TERMS</span>
+        <div class="kv" style="margin-top:8px;">
+          <div class="r"><span class="k">Target (min–max)</span><span class="v">${eur(p.min)} – ${eur(p.max)}</span></div>
+          <div class="r"><span class="k">Equity offered</span><span class="v">${p.equity}</span></div>
+          <div class="r"><span class="k">Pre-money valuation</span><span class="v">${p.premoney}</span></div>
+          <div class="r"><span class="k">Instrument</span><span class="v">${p.instrument}</span></div>
+          <div class="r"><span class="k">Revenue (FY2025)</span><span class="v">${p.revenue}</span></div>
+          <div class="r"><span class="k">Lead investor</span><span class="v">${p.lead}</span></div>
+        </div>
+        <div style="margin:14px 0 6px;" class="meter"><span style="width:${w}%"></span><i style="left:${tick}%"></i></div>
+        <div class="mono" style="font-size:11.5px; color:var(--ink-muted);">${eur(p.committed)} committed · ${Math.round(p.committed/p.min*100)}% of minimum · ${p.investors} investors</div>
+        <p style="font-size:12px; color:var(--ink-muted); margin:12px 0 0;">A 4-calendar-day reflection period applies to every commitment by a non-sophisticated investor. <b>You are not entered on the company's shareholder list</b> — AureviaFund OÜ holds the shares in its own name and for your account, and the nominee structure is mandatory. The structure, your rights and the residual insolvency risk are set out in the KIIS.</p>
+      </div>
+
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:6px;">
+          <span class="microlabel">PROJECT COMMUNITY</span>
+          <span class="tag">${mem.length + (joined ? 1 : 0)} MEMBERS</span>
+        </div>
+        <h3 style="font-size:15.5px; margin-bottom:6px;">${p.name} — community channel</h3>
+        <p style="font-size:13px; color:var(--ink-muted); margin:0 0 12px;">Ask the founders questions, follow company updates and meet the other investors. The channel appears under <b>Messages</b> once you join.</p>
+        <div style="display:flex; gap:8px; align-items:center; margin-bottom:12px;">
+          ${joined
+            ? `<button class="btn ghost" onclick="leaveCommunity('${pid}')">Leave community</button>
+               <button class="btn solid" onclick="openChannel('${pid}')">Open channel →</button>`
+            : `<button class="btn solid" onclick="joinCommunity('${pid}')">Join community</button>`}
+        </div>
+        <span class="microlabel">PEOPLE IN THIS COMMUNITY</span>
+        <div style="margin-top:8px; display:flex; flex-direction:column;">
+          ${mem.slice(0, 6).map(m => `<div class="mem"><span class="avatar muted">${initials(m.n)}</span>${m.n}<span class="r tag ${m.r === 'FOUNDER' ? 'acc' : ''}">${m.r}</span></div>`).join('')}
+          ${mem.length > 6 ? `<div class="mem" style="color:var(--ink-muted)">+ ${mem.length - 6} more — full list in the channel</div>` : ''}
+        </div>
+        <p style="font-size:11.5px; color:var(--ink-muted); margin:10px 0 0;">Community posts are user content, not investment advice. Project-owner statements must be consistent with the KIIS (art 27).</p>
+      </div>
+    </div>`);
+}
+function joinCommunity(pid) {
+  state.joined.add(pid); state.chan = pid; persist(); render();
+  toast('Joined ' + PROJECTS[pid].name + ' community — see Messages');
+}
+function leaveCommunity(pid) {
+  state.joined.delete(pid); if (state.chan === pid) state.chan = 'support';
+  persist(); render(); toast('Left the community');
+}
+function openChannel(pid) { state.chan = pid; persist(); nav('app/messages'); }
+
+function viewMessages() {
+  const chans = [...state.joined];
+  const cur = state.chan !== 'support' && state.joined.has(state.chan) ? state.chan : (state.chan === 'support' ? 'support' : (chans[0] || 'support'));
+  state.chan = cur;
+  const chanList = `
+    <div class="chan-col">
+      <span class="microlabel" style="display:block; padding:2px 10px 8px;">COMMUNITIES</span>
+      ${chans.length ? chans.map(id => `
+        <div class="chan ${cur === id ? 'on' : ''}" onclick="state.chan='${id}';persist();render()">
+          <span class="avatar muted">${initials(PROJECTS[id].name)}</span>${PROJECTS[id].name.replace(' OÜ','')}
+          <span class="cnt">${MEMBERS[id].length + 1}</span></div>`).join('')
+        : '<div style="padding:4px 10px; font-size:12.5px; color:var(--ink-muted)">No communities yet — join one from a project page.</div>'}
+      <span class="microlabel" style="display:block; padding:14px 10px 8px;">PLATFORM</span>
+      <div class="chan ${cur === 'support' ? 'on' : ''}" onclick="state.chan='support';persist();render()">
+        <span class="avatar">E24</span>Equity24.io support</div>
+    </div>`;
+  let feed, members = '', head, pin = '';
+  if (cur === 'support') {
+    head = 'Equity24.io support';
+    feed = `<div class="msg"><span class="avatar">E24</span><div class="body">
+      <div class="who-line"><b>Equity24.io</b><span class="t">2026-08-06 09:00</span></div>
+      <p>Welcome to the prototype. Questions about how the platform works are answered here on business days. We never give investment advice and never ask you to transfer money outside the platform.</p></div></div>`;
+  } else {
+    const p = PROJECTS[cur];
+    head = p.name + ' — community';
+    pin = `<div class="chat-pin">Pinned: community posts are user content, not investment advice. Project-owner statements must be consistent with the KIIS. Report concerns to info@equity24.io.</div>`;
+    feed = (state.msgs[cur] || []).map(m => `
+      <div class="msg"><span class="avatar ${m.r === 'FOUNDER' ? '' : 'muted'}">${initials(m.who)}</span><div class="body">
+        <div class="who-line"><b>${m.who}</b> <span class="tag ${m.r === 'FOUNDER' ? 'acc' : ''}" style="font-size:9px">${m.r}</span><span class="t">${m.t}</span></div>
+        <p>${m.txt}</p></div></div>`).join('');
+    members = `<div class="mem-col">
+      <span class="microlabel" style="display:block; padding:2px 4px 8px;">MEMBERS · ${MEMBERS[cur].length + 1}</span>
+      ${MEMBERS[cur].map(m => `<div class="mem"><span class="avatar ${m.r==='FOUNDER'?'':'muted'}">${initials(m.n)}</span>${m.n}<span class="r tag ${m.r === 'FOUNDER' ? 'acc' : ''}" style="font-size:9px">${m.r}</span></div>`).join('')}
+      <div class="mem"><span class="avatar">${initials(state.userName)}</span>${state.userName}<span class="r tag" style="font-size:9px">YOU</span></div>
+    </div>`;
+  }
+  return shell(investorNav('app/messages'), `
+    <div class="page-head"><h2>Messages</h2><span class="sub">Every project you join has its community channel here.</span></div>
+    <div class="msg-shell">
+      ${chanList}
+      <div class="chat-col">
+        <div class="chat-head"><span class="who">${head}</span></div>
+        ${pin}
+        <div class="chat-feed" id="feed">${feed}</div>
+        <div class="chat-input">
+          <input class="field" id="msgInput" placeholder="${cur === 'support' ? 'Write to support…' : 'Message the community…'}"
+            onkeydown="if(event.key==='Enter')sendMsg('${cur}')">
+          <button class="btn solid" onclick="sendMsg('${cur}')">Send</button>
+        </div>
+      </div>
+      ${members}
+    </div>`);
+}
+function sendMsg(chan) {
+  const inp = document.getElementById('msgInput');
+  const v = (inp.value || '').trim(); if (!v) return;
+  if (chan === 'support') { toast('Prototype: support messages are not stored.'); inp.value = ''; return; }
+  (state.msgs[chan] = state.msgs[chan] || []).push({ who: state.userName, r: 'INVESTOR', t: '2026-08-06 · now', txt: v.replace(/</g, '&lt;') });
+  persist(); render();
+  requestAnimationFrame(() => { const f = document.getElementById('feed'); if (f) f.scrollTop = f.scrollHeight; });
+}
+function viewPortfolio() {
+  return shell(investorNav('app/portfolio'), `
+    <div class="page-head"><h2>Portfolio</h2><span class="sub">Holdings via the nominee — AureviaFund OÜ. Beneficial holder: you.</span></div>
+    <div class="tbl-wrap"><table class="list">
+      <thead><tr><th>Company</th><th>Shares</th><th>Recorded</th><th>Status</th></tr></thead>
+      <tbody>
+        ${state.holdings.map(h => `<tr><td>${PROJECTS[h.p].name}</td><td class="mono">${h.shares}</td>
+          <td class="mono">Aureviafund nominee register</td><td><span class="tag ok">SETTLED</span></td></tr>`).join('')}
+        ${state.commitments.filter(c => c.status === 'REFLECTION').map(c => `<tr>
+          <td>${PROJECTS[c.p].name}</td><td class="mono">${eur(c.amount)} committed</td>
+          <td class="mono">reflection ends ${c.reflectEnds}</td>
+          <td><span class="tag warn">REFLECTION</span> <button class="btn ghost small" onclick="withdraw('${c.p}')">Withdraw</button></td></tr>`).join('')}
+      </tbody></table></div>
+    <p style="font-size:12.5px; color:var(--ink-muted); margin-top:14px;">No value estimates are shown: unlisted shares have no market price. The recorded facts are your share count and the nominee register entry. Your entitlement is a claim against us recorded in our nominee register, not an entry on the company's shareholder list — see the KIIS for the structure and its risks.</p>`);
+}
+function viewBoard() {
+  return shell(investorNav('app/board'), `
+    <div class="page-head"><h2>Bulletin board</h2><span class="sub">Post buying or selling interest and view interest from other investors. Not an exchange: no matching, no execution, no platform pricing.</span></div>
+    <div class="grid g2">
+      <div class="card">
+        <span class="microlabel">POST A NOTICE</span>
+        <label class="f" style="margin-top:10px;"><span class="microlabel">SIDE</span>
+          <select class="field"><option>Selling</option><option>Buying</option></select></label>
+        <label class="f"><span class="microlabel">COMPANY</span>
+          <select class="field">${Object.values(PROJECTS).map(p => `<option>${p.name}</option>`).join('')}</select></label>
+        <label class="f"><span class="microlabel">SHARES · OPTIONAL INDICATED PRICE</span>
+          <input class="field" placeholder="e.g. 10 000 shares at EUR 13.10 — or price open to discussion"></label>
+        <button class="btn solid" onclick="toast('Prototype: notice posted for review.')">Post notice</button>
+      </div>
+      <div class="card">
+        <span class="microlabel">LIVE NOTICES · ILLUSTRATIVE</span>
+        <div class="kv" style="margin-top:8px;">
+          <div class="r"><span class="k">SELLING · Laine Metrics OÜ · 10 000 shares at EUR 13.10</span><span class="v"><a href="javascript:toast('Prototype: contact request sent via platform.')">Contact</a></span></div>
+          <div class="r"><span class="k">BUYING · Laine Metrics OÜ · up to 15 000 shares</span><span class="v"><a href="javascript:toast('Prototype: contact request sent via platform.')">Contact</a></span></div>
+          <div class="r"><span class="k">SELLING · Sõnum Relay OÜ · 2 500 shares · price open</span><span class="v"><a href="javascript:toast('Prototype: contact request sent via platform.')">Contact</a></span></div>
+        </div>
+        <p style="font-size:12px; color:var(--ink-muted); margin:12px 0 0;">Any price is the poster's own non-binding indication and may not reflect achievable value; a counterparty may not exist when you want to sell. Equity24.io does not match interests, execute transactions or set prices — the parties agree between themselves, and we record an agreed transfer in the nominee register once both instruct us.</p>
+      </div>
+    </div>`);
+}
+
+/* =============== COMPANY VIEWS =============== */
+function viewCoOverview() {
+  const p = PROJECTS.laine;
+  return shell(companyNav('company/overview'), `
+    <div class="page-head"><h2>${p.name}</h2><span class="sub">Company account · offer ${p.status} · closes ${p.closes}</span></div>
+    ${state.kyc && state.kyc.status === 'Approved' ? '' : `<div class="apply-hero" style="border-color:var(--risk-border); background:var(--risk-bg);">
+      <div class="txt">
+        <h3 style="color:var(--risk-ink)">Company verification required</h3>
+        <p style="color:var(--risk-ink)">Your company must complete KYB verification before an application can pass screening. It takes a few minutes and nothing is published until it is done.</p>
+      </div>
+      <button class="btn solid" onclick="goVerify()">Verify the company</button>
+    </div>`}
+    ${state.application ? '' : `<div class="apply-hero">
+      <div class="txt">
+        <h3>Raise on Equity24.io</h3>
+        <p>Applying is free and takes three steps. The EUR 1 000 listing fee is charged only if we accept you.</p>
+      </div>
+      <button class="btn solid big" onclick="nav('company/apply')">Submit application</button>
+    </div>`}
+    <div class="grid g3" style="margin-bottom:16px;">
+      <div class="card stat"><span class="microlabel">COMMITTED</span><span class="big">${eur(p.committed)}</span></div>
+      <div class="card stat"><span class="microlabel">INVESTORS</span><span class="big">${p.investors}</span></div>
+      <div class="card stat"><span class="microlabel">COMMUNITY MEMBERS</span><span class="big">${MEMBERS.laine.length + (state.joined.has('laine') ? 1 : 0)}</span></div>
+    </div>
+    <div class="card">
+      <span class="microlabel">RAISE PROGRESS</span>
+      <div style="margin:12px 0 6px;" class="meter"><span style="width:${Math.min(100, Math.round(p.committed/p.max*100))}%"></span><i style="left:${Math.round(p.min/p.max*100)}%"></i></div>
+      <div class="mono" style="font-size:11.5px; color:var(--ink-muted);">${eur(p.committed)} of ${eur(p.max)} maximum · minimum ${eur(p.min)} · 96% of minimum reached</div>
+      <p style="font-size:12.5px; color:var(--ink-muted); margin:12px 0 0;">Funds are released only after the offer succeeds and all reflection periods have ended (segregated PSP account). Your cap table gains one line: AureviaFund OÜ.</p>
+    </div>`);
+}
+function viewCoRaise() {
+  const p = PROJECTS.laine;
+  return shell(companyNav('company/raise'), `
+    <div class="page-head"><h2>My raise</h2><span class="sub">Offer terms are locked while the offer is live — changes require a KIIS supplement.</span></div>
+    <div class="card"><div class="kv">
+      <div class="r"><span class="k">Target (min–max)</span><span class="v">${eur(p.min)} – ${eur(p.max)}</span></div>
+      <div class="r"><span class="k">Equity offered</span><span class="v">${p.equity}</span></div>
+      <div class="r"><span class="k">Pre-money valuation</span><span class="v">${p.premoney}</span></div>
+      <div class="r"><span class="k">KIIS version</span><span class="v">v1.2 · completeness check passed 2026-07-28</span></div>
+      <div class="r"><span class="k">Listing fee</span><span class="v">EUR 1 000 · paid</span></div>
+      <div class="r"><span class="k">Success fee on completion</span><span class="v">6% of funds raised</span></div>
+    </div></div>`);
+}
+function viewCoCommunity() {
+  return shell(companyNav('company/community'), `
+    <div class="page-head"><h2>My community</h2><span class="sub">Your channel is public to platform investors who join it.</span></div>
+    <div class="grid g2">
+      <div class="card">
+        <span class="microlabel">MEMBERS · ${MEMBERS.laine.length + (state.joined.has('laine') ? 1 : 0)}</span>
+        <div style="margin-top:8px;">
+          ${MEMBERS.laine.map(m => `<div class="mem"><span class="avatar ${m.r==='FOUNDER'?'':'muted'}">${initials(m.n)}</span>${m.n}<span class="r tag ${m.r==='FOUNDER'?'acc':''}">${m.r}</span></div>`).join('')}
+        </div>
+      </div>
+      <div class="card">
+        <span class="microlabel">FOUNDER POSTING RULES · ART 27</span>
+        <ul style="font-size:13px; color:var(--ink-muted); padding-left:18px; margin:10px 0 14px; display:flex; flex-direction:column; gap:8px;">
+          <li>Every statement about the offer must be consistent with the KIIS — no new claims, no projections.</li>
+          <li>No urgency mechanics: no "last chance", no countdowns.</li>
+          <li>Answer questions with facts and sources; link the KIIS section rather than paraphrasing terms.</li>
+          <li>Compliance reviews flagged posts; violations can suspend the offer.</li>
+        </ul>
+        <button class="btn solid" onclick="toast('Prototype: post composer with compliance pre-check opens here.')">Post an update</button>
+      </div>
+    </div>`);
+}
+function viewCoDocs() {
+  return shell(companyNav('company/documents'), `
+    <div class="page-head"><h2>Documents</h2></div>
+    <div class="tbl-wrap"><table class="list">
+      <thead><tr><th>Document</th><th>Version</th><th>Status</th><th>Date</th></tr></thead>
+      <tbody>
+        <tr><td>Key Investment Information Sheet (ET)</td><td class="mono">v1.2</td><td><span class="tag ok">COMPLETENESS CHECK PASSED</span></td><td class="mono">2026-07-28</td></tr>
+        <tr><td>Key Investment Information Sheet (EN)</td><td class="mono">v1.2</td><td><span class="tag ok">COMPLETENESS CHECK PASSED</span></td><td class="mono">2026-07-28</td></tr>
+        <tr><td>Articles of association (registered)</td><td class="mono">2026-06-30</td><td><span class="tag ok">ON FILE</span></td><td class="mono">2026-06-30</td></tr>
+        <tr><td>Annual report FY2025</td><td class="mono">filed</td><td><span class="tag ok">ON FILE</span></td><td class="mono">2026-05-12</td></tr>
+      </tbody></table></div>`);
+}
+
+/* =============== INVESTMENT FLOW =============== */
+function viewInvest(pid) {
+  const p = PROJECTS[pid]; if (!p) return viewOffers();
+  const amt = state.invest && state.invest.amount ? state.invest.amount : 500;
+  const method = state.invest && state.invest.method ? state.invest.method : null;
+  // art 21(7): warning above the greater of EUR 1 000 or 5% of declared net worth
+  const netWorth = 40000, threshold = Math.max(1000, netWorth * 0.05);
+  const overThreshold = amt > threshold;
+  return shell(investorNav('app/offers'), `
+    <div class="page-head"><h2>Invest in ${p.name}</h2>
+      <span class="sub">Read the KIIS before you commit. Equity24.io does not give investment advice.</span></div>
+
+    <div class="grid g2">
+      <div>
+        <div class="card" style="margin-bottom:14px;">
+          <span class="microlabel">1 · AMOUNT</span>
+          <div style="display:flex; gap:10px; align-items:flex-end; margin-top:10px; flex-wrap:wrap;">
+            <label class="f" style="flex:1; min-width:180px; margin:0;">
+              <span class="microlabel">EUR — MINIMUM 100</span>
+              <input class="field mono" id="invAmt" value="${amt}" inputmode="numeric" onchange="setInvestAmount(this.value)">
+            </label>
+            <button class="btn ghost small" onclick="setInvestAmount(500)">500</button>
+            <button class="btn ghost small" onclick="setInvestAmount(1000)">1 000</button>
+            <button class="btn ghost small" onclick="setInvestAmount(2500)">2 500</button>
+          </div>
+          <p style="font-size:12.5px; color:var(--ink-muted); margin:12px 0 0;">
+            Your declared net worth is <span class="mono">EUR 40 000</span>. The warning threshold for you is
+            <span class="mono">EUR ${threshold.toLocaleString('en-US').replace(/,/g, ' ')}</span> — the greater of EUR 1 000 or 5% of net worth.</p>
+        </div>
+
+        ${overThreshold ? `<div class="gate">
+          <b>This investment is above your warning threshold.</b>
+          You are committing <span class="mono">EUR ${amt.toLocaleString('en-US').replace(/,/g, ' ')}</span>, which exceeds the greater of EUR 1 000 or 5% of your declared net worth.
+          You may lose all of it. These shares cannot easily be sold, and you should not invest more than 10% of your net worth in crowdfunding projects across all platforms.
+          <label><input type="checkbox" id="invAck"> I understand this investment exceeds the threshold and I want to proceed anyway.</label>
+        </div>` : ''}
+
+        <div class="card">
+          <span class="microlabel">2 · HOW YOU PAY</span>
+          <p style="font-size:12.5px; color:var(--ink-muted); margin:8px 0 14px;">
+            Money never reaches Equity24.io. It goes to a segregated client account operated by our licensed payment service provider and is released only if the offer closes successfully.</p>
+          <button class="pay-opt ${method === 'sepa' ? 'on' : ''}" onclick="setInvestMethod('sepa')">
+            <span class="mark">SEPA</span>
+            <span class="b"><span class="t">Bank transfer</span>
+              <span class="d">You receive the segregated client account details and a payment reference. Funds usually arrive the next business day.</span>
+              <span class="meta">NO FEE · EUR 100 – 5 000 000 · 1 BUSINESS DAY</span></span>
+          </button>
+          <button class="pay-opt ${method === 'stripe' ? 'on' : ''}" onclick="setInvestMethod('stripe')">
+            <span class="mark">CARD</span>
+            <span class="b"><span class="t">Card payment via Stripe</span>
+              <span class="d">Instant confirmation. Handled by Stripe Payments Europe as the payment service provider; Equity24.io never sees your card details.</span>
+              <span class="meta">NO FEE TO YOU · UP TO EUR 10 000 · INSTANT</span></span>
+          </button>
+          <p style="font-size:12px; color:var(--ink-muted); margin:6px 0 0;">
+            Investors pay EUR 0 either way — payment costs are borne by Equity24.io. Never transfer money to a project owner directly; we will never ask you to.</p>
+        </div>
+      </div>
+
+      <div>
+        <div class="card" style="margin-bottom:14px;">
+          <span class="microlabel">SUMMARY</span>
+          <div class="kv" style="margin-top:10px">
+            <div class="r"><span class="k">Company</span><span class="v">${p.name}</span></div>
+            <div class="r"><span class="k">Your commitment</span><span class="v">EUR ${amt.toLocaleString('en-US').replace(/,/g, ' ')}</span></div>
+            <div class="r"><span class="k">Payment method</span><span class="v">${method === 'sepa' ? 'Bank transfer' : method === 'stripe' ? 'Card via Stripe' : '—'}</span></div>
+            <div class="r"><span class="k">Fee to you</span><span class="v">EUR 0</span></div>
+            <div class="r"><span class="k">Held by</span><span class="v">Segregated client account</span></div>
+            <div class="r"><span class="k">Registered to</span><span class="v">us as nominee, for your account</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <span class="microlabel">3 · WHAT HAPPENS AFTER YOU COMMIT</span>
+          <div class="pipe" style="margin-top:8px">
+            <div class="pipe-row now"><span class="pipe-dot">01</span><div><div class="pipe-t">4 calendar days to withdraw</div>
+              <div class="pipe-d">You can cancel with one click, without giving a reason and at no cost. Your money is not released during this time.</div></div></div>
+            <div class="pipe-row"><span class="pipe-dot">02</span><div><div class="pipe-t">Offer closes</div>
+              <div class="pipe-d">If the minimum is not reached, everything is returned in full, with no deduction.</div></div></div>
+            <div class="pipe-row"><span class="pipe-dot">03</span><div><div class="pipe-t">Nominee entry recorded</div>
+              <div class="pipe-d">We are entered as shareholder (as nominee) and your holding is recorded in its nominee register.</div></div></div>
+          </div>
+          <button class="btn solid big" style="width:100%; margin-top:16px;" onclick="confirmInvest('${pid}')">
+            Commit EUR ${amt.toLocaleString('en-US').replace(/,/g, ' ')}</button>
+          <p style="font-size:12px; color:var(--ink); margin:12px 0 0;">
+            Committing starts your 4-day reflection period. It does not transfer money yet.</p>
+        </div>
+      </div>
+    </div>`);
+}
+function setInvestAmount(v) {
+  const n = Math.max(100, parseInt(String(v).replace(/[^0-9]/g, ''), 10) || 100);
+  state.invest = Object.assign({}, state.invest, { amount: n }); render();
+}
+function setInvestMethod(m) { state.invest = Object.assign({}, state.invest, { method: m }); render(); }
+function confirmInvest(pid) {
+  const inv = state.invest || {};
+  if (!inv.method) return toast('Choose how you want to pay');
+  const ack = document.getElementById('invAck');
+  if (ack && !ack.checked) return toast('Please confirm you understand the threshold warning');
+  state.commitments.push({ p: pid, amount: inv.amount || 500, date: '2026-08-06', reflectEnds: '2026-08-10', status: 'REFLECTION' });
+  state.invest = null; persist(); nav('app/portfolio');
+  toast(inv.method === 'stripe' ? 'Committed — card payment via Stripe' : 'Committed — bank transfer details sent');
+}
+
+/* =============== APPLICATION =============== */
+const APPLY_STAGES = [
+  ['Application submitted', 'Your details and documents are with us. You can still withdraw at any point before the offer opens.', 'YOU'],
+  ['Eligibility screening', 'We check the published admission criteria: EU-registered technology company, 3+ years trading, EUR 0.5–3M revenue, and the excluded-sector list.', 'EQUITY24.IO'],
+  ['Due diligence', 'Criminal-record and jurisdiction checks on the company, its board and beneficial owners; financial, business and instrument review. We decline applications that do not pass.', 'EQUITY24.IO'],
+  ['KIIS preparation', 'You prepare the Key Investment Information Sheet. It is your document and your responsibility — we provide the template and written guidance, and we do not write it for you.', 'YOU'],
+  ['KIIS completeness check', 'Two reviewers independently check the sheet for completeness, correctness and clarity. Findings come back to you until they are resolved.', 'EQUITY24.IO'],
+  ['Offer opens', 'Terms are locked, the offer is published and investors can commit. Changes after this point require a supplement.', 'BOTH'],
+  ['Settlement', 'On a successful close, funds are released from the segregated payment account and the nominee entry is registered. The 6% success fee applies here.', 'EQUITY24.IO']
+];
+function viewCoApply() {
+  const app = state.application;
+  if (!app) return shell(companyNav('company/apply'), applyForm());
+  const idx = app.stage;
+  return shell(companyNav('company/apply'), `
+    <div class="page-head"><h2>Application</h2>
+      <span class="sub">${app.company || 'Your company'} · submitted ${app.submitted_at}</span></div>
+    <div class="apply-hero">
+      <div class="txt">
+        <h3>Application received</h3>
+        <p>Reference <span class="mono">${app.ref}</span>. We respond to every applicant, including when we decline. Nothing is published while the application is in review.</p>
+      </div>
+      <span class="tag acc">${APPLY_STAGES[idx][0].toUpperCase()}</span>
+    </div>
+    <div class="card">
+      <span class="microlabel">WHAT HAPPENS NEXT</span>
+      <div class="pipe" style="margin-top:10px">
+        ${APPLY_STAGES.map((st, i) => `
+          <div class="pipe-row ${i < idx ? 'done' : i === idx ? 'now' : ''}">
+            <span class="pipe-dot">${i < idx ? '✓' : String(i + 1).padStart(2, '0')}</span>
+            <div><div class="pipe-t">${st[0]}</div><div class="pipe-d">${st[1]}</div>
+              ${i === 1 ? `<div style="margin-top:8px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                <span class="tag ${kycTagClass(state.kyc && state.kyc.status)}">COMPANY VERIFICATION: ${state.kyc && state.kyc.status ? state.kyc.status.toUpperCase() : 'NOT STARTED'}</span>
+                ${state.kyc && state.kyc.status === 'Approved' ? '' : `<button class="btn solid small" onclick="goVerify()">Verify the company</button>`}
+              </div>` : ''}
+            </div>
+            <span class="pipe-who">${st[2]}</span>
+          </div>`).join('')}
+      </div>
+      <div style="display:flex; gap:8px; margin-top:18px; flex-wrap:wrap;">
+        <button class="btn ghost small" onclick="advanceApp()">Simulate next stage</button>
+        <button class="btn ghost small" onclick="withdrawApp()">Withdraw application</button>
+      </div>
+    </div>
+    <p style="font-size:12.5px; color:var(--ink); margin-top:16px; border-left:2px solid var(--hairline); padding-left:12px; max-width:72ch;">
+      Listing fee EUR 1 000 on acceptance · 6% success fee on funds raised · EUR 500 per year for 3 years post-closing reporting administration.
+      Nothing beyond the listing fee is charged if the round does not close. Acceptance is not a recommendation of your company to investors,
+      and no offer on this platform is approved by any authority.
+    </p>`);
+}
+function applyForm() {
+  const st = state.applyStep;
+  const dots = [1,2,3].map(i => `<span class="${i <= st ? 'on' : ''}"></span>`).join('');
+  let body;
+  if (st === 1) body = `
+    <span class="microlabel">STEP 1 OF 3 · COMPANY</span>
+    <h3 style="font-size:18px; margin:6px 0 14px;">Tell us about the company</h3>
+    <div class="field-row">
+      <label class="f"><span class="microlabel">LEGAL NAME</span><input class="field" id="apName" placeholder="Company OÜ"></label>
+      <label class="f"><span class="microlabel">REGISTRY CODE</span><input class="field" id="apReg" placeholder="16xxxxxx"></label>
+    </div>
+    <div class="field-row">
+      <label class="f"><span class="microlabel">COUNTRY OF REGISTRATION</span><input class="field" value="Estonia" id="apCountry"></label>
+      <label class="f"><span class="microlabel">SECTOR</span>
+        <select class="field" id="apSector"><option>SaaS</option><option>AI</option><option>Fintech</option><option>Internet</option><option>Digital platform</option></select></label>
+    </div>
+    <label class="f"><span class="microlabel">WEBSITE</span><input class="field" id="apWeb" placeholder="company.eu"></label>
+    <button class="btn solid" onclick="applyNext()">Continue</button>`;
+  else if (st === 2) body = `
+    <span class="microlabel">STEP 2 OF 3 · ELIGIBILITY</span>
+    <h3 style="font-size:18px; margin:6px 0 6px;">Do you meet the admission criteria?</h3>
+    <p style="font-size:13px; color:var(--ink-muted); margin:0 0 14px;">These are published criteria, not preferences. An application that fails any of them is declined.</p>
+    <div class="kv" style="margin-bottom:14px">
+      <div class="r"><span class="k">Registered in an EU member state</span><span class="v"><input type="checkbox" checked style="accent-color:var(--accent)"></span></div>
+      <div class="r"><span class="k">3+ years of trading history</span><span class="v"><input type="checkbox" style="accent-color:var(--accent)"></span></div>
+      <div class="r"><span class="k">Annual revenue EUR 0.5–3M</span><span class="v"><input type="checkbox" style="accent-color:var(--accent)"></span></div>
+      <div class="r"><span class="k">Annual reports filed</span><span class="v"><input type="checkbox" style="accent-color:var(--accent)"></span></div>
+      <div class="r"><span class="k">Not in an excluded sector</span><span class="v"><input type="checkbox" style="accent-color:var(--accent)"></span></div>
+    </div>
+    <button class="btn solid" onclick="applyNext()">Continue</button>`;
+  else body = `
+    <span class="microlabel">STEP 3 OF 3 · RAISE</span>
+    <h3 style="font-size:18px; margin:6px 0 14px;">What are you raising?</h3>
+    <div class="field-row">
+      <label class="f"><span class="microlabel">TARGET (EUR 100 000 – 5 000 000)</span><input class="field" id="apTarget" placeholder="200 000"></label>
+      <label class="f"><span class="microlabel">EQUITY OFFERED</span><input class="field" id="apEquity" placeholder="6.1%"></label>
+    </div>
+    <label class="f"><span class="microlabel">PRE-MONEY VALUATION AND HOW YOU SET IT</span>
+      <textarea class="field" rows="3" placeholder="EUR 3.3M — basis for the figure"></textarea></label>
+    <p style="font-size:12.5px; color:var(--ink); border-left:2px solid var(--hairline); padding-left:12px; margin:0 0 16px;">
+      The valuation is yours and is not verified or endorsed by Equity24.io. You will state its basis in the KIIS.</p>
+    <button class="btn solid big" onclick="submitApp()">Submit application</button>`;
+  return `
+    <div class="page-head"><h2>Raise on Equity24.io</h2><span class="sub">Applying is free. The EUR 1 000 listing fee is charged only if we accept you.</span></div>
+    <div class="apply-hero">
+      <div class="txt">
+        <h3>Start your application</h3>
+        <p>Three short steps, then a documented review. We decline most applications — the criteria are published and applied consistently.</p>
+      </div>
+      <button class="btn solid big" onclick="nav('company/apply')">Submit application</button>
+    </div>
+    <div class="card" style="max-width:720px;">
+      <div class="steps-dots">${dots}</div>
+      ${body}
+    </div>`;
+}
+function applyNext() { state.applyStep = Math.min(3, state.applyStep + 1); render(); }
+function submitApp() {
+  const g = id => { const e = document.getElementById(id); return e && e.value ? e.value : ''; };
+  state.application = {
+    ref: 'APP-2026-0184',
+    company: g('apName') || 'Company A OÜ',
+    registry: g('apReg') || '16xxxxxx',
+    country: g('apCountry') || 'Estonia',
+    submitted_at: '2026-08-06',
+    stage: 1
+  };
+  state.applyStep = 1; persist(); render();
+  toast('Application submitted — reference APP-2026-0184');
+}
+function advanceApp() {
+  if (!state.application) return;
+  const kybOk = state.kyc && state.kyc.status === 'Approved';
+  if (state.application.stage === 1 && !kybOk) {
+    toast('Company verification must be approved before screening can complete');
+    return goVerify();
+  }
+  state.application.stage = Math.min(APPLY_STAGES.length - 1, state.application.stage + 1);
+  persist(); render(); toast('Stage: ' + APPLY_STAGES[state.application.stage][0]);
+}
+function withdrawApp() { state.application = null; state.applyStep = 1; persist(); render(); toast('Application withdrawn'); }
+
+/* =============== ADMIN VIEWS =============== */
+function viewAdPipeline() {
+  return shell(adminNav('admin/pipeline'), `
+    <div class="page-head"><h2>Offer pipeline</h2><span class="sub">Four-eyes approval required at every gate.</span></div>
+    <div class="tbl-wrap"><table class="list">
+      <thead><tr><th>Company</th><th>Stage</th><th>KIIS</th><th>Committed</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td>Laine Metrics OÜ</td><td><span class="tag acc">LIVE</span></td><td class="mono">v1.2 · check passed</td><td class="mono">EUR 287 500</td>
+          <td><button class="btn ghost small" onclick="toast('Prototype: suspension requires compliance officer + board member (four-eyes).')">Suspend</button></td></tr>
+        <tr><td>Kratt Compliance OÜ</td><td><span class="tag acc">LIVE</span></td><td class="mono">v1.0 · check passed</td><td class="mono">EUR 214 000</td>
+          <td><button class="btn ghost small" onclick="toast('Prototype: suspension requires four-eyes.')">Suspend</button></td></tr>
+        <tr><td>Sõnum Relay OÜ</td><td><span class="tag acc">LIVE</span></td><td class="mono">v1.1 · check passed</td><td class="mono">EUR 158 000</td>
+          <td><button class="btn ghost small" onclick="toast('Prototype: suspension requires four-eyes.')">Suspend</button></td></tr>
+        <tr><td>Vektor Analytics OÜ</td><td><span class="tag warn">KIIS REVIEW</span></td><td class="mono">v0.3 — 2 material findings</td><td class="mono">—</td>
+          <td><button class="btn solid small" onclick="toast('Prototype: second reviewer sign-off required before approval.')">Review</button></td></tr>
+        <tr><td>Klaar Pay OÜ</td><td><span class="tag">SCREENING</span></td><td class="mono">—</td><td class="mono">—</td>
+          <td><button class="btn ghost small" onclick="toast('Prototype: due-diligence checklist opens here.')">Open file</button></td></tr>
+      </tbody></table></div>`);
+}
+function viewAdUsers() {
+  return shell(adminNav('admin/users'), `
+    <div class="page-head"><h2>Users · KYC</h2><span class="sub">Onboarding: investors resident in Estonia · companies registered in an EU member state. Verification decisions arrive from Didit by signed webhook.</span></div>
+    <div class="kyc-panel" style="margin-bottom:14px;">
+      <div class="kyc-row">
+        <div><span class="microlabel">LIVE KYC SESSIONS</span>
+          <div style="font-size:13px; color:var(--ink-muted); margin-top:4px;" id="kycAdminLine">Loading from the KYC service…</div></div>
+        <button class="btn ghost small" onclick="loadKycSessions()">Refresh</button>
+      </div>
+      <div id="kycAdminList" style="margin-top:10px;"></div>
+    </div>
+    <div class="tbl-wrap"><table class="list">
+      <thead><tr><th>User</th><th>Type</th><th>Residency / registry</th><th>e-ID</th><th>Test</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>Demo Investor</td><td>Investor</td><td class="mono">EE resident</td><td class="mono">SMART-ID</td><td><span class="tag ok">PASSED</span></td><td><span class="tag ok">ACTIVE</span></td></tr>
+        <tr><td>Priit Kask</td><td>Investor</td><td class="mono">EE resident</td><td class="mono">ID-CARD</td><td><span class="tag ok">PASSED</span></td><td><span class="tag ok">ACTIVE</span></td></tr>
+        <tr><td>Liis Rebane</td><td>Investor</td><td class="mono">EE resident</td><td class="mono">MOBIIL-ID</td><td><span class="tag warn">EXPIRES 2026-09</span></td><td><span class="tag ok">ACTIVE</span></td></tr>
+        <tr><td>Northshore Metrics OÜ</td><td>Company</td><td class="mono">EE · rg 16871220</td><td class="mono">eIDAS</td><td class="mono">n/a</td><td><span class="tag warn">KYB PENDING</span></td></tr>
+        <tr><td>J. Novak</td><td>Investor</td><td class="mono">CZ resident</td><td class="mono">eIDAS</td><td class="mono">—</td><td><span class="tag">DECLINED · OUTSIDE ONBOARDING SCOPE</span></td></tr>
+      </tbody></table></div>`);
+}
+async function loadKycSessions() {
+  const line = document.getElementById('kycAdminLine');
+  const list = document.getElementById('kycAdminList');
+  try {
+    const res = await fetch('/api/kyc/sessions');
+    const d = await res.json();
+    const n = (d.sessions || []).length;
+    if (line) line.textContent = n + ' session' + (n === 1 ? '' : 's') + ' on record · ' + (d.events || []).length + ' webhook events';
+    if (list) list.innerHTML = n
+      ? '<div class="kv">' + d.sessions.slice(0, 8).map(x =>
+          `<div class="r"><span class="k">${x.user_id || '—'} · ${x.session_id.slice(0, 8)}…</span><span class="v"><span class="tag ${kycTagClass(x.status)}">${x.status}</span></span></div>`).join('') + '</div>'
+      : '<div style="font-size:12.5px; color:var(--ink-muted)">No sessions yet.</div>';
+  } catch {
+    if (line) line.textContent = 'KYC service not reachable — run: node kyc-service/server.js';
+  }
+}
+
+function viewAdCommunities() {
+  return shell(adminNav('admin/communities'), `
+    <div class="page-head"><h2>Communities</h2><span class="sub">Each live offer has one channel. Compliance monitors for art 27 breaches.</span></div>
+    <div class="tbl-wrap"><table class="list">
+      <thead><tr><th>Channel</th><th>Members</th><th>Messages · 7d</th><th>Flags</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td>Laine Metrics OÜ</td><td class="mono">${MEMBERS.laine.length + (state.joined.has('laine') ? 1 : 0)}</td><td class="mono">${(state.msgs.laine||[]).length}</td><td><span class="tag ok">0</span></td>
+          <td><button class="btn ghost small" onclick="toast('Prototype: moderation view opens here.')">Moderate</button></td></tr>
+        <tr><td>Kratt Compliance OÜ</td><td class="mono">${MEMBERS.kratt.length + (state.joined.has('kratt') ? 1 : 0)}</td><td class="mono">${(state.msgs.kratt||[]).length}</td><td><span class="tag ok">0</span></td>
+          <td><button class="btn ghost small" onclick="toast('Prototype: moderation view opens here.')">Moderate</button></td></tr>
+        <tr><td>Sõnum Relay OÜ</td><td class="mono">${MEMBERS.sonum.length + (state.joined.has('sonum') ? 1 : 0)}</td><td class="mono">${(state.msgs.sonum||[]).length}</td><td><span class="tag warn">1 · RETURN CLAIM</span></td>
+          <td><button class="btn solid small" onclick="toast('Prototype: flagged post — founder implied a projected return; art 27 review queue.')">Review flag</button></td></tr>
+      </tbody></table></div>`);
+}
+function viewAdRegisters() {
+  return shell(adminNav('admin/registers'), `
+    <div class="page-head"><h2>Registers</h2><span class="sub">Append-only; exportable for Finantsinspektsioon on request.</span></div>
+    <div class="grid g2">
+      <div class="card"><span class="microlabel">COMPLAINTS · FREE OF CHARGE</span>
+        <div class="kv" style="margin-top:8px;">
+          <div class="r"><span class="k">2026-014 · payout timing question</span><span class="v"><span class="tag ok">CLOSED · 6 BD</span></span></div>
+          <div class="r"><span class="k">2026-015 · KIIS clarity (C-part)</span><span class="v"><span class="tag warn">OPEN · DAY 4/15</span></span></div>
+        </div></div>
+      <div class="card"><span class="microlabel">MARKETING APPROVALS</span>
+        <div class="kv" style="margin-top:8px;">
+          <div class="r"><span class="k">Newsletter #12 — platform level</span><span class="v"><span class="tag ok">APPROVED</span></span></div>
+          <div class="r"><span class="k">Company A founder post 2026-08-04</span><span class="v"><span class="tag ok">APPROVED</span></span></div>
+          <div class="r"><span class="k">Company C community post (flagged)</span><span class="v"><span class="tag warn">IN REVIEW</span></span></div>
+        </div></div>
+    </div>`);
+}
+
+/* =============== RENDER =============== */
+function render() {
+  document.getElementById('topRight').innerHTML = topRight();
+  const r = route();
+  let html;
+  if (state.role === 'guest' && r[0] !== 'signup') html = viewLogin();
+  else if (r[0] === 'login') html = viewLogin();
+  else if (r[0] === 'signup') html = viewSignup();
+  else if (!state.terms) html = viewTerms();
+  else if (r[0] === 'app') {
+    const v = r[1] || 'dashboard';
+    if (v === 'project') html = viewProject(r[2]);
+    else if (v === 'invest') html = viewInvest(r[2]);
+    else html = ({ dashboard: viewDashboard, offers: viewOffers, messages: viewMessages, portfolio: viewPortfolio, board: viewBoard, profile: viewProfile, verify: viewVerify }[v] || viewDashboard)();
+  }
+  else if (r[0] === 'company') html = ({ overview: viewCoOverview, raise: viewCoRaise, community: viewCoCommunity, documents: viewCoDocs, profile: viewProfile, verify: viewVerify, apply: viewCoApply }[r[1]] || viewCoOverview)();
+  else if (r[0] === 'admin') html = ({ pipeline: viewAdPipeline, users: viewAdUsers, communities: viewAdCommunities, registers: viewAdRegisters, profile: viewProfile }[r[1]] || viewAdPipeline)();
+  else html = viewLogin();
+  document.getElementById('app').innerHTML = html;
+  const f = document.getElementById('feed'); if (f) f.scrollTop = f.scrollHeight;
+  if (document.getElementById('kycAdminList')) loadKycSessions();
+}
+render();
+</script>

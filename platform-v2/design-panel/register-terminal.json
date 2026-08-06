@@ -1,0 +1,135 @@
+{
+ "concept_name": "Register Terminal",
+ "thesis": "Osalus is styled as a precision instrument, not a storefront: a dark-first, hairline-gridded terminal where every number is monospace, tabular, and traceable to a document. The bet is that serious tech investors — and international founders choosing an EU gateway — trust what looks like it computes: register extracts instead of lifestyle photography, dated facts instead of countdowns, and regulatory furniture rendered as the system status line of the instrument itself. Where Invesdor buries EU 2020/1503 text in fine print, the Terminal makes the risk warning the most permanent element on screen — compliance as a credibility asset. Springvest proved the declarative sector headline (\"Finnish tech. Direct access.\") works; we take that confidence and add the register-grade evidence layer under it.",
+ "palette": [
+  {
+   "token": "--bg",
+   "light": "#F7F7F2",
+   "dark": "#0B0D0C",
+   "use": "page background; paper-white in light, near-black with a faint pine undertone in dark (never pure #000)"
+  },
+  {
+   "token": "--surface",
+   "light": "#FFFFFF",
+   "dark": "#111514",
+   "use": "cards, panels, nav backdrop (nav at 88% opacity + backdrop-blur 12px)"
+  },
+  {
+   "token": "--surface-raised",
+   "light": "#EFF1EA",
+   "dark": "#1A201D",
+   "use": "table header rows, hover lift, code/extract panels, chips"
+  },
+  {
+   "token": "--ink",
+   "light": "#17211B",
+   "dark": "#E9EDE9",
+   "use": "primary text, display headings"
+  },
+  {
+   "token": "--ink-muted",
+   "light": "#59655E",
+   "dark": "#98A39C",
+   "use": "secondary text, labels, closed-state cards; never used for risk or disclosure copy"
+  },
+  {
+   "token": "--hairline",
+   "light": "#DFE2D8",
+   "dark": "#262E29",
+   "use": "all borders and rules, always 1px; section dividers are full-bleed hairlines"
+  },
+  {
+   "token": "--accent",
+   "light": "#0E5138",
+   "dark": "#43C389",
+   "use": "single accent: CTAs, open-status LED, progress meters, focused hairlines, links; pine heritage in light, calm phosphor-green in dark"
+  },
+  {
+   "token": "--on-accent",
+   "light": "#FFFFFF",
+   "dark": "#08130D",
+   "use": "text/icons on accent-filled buttons"
+  },
+  {
+   "token": "--risk-bg",
+   "light": "#FBF1D6",
+   "dark": "#221B0B",
+   "use": "persistent risk status line and fraud-warning notice backgrounds only"
+  },
+  {
+   "token": "--risk-ink",
+   "light": "#5F4A0E",
+   "dark": "#F2D588",
+   "use": "risk and fraud copy — measured for >=7:1 contrast against --risk-bg; never reduced in size or opacity"
+  }
+ ],
+ "typography": {
+  "display": "Inter / Inter Display self-hosted as WOFF2 if available; otherwise the pure system stack is the shipped default: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI Variable Display', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif. Weights 500–600 only (no 700+ shouting). H1 clamp(34px, 5vw, 56px), line-height 1.08, letter-spacing -0.015em. H2 28–32px/1.15 weight 550. H3 20px/1.3 weight 550. No runtime font CDNs anywhere.",
+  "body": "Same sans stack at 400 (450 if variable), 16px/1.6, max measure 68ch. Links underlined on hover only, accent color. All body numerals get font-variant-numeric: tabular-nums.",
+  "data": "THE SIGNATURE. ui-monospace, 'SF Mono', SFMono-Regular, 'Cascadia Mono', Menlo, Consolas, 'Liberation Mono', 'DejaVu Sans Mono', monospace — with font-variant-numeric: tabular-nums slashed-zero. Used for: every EUR figure, percentage, date, registry code, card data tables, parameter strip, bulletin-board rows, section indices, timestamps, and all micro-labels (11px, uppercase, letter-spacing 0.08em, --ink-muted). EUR amounts always formatted with thin-space thousands separators (EUR 450 000) and never abbreviated on cards. Percentages to one decimal (8.0%). Dates ISO-style: 2026-09-14. TradingView-verified pattern: right-aligned mono values in every key-value row so columns scan vertically.",
+  "scale_notes": "Type scale is deliberately narrow — 11 / 13 / 14 / 16 / 20 / 30 / 48px steps. Card data at 14px mono; disclosures at 14px minimum sans, full --ink contrast (never --ink-muted); risk status line at 14px minimum. Micro-labels 11px uppercase mono are the only sub-13px text and never carry legal content."
+ },
+ "layout": "12-column grid, 24px gutters, 8px base spacing unit. Content max-width 1200px; the offer grid alone may extend to 1320px. Sections are separated by full-bleed 1px --hairline rules (Bloomberg discipline), NOT by whitespace alone (anti-Linear choice, deliberate); vertical padding 96px desktop / 56px mobile inside each section. Every section opens with the Linear-stolen two-part header on the left rail: mono index + label (\"01 / OFFERS\", 11px uppercase mono, --ink-muted) above a sentence-case H2. Page order top to bottom: (1) sticky top nav with hairline bottom border; (2) hero, 2 columns 6/6 (stacks on mobile, panel second); (3) parameter strip — full-width hairline-boxed band; (4) Example offers — 3-card grid (1-col mobile, 2-col tablet); (5) How investing works — Invest/Raise tab pair, 5-step ledger; (6) Direct ownership comparison table; (7) EU gateway / e-Residency founder module; (8) Fees, in full — two panels; (9) Bulletin board teaser; (10) Status and supervision trust strip; (11) Waitlist CTA block with adjacent disclosures; (12) fraud-warning notice; (13) footer, 4 columns + legal band. Fixed to the viewport bottom at all times: the risk status line (body gets matching padding-bottom so nothing is occluded). Dark theme is the default; a mono sun/moon toggle sits in the nav right cluster; light theme is fully specified via the token pairs, not an afterthought.",
+ "hero": "Two columns. LEFT: kicker line in 11px uppercase mono, --ink-muted: \"REAL COMPANIES · REAL SHARES · FULLY DIGITAL\" (the fixed tagline as instrument label). H1 below in display 500: \"Equity in operating tech companies, registered in your name.\" Sub-paragraph (16px, max 60ch): \"Osalus lists ECSPR offers from technology companies with 3+ years of trading and EUR 0.5–3M annual revenue. Invest from EUR 100. Shares are entered directly in the Estonian Business Register — no nominees, no SPVs, no custody. Investor fees: EUR 0.\" CTA row: primary button \"Join the waitlist\" (accent fill, --on-accent text, 6px radius, no shadow) + ghost link \"How it works →\". Directly beneath, 14px full-contrast disclosure: \"Osalus Capital OÜ's crowdfunding service provider authorisation is pending with Finantsinspektsioon. No offers are live. Nothing on this page is investment advice, and no authority has approved any offer.\" RIGHT: the register-extract panel — a --surface panel with 1px hairline border, 8px radius, mono throughout. Titlebar row (hairline bottom border): \"E-ÄRIREGISTER · EXTRACT\" left, \"2026-08-01 14:32 EET\" right, both 11px mono muted. Body rows, 13px mono, hairline-separated: \"Company — LAINE METRICS OÜ\", \"Registry code — 16428309\", \"Share capital — EUR 25 000\", then a mini shareholder table (NAME / SHARES / HOLDING): \"M. Tamm — 1 250 — 2.4%\", \"K. Ilves — 900 — 1.7%\", and a final highlighted row with a 2px accent left border and --surface-raised fill: \"YOU — 400 — 0.8% — ENTRY CONFIRMED\" ending in a blinking block cursor (▮, 1s step blink, killed under prefers-reduced-motion). Caption under the panel, 13px muted mono: \"Illustration of a business register entry. Not a live extract.\" No photography, no illustration, no chart anywhere in the hero.",
+ "offering_card": "The centerpiece; reads as an instrument readout. Container: --surface, 1px --hairline border, 8px radius, no shadow; on hover the border transitions to accent at 40% opacity and background lifts to --surface-raised (150ms ease-out, no translate). Anatomy top to bottom: (1) STATUS ROW — left: status LED (6px dot) + mono label: Open = accent dot with gentle 2s opacity pulse + \"OPEN · CLOSES 2026-09-14\" (date, never a countdown); other states: \"FUNDED\" (solid accent dot, no pulse), \"CLOSED\" (muted dot, whole card at 60% ink), \"UPCOMING\" (hollow ring dot). Right: sector chip (11px mono uppercase in a hairline pill, e.g. \"SAAS\") + city (\"TALLINN\"). (2) IDENTITY — company name 18px sans 600; one-line factual descriptor 14px muted (\"Product analytics for industrial IoT operators\"). (3) DATA TABLE — the signature block: 6 key-value rows, 14px, keys in sans muted left, values right-aligned mono full-ink, 1px hairline between rows: Target / Equity offered / Pre-money valuation / Instrument / Price per share / Revenue (FY2025) — revenue is a historical audited fact and is the ONLY performance-adjacent number permitted; yield, IRR, multiple, or projected-return fields are structurally absent from the component (no empty slot, no template field). (4) PROGRESS — 4px meter track (--surface-raised) with accent fill showing committed vs MAXIMUM, plus a 1px vertical tick marking the minimum threshold; mono readout below: \"EUR 287 500 committed · 96% of EUR 300 000 minimum\". (5) FOOTER ROW — hairline top border: left \"KIIS (PDF, ET/EN)\" link with document glyph, 13px mono accent, always present; centre \"4-day reflection period\" 13px muted; right ghost button \"View offer\". (6) TIMESTAMP — 11px mono muted: \"Updated 2026-08-01 14:32 EET\". Pre-launch, the grid is headed by a full-contrast 14px notice: \"Illustrative examples of the offer format. No offers are live while authorisation is pending.\" and each card carries an \"ILLUSTRATIVE\" hairline chip in the status row. What makes it distinctive: mono/tabular alignment lets three cards side-by-side read as one comparable table; the minimum-threshold tick on the meter encodes ECSPR mechanics honestly; the KIIS link is furniture with equal rank to the CTA.",
+ "components": [
+  "PARAMETER STRIP (replaces the vanity stats banner — pre-authorisation we cannot claim platform totals): full-width band boxed by hairlines top and bottom, 4 equal cells separated by 1px vertical hairlines; each cell = big mono value 30px + 11px uppercase mono label. Cells: 'EUR 0 — investor fees, permanently', 'EUR 100 — minimum investment', '4 days — reflection period, calendar days', '3+ yrs — issuer trading history required'. Values tick from 0 to final over 600ms once on first intersection; static under reduced motion.",
+  "STEPS LEDGER (How investing works): two hairline tabs 'Invest' / 'Raise' (accent underline on active). Content = 5 rows styled as a terminal log: 40px mono index column (01–05), step title sans 550, one factual line, right-aligned mono annotation. Invest: 01 Verify — identity and appropriateness check (approx. 10 min); 02 Review — KIIS, financial statements, offer terms; 03 Commit — from EUR 100; 4-calendar-day reflection period applies; 04 Registration — shares entered in the Estonian Business Register in your name; 05 Hold — shareholder rights held directly; transfers are digital, notary-free. Raise: 01 Apply (EUR 1 000 listing fee); 02 Screening — 3+ years trading, EUR 0.5–3M revenue; 03 KIIS preparation; 04 Offer live — EUR 150–800k for 5–15% equity; 05 Settlement — 6% success fee on funds raised.",
+  "DIRECT OWNERSHIP COMPARISON TABLE: 3-column hairline table, header row on --surface-raised; column 1 dimension (sans), column 2 'Osalus' (mono values, accent 'Yes'), column 3 'Typical nominee / SPV structure' (mono, muted). Rows: Shares held in your own name — Yes / No, held by nominee; Entry in the state business register — Yes / Depends on structure; Custody or safekeeping fee — EUR 0 / Varies; Transfer of shares — Digital, notary-free / Via nominee paperwork; Voting and information rights — Direct / Passed through. Footnote 13px full-contrast: 'Comparison describes common structures on other platforms; check each provider's terms.'",
+  "FOUNDER MODULE (EU gateway, see tech_focus for copy): text route-diagram in mono 14px inside a hairline panel — 'NON-EU TECH COMPANY → ESTONIAN OÜ (e-Residency, registration 1–2 days) → ECSPR OFFER ON OSALUS → INVESTORS ACROSS THE EU' rendered as four hairline boxes joined by mono arrows, stacking vertically on mobile; beneath it two facts with source labels: '43 024 companies founded by e-residents — source: e-resident.gov.ee' and 'One licence, 27 member states — ECSPR (EU) 2020/1503'; CTA ghost button 'Raise on Osalus →'.",
+  "FEE PANELS: two equal hairline panels. Investors: 'EUR 0' at 48px mono accent, list at 14px 'Account EUR 0 · Investing EUR 0 · Holding EUR 0 · Bulletin board EUR 0', line 'Permanently. Not introductory.'; Companies: 'EUR 1 000' + 'listing fee' and '6%' + 'success fee on funds raised' in 30px mono, note 'No fee on unsuccessful rounds beyond the listing fee.' Both panels footnoted 'Full fee schedule → published at authorisation.'",
+  "BULLETIN BOARD TEASER: mono table (INSTRUMENT / SIDE / QUANTITY / INDICATED PRICE / POSTED) with 4 rows of clearly fake data under a diagonal 'ILLUSTRATIVE' hairline chip; SIDE values 'BUY'/'SELL' in plain ink, not colored (no red/green trading connotation). Header: 'A bulletin board, not an exchange.' Body: 'Under ECSPR article 25 Osalus may operate a bulletin board where investors indicate interest to buy or sell shares. It does not match orders, execute trades, or operate as a trading venue. Price discovery is between the parties.'",
+  "TRUST STRIP (Status and supervision): row of hairline-boxed TEXT badges, no logos, 13px mono: 'AUTHORISATION PENDING — Finantsinspektsioon (Estonia)', 'ECSPR — Regulation (EU) 2020/1503', 'Osalus Capital OÜ — Estonian Business Register', each with an external-link glyph to the real register/authority URL; Invesdor's badge slot, executed as typography.",
+  "WAITLIST CTA BLOCK: hairline panel, H2 'Be first when authorisation is granted.', single email field (mono placeholder 'you@company.eu') + accent button 'Join the waitlist'; 14px full-contrast lines directly below: 'Joining the waitlist creates no account and commits you to nothing.' and 'Osalus does not provide investment advice. No authority has approved any offer on this page.'",
+  "FRAUD NOTICE: --risk-bg/--risk-ink bordered panel above the footer, 14px: 'Fraud warning — never pay a project owner directly. All commitments and payments are made only through the Osalus platform via a licensed payment service provider. Anyone requesting a direct transfer is not acting for Osalus.'",
+  "NAV: sticky, --surface at 88% + blur, hairline bottom border. Left: wordmark OSALUS (sans 600, 0.02em tracking) + 11px mono chip 'AUTHORISATION PENDING' in a hairline pill. Centre links: Offers · How it works · For companies · Bulletin board · Fees. Right: theme toggle (mono ◐ glyph) + 'Join the waitlist' accent button. Mobile: links collapse behind a mono 'MENU' toggle; the pending chip stays visible.",
+  "FOOTER: 4 columns (Platform / Company / Legal / Supervision) on --bg with hairline top rule; legal band beneath in 14px full-contrast: pending-authorisation sentence, 'Complaints are handled free of charge — complaints@osalus.eu', links to Finantsinspektsioon and Estonian Business Register, company details (Osalus Capital OÜ, registry code, Tallinn address), © 2026. The fixed risk status line sits below/over everything at viewport bottom.",
+  "THEME ARCHITECTURE: CSS custom properties for all 10 token pairs on :root (dark default) with [data-theme=light] override and prefers-color-scheme respect; toggle persists to localStorage; every component references tokens only — no literal hex outside the token block."
+ ],
+ "motion": "Instrument-calm: nothing moves unless it communicates state. Allowed inventory, complete: (1) hover transitions on cards/buttons/links — border-color, background, underline only, 150ms ease-out; (2) open-status LED — 2s opacity pulse between 100% and 45%, one element per card; (3) hero extract cursor — 1s step-end blink; (4) parameter-strip numbers — single 600ms count-up on first IntersectionObserver hit, never repeats; (5) tab underline — 200ms width/transform. Forbidden: parallax, scroll-jacking, auto-carousels, skeleton shimmer, hover translateY/scale, animated charts, anything resembling a live price feed, and any timer or countdown (urgency mechanics are banned by brand tone). prefers-reduced-motion: reduce disables 2, 3, 4 entirely (final values shown immediately) and drops all transition durations to 0ms; the site is fully legible as a static document. All animation is CSS or a <20-line IntersectionObserver — no animation libraries.",
+ "regulatory_furniture": "The furniture IS the lens: a terminal has a status line, and ours is the ECSPR risk warning. (1) RISK STATUS LINE — fixed to viewport bottom on every page, non-collapsible, no close control in the DOM: --risk-bg background, 1px --risk-ink-tinted top border, 12px vertical padding; an 11px uppercase mono prefix 'RISK' in a hairline pill, then the verbatim text in 14px sans at full --risk-ink contrast (>=7:1), wrapping to 2 lines desktop / 4 mobile: 'Investing in crowdfunding projects involves risks, including the loss of all of the money invested. Your investment is not covered by deposit guarantee or investor compensation schemes. You may not be able to sell your investment when you wish, and you may receive no return.' Body padding-bottom equals the bar height so it never occludes content; it is visually senior to the cookie notice (consent UI is a small hairline card bottom-left, decline-first, and must never cover the risk line). (2) NO-ADVICE / NO-APPROVAL — 14px full-contrast sans placed within 24px of every CTA (hero, waitlist block, founder module), never in --ink-muted: 'Osalus does not provide investment advice. No competent authority has approved any offer on this page.' (3) KIIS — a structural card-footer element with document glyph, language tag '(PDF, ET/EN)', equal visual rank to the View offer button; also listed in footer Legal column. (4) FEES — the EUR 0 / EUR 1 000 + 6% figures appear in the parameter strip, the fee panels, and the footer legal band; no asterisks anywhere on fee claims. (5) FRAUD WARNING — the risk-toned bordered notice above the footer (spec in components). (6) FOOTER LEGAL BAND — verbatim pending line: 'Osalus Capital OÜ has applied for a crowdfunding service provider authorisation under Regulation (EU) 2020/1503; the application is pending with Finantsinspektsioon. Until authorisation is granted, Osalus does not offer investment services; registration below joins a waitlist only.' plus complaints-free-of-charge line and live links to the Finantsinspektsioon register and e-Business Register. (7) ART 27 ENFORCEMENT BY OMISSION — the offer-card template contains no field where a return figure could appear; the only performance-adjacent datum is historical FY revenue, labelled with its year.",
+ "tech_focus": "The sector focus is expressed through data vocabulary, not imagery: offer cards carry sector chips from a closed set (SAAS / AI / FINTECH / INTERNET / PLATFORM), a historical 'Revenue (FY2025)' row that silently enforces the revenue-generating bar, and factual one-line descriptors written like registry entries, not pitches. The hero's register-extract panel is itself the tech argument — the product is software acting on a state registry. A chips row under the offers heading doubles as the (visual, non-functional in v1) sector filter. For international founders, the FOUNDER MODULE reframes e-Residency's own pitch ('Start, run and grow an EU company', 43 024 companies founded — observed on e-resident.gov.ee) into a capital-markets route: incorporate an Estonian OÜ in 1–2 days, meet the issuer bar (3+ years trading, EUR 0.5–3M revenue — the operating history travels with the business), and raise EUR 150–800k for 5–15% equity from investors across all 27 member states under one ECSPR regime. Copy addresses them directly: 'Your company doesn't need to be born in the EU to raise in the EU.' Sample offer 3 (Sõnum Relay OÜ, founded through e-Residency) makes the route concrete inside the offer grid itself. All founder-path CTAs go to 'Raise on Osalus', a parallel path mirroring Invesdor's dual invest/raise navigation.",
+ "invesdor_audit": {
+  "steal": [
+   "The stats-banner slot immediately after the hero (observed: '614M+ EUR invested / 209K investors / 1 076 projects') — but filled with honest platform parameters (EUR 0 fees, EUR 100 minimum, 4-day reflection, 3+ yr issuer bar) because a pre-authorisation platform has no totals to claim",
+   "Dual invest/raise navigation paths (observed as separate Investment and Fundraising sections) — mirrored in our nav, steps-ledger tabs, and founder module",
+   "Status badges on opportunity cards (observed: 'Successful', 'Pre-IPO') — rebuilt as our LED + mono status row",
+   "Instrument-aware card layouts (observed: their equity vs bond cards show different fields) — we go further and make the equity card structurally unable to display a yield",
+   "The certification/trust badge slot near the footer (observed: B Corporation + 'Licensed under the EU ECSP regulation') — executed as typographic hairline text badges with live register links, honest about 'pending'"
+  ],
+  "avoid": [
+   "Per-annum yield/interest figures on cards (observed on their bond/pre-IPO products) — prohibited for equity under ECSPR art 27 and structurally excluded from our card",
+   "Countdown-style urgency badges (observed: '3 days left') — banned by brand tone; we show a neutral closing date, '2026-09-14'",
+   "Burying the Regulation (EU) 2020/1503 risk text as fine print below the opportunities section (observed) — ours is a persistent full-size, full-contrast status line on every page",
+   "Adjective-led aspirational hero ('Together we fund the future' with sustainability framing, observed) — we lead with mechanics and numbers per regulated-calm tone",
+   "A cookie banner that outranks compliance content (observed: consent banner 'appears prominently before main content') — our consent card is subordinate to the risk line and decline-first"
+  ]
+ },
+ "sample_copy": {
+  "h1": "Equity in operating tech companies, registered in your name.",
+  "sub": "Osalus lists ECSPR offers from technology companies with 3+ years of trading and EUR 0.5–3M annual revenue. Invest from EUR 100. Shares are entered directly in the Estonian Business Register — no nominees, no SPVs, no custody. Investor fees: EUR 0.",
+  "chips": [
+   "SAAS",
+   "AI",
+   "FINTECH",
+   "INTERNET",
+   "PLATFORM",
+   "ESTONIA",
+   "EU-WIDE"
+  ],
+  "section_heads": [
+   "01 / OFFERS — Example offers",
+   "02 / PROCESS — How investing works",
+   "03 / OWNERSHIP — Direct ownership, on the record",
+   "04 / RAISE — Raise EU capital through an Estonian OÜ",
+   "05 / FEES — Fees, in full",
+   "06 / BOARD — A bulletin board, not an exchange",
+   "07 / STATUS — Status and supervision"
+  ],
+  "sample_offers": [
+   "Laine Metrics OÜ — SAAS · Tallinn — Product analytics for industrial IoT operators — Target EUR 450 000 · Equity offered 8.0% · Pre-money EUR 5.2M · Instrument: OÜ shares (ordinary) · Price per share EUR 12.50 · Revenue (FY2025) EUR 1.9M — Progress: EUR 287 500 committed · 96% of EUR 300 000 minimum — OPEN · CLOSES 2026-09-14 · KIIS (PDF, ET/EN) · ILLUSTRATIVE",
+   "Kratt Compliance OÜ — AI · Tartu — Automated AML screening for EU payment institutions — Target EUR 300 000 · Equity offered 6.5% · Pre-money EUR 4.3M · Instrument: OÜ shares (ordinary) · Price per share EUR 8.00 · Revenue (FY2025) EUR 0.9M — Progress: EUR 214 000 committed · 107% of EUR 200 000 minimum — OPEN · CLOSES 2026-08-29 · KIIS (PDF, ET/EN) · ILLUSTRATIVE",
+   "Sõnum Relay OÜ — INTERNET · Tallinn (founded via e-Residency) — Messaging infrastructure for logistics platforms in 14 countries — Target EUR 650 000 · Equity offered 11.0% · Pre-money EUR 5.3M · Instrument: OÜ shares (ordinary) · Price per share EUR 25.00 · Revenue (FY2025) EUR 2.4M — Progress: EUR 158 000 committed · 40% of EUR 400 000 minimum — OPEN · CLOSES 2026-10-02 · KIIS (PDF, ET/EN) · ILLUSTRATIVE"
+  ]
+ }
+}

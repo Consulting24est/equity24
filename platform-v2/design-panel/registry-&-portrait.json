@@ -1,0 +1,129 @@
+{
+ "concept_name": "Registry & Portrait",
+ "thesis": "People invest in founders they feel they know — but under ECSPR regulated-calm rules the introduction cannot be hype, so we build it from two truth sources paired everywhere: the Portrait (a real human, their words, their signature) and the Registry (the Estonian Business Register extract that proves the human's claims — registry code, founding date, filed revenue). Invesdor's cards, which we audited, contain no founder at all; our every surface leads with a person and immediately backs them with a public record. Warm prospectus aesthetics: serif display, warm paper, monospace registry extracts, clay-toned human accents — emotion carried by provenance and photography direction, never by urgency or return-talk.",
+ "palette": [
+  {
+   "token": "--paper",
+   "light": "#FAF7F2",
+   "dark": "#141816",
+   "use": "page background; warm paper, prospectus feel"
+  },
+  {
+   "token": "--card",
+   "light": "#FFFFFF",
+   "dark": "#1C2320",
+   "use": "offer cards, registry-extract cards, fee panels"
+  },
+  {
+   "token": "--ink",
+   "light": "#212721",
+   "dark": "#E9E6DE",
+   "use": "all primary text incl. risk copy — risk text is never lightened"
+  },
+  {
+   "token": "--muted",
+   "light": "#5C6B62",
+   "dark": "#9DABA1",
+   "use": "secondary text, table labels, captions (min 4.5:1, decorative only — never for disclosures)"
+  },
+  {
+   "token": "--spruce",
+   "light": "#10513B",
+   "dark": "#7DBBA0",
+   "use": "primary brand: buttons, links, progress fill, section rules, verified-row icon"
+  },
+  {
+   "token": "--clay",
+   "light": "#A85B38",
+   "dark": "#D99A76",
+   "use": "human accent only: portrait hairline frames, founder signatures, quote marks, tenure line — never on CTAs or data"
+  },
+  {
+   "token": "--hairline",
+   "light": "#E5DFD2",
+   "dark": "#2B332E",
+   "use": "1px rules between sections, card borders, table row rules"
+  },
+  {
+   "token": "--notice",
+   "light": "#F1EADC",
+   "dark": "#232B26",
+   "use": "risk-warning bar and 'Before you invest' band background — designed printed-notice tone, not alarm amber"
+  },
+  {
+   "token": "--track",
+   "light": "#EAE4D8",
+   "dark": "#2B332E",
+   "use": "progress bar track; minimum-target tick drawn in --ink"
+  }
+ ],
+ "typography": {
+  "display": "Charter, 'Bitstream Charter', 'Sitka Display', Cambria, Georgia, serif — 400 for H1/H2 (prospectus restraint, never bold hero type), 700 only for company names on cards, 400 italic for founder-letter excerpts. Used: H1–H3, founder letters, pull facts.",
+  "body": "-apple-system, 'SF Pro Text', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif — 400/500/600. 17px/1.65 body; 15px/1.6 for card meta and all regulatory microcopy (full --ink contrast, never smaller).",
+  "data": "Two treatments. (1) All figures in tables, stats, progress captions: the body sans with font-variant-numeric: tabular-nums, weight 600. (2) Registry extracts, overlines, section numbers, status chips, KIIS doc-rows: ui-monospace, 'SF Mono', 'Cascadia Mono', 'Segoe UI Mono', Menlo, Consolas, monospace at 13px, letter-spacing 0.04em, uppercase for labels only — the mono IS the registry aesthetic.",
+  "scale_notes": "Modest 1.25-ish scale: 13 / 15 / 17 / 21 / 26 / 33 px, H1 clamp(2.1rem, 4.5vw, 3.25rem). Sentence case everywhere including buttons and H1. Section overlines: mono 13px uppercase with em-dash numbering ('01 — Companies raising now'), annual-report style."
+ },
+ "layout": "Max-width 1160px, 12-col grid, 24px gutters, 8px base unit; section rhythm 96px desktop / 64px mobile, each section separated by a full-bleed 1px --hairline rule (prospectus ledger feel). Order: (1) persistent risk bar, sticky top, non-collapsible; (2) header — Osalus serif wordmark left; nav: Companies raising, Meet the founders, How it works, Raise from abroad, Fees, Outcomes; right: 'Join the waitlist' button (no sign-in — authorisation pending); (3) hero, split 7/5; (4) platform-facts strip (commitments, not track-record claims); (5) '01 — Companies raising now': 3-card offer grid + sector chip row above it; (6) '02 — Meet the founders': one full-width founder introduction module + two condensed ones; (7) '03 — How investing works': 5 steps in a numbered horizontal rail, step 4 (reflection period) visually equal, not hidden; (8) '04 — Raise from anywhere, incorporate in Estonia': e-Residency gateway timeline; (9) '05 — What it costs': two fee panels; (10) '06 — How we will report outcomes': outcomes-register commitment; (11) '07 — The bulletin board': art 25 teaser; (12) 'Before you invest' notice band (fraud warning + no-advice, on --notice bg); (13) waitlist CTA band; (14) compliance footer. Mobile: single column, offer cards stack, founder module stacks portrait-first.",
+ "hero": "Split 7/5 on --paper. LEFT: mono overline 'ECSPR platform · EU 2020/1503 · authorisation pending — Finantsinspektsioon'; H1 in Charter 400, --ink: 'Meet the founder. Verify the company. Own the shares.'; sub (17px sans): factual sentence with the issuer bar and €0 fee (see sample_copy); primary CTA 'Join the waitlist' (--spruce fill, white text, 2px radius) + text link 'See how investing works'; directly beneath, at full 15px --ink contrast: 'Osalus does not provide investment advice. Offers on this platform are not approved by any supervisory authority.' RIGHT — the signature 'Registry & Portrait' pair: a 4:5 founder portrait (build as a warm-grey #D8CFC0 placeholder block with serif initials 'MK' and caption 'Maarja Kask · Klaar Ledger OÜ · Tallinn' — no fake stock humans), framed by a 1px --clay hairline with 8px offset (printed-photo mount); overlapping its bottom-left corner by 24px, a --card registry-extract chit in mono type: 'ÄRIREGISTER · registrikood 16482915 / founded 03.2020 / employees 24 / FY2025 revenue €1,912,406' with a final row in --spruce: '✓ Matches the Estonian Business Register, checked 28.07.2026'. This overlap is the brand image: the person in front, the public record attached. Below the pair, one line 15px --muted: 'Shares are registered directly in the investor's own name. No nominee. No SPV.'",
+ "offering_card": "Anatomy top→bottom on --card with 1px --hairline border, 2px radius, 24px padding. (1) FOUNDER ROW — the distinctive move (Invesdor cards have no humans): 56px square portrait placeholder (warm-grey, serif initials, 1px --clay frame), beside it founder name 15px/600 sans, then 'CEO · with the company 6 years' in --clay 13px — tenure as provenance. (2) Company name, Charter 700 21px + one-line plain-language description 15px --muted. (3) Chip row, mono 13px: sector chip ('Fintech'), city chip ('Tallinn'), status chip — 'Open', 'Coming soon', or 'Funded — closed', sentence case, --hairline outline; closing shown ONLY as a plain date 'Closes 30 September 2026' in --muted text, never a countdown. (4) MINI-TABLE, hairline-ruled rows, mono labels left / tabular-nums 600 values right: Target €500,000 / Equity offered 8.0% / Pre-money valuation €5,750,000 / Revenue FY2025 €1.9M (annual report on file) / Instrument: OÜ shares, registered in your name / Minimum investment €100. Historical filed revenue is the one performance fact allowed — never projections, never returns. (5) PROGRESS: 6px bar, --track base, --spruce fill, a 2px --ink tick at the minimum-target position with mono micro-label 'min'; caption in tabular figures: '€312,500 committed of €500,000 target · minimum €300,000 · 284 investors'. (6) ANCHOR ROW: '↳ Lead investor: Tarmo Sild, €50,000 on identical terms' 15px --ink, with a dotted-underline 'what this means' toggle — factual social proof replacing FOMO. (7) KIIS DOC-ROW: full-width bordered row styled like a file listing, mono: '⎙ Key investment information sheet (KIIS) — PDF, 6 pages' — a designed object, not a footnote link. (8) CARD FOOT, 13px --muted: '4 calendar days to withdraw after committing, no reason needed.' STATES: hover — border shifts --hairline→--spruce, company name gains underline, no lift/scale/shadow; Funded — bar full, chips neutral, CTA becomes 'View outcome'; Coming soon — table values em-dashes, foot reads 'KIIS available at open'; focus-visible — 2px --spruce outline offset 2px.",
+ "components": [
+  "PLATFORM-FACTS STRIP (honest stats banner — Osalus has no track record, so commitments replace Invesdor's €614M banner): 4 tabular-figure tiles on --paper, big 33px numerals, mono captions: '€0 — investor fees, permanently' / '4 days — reflection period on every commitment' / '100% — shares registered in the investor's own name' / '0 — nominee structures or SPVs'.",
+  "FOUNDER INTRODUCTION MODULE ('02 — Meet the founders'): full-width, 5/7 split. Left: 4:5 portrait placeholder with --clay mount and caption; photography direction as spec for real shoots — natural window light, founder at their actual workplace, camera at eye level, no low-angle hero shots, no crossed-arms deck pose, warm neutral grade, consistent 4:5 crop. Right: name + role + 'with the company 6 years' (--clay); PROVENANCE BLOCK in mono on --card chit: registry code, founded date, employees, FY2025 filed revenue, 'source: Estonian Business Register, 28.07.2026'; then a 4–5 line founder letter excerpt in Charter italic 21px with an oversized --clay opening quote mark, first person, factual voice ('We invoice 41 banks…'), ending with an SVG-path handwritten signature in --clay; then the anchor-investor disclosure row; link 'Read the full letter and the KIIS'. Two condensed variants below: portrait thumb + provenance line + one-sentence excerpt.",
+  "LISTING STANDARD MODULE (the issuer bar as trust signal, inside section 01): bordered panel titled 'What it takes to list here', three mono-labelled facts: '3+ financial years filed with the Business Register' / '€0.5M+ annual revenue in the latest filing' / 'Operating company — no pre-revenue ideas'; closing line: 'We decline most applications. Listing is not a recommendation.'",
+  "E-RESIDENCY GATEWAY TIMELINE ('04'): horizontal 3-step rail stolen structurally from e-resident.gov.ee (numbered steps + real timeframes): 1 'Incorporate an Estonian OÜ — fully online via e-Residency (1–2 days once you hold the digital ID)' / 2 'File and operate — your accounts and registry record are public, like any Estonian company (3+ years trading required)' / 3 'Raise on Osalus — €150,000–800,000 for 5–15% equity from EU investors (offer open up to 60 days)'. Side note card: 'Northshore Metrics OÜ below was founded from Toronto through e-Residency. Same registry, same direct shares.' CTA: text link to e-resident.gov.ee.",
+  "FEE PANELS ('05'): two --card panels. Investors: '€0' at 42px tabular, 'No account, transaction, custody or exit fees. Permanently.' Raisers: '€1,000 listing + 6% success fee', line items in a mono mini-table, 'No fee if the minimum target is not reached.'",
+  "OUTCOMES REGISTER COMMITMENT ('06', honesty pattern observed on springvest.fi — they publish '12 exits, 12 write-offs'): panel titled 'Every outcome, published', copy: 'From our first closed offer onward we will maintain a public register of outcomes: follow-on rounds, exits, dividends — and failures. Equal type size for both.' Empty-state table with mono headers (Company / Outcome / Date) and one row: '— No closed offers yet. Authorisation pending.'",
+  "BULLETIN BOARD TEASER ('07'): quiet panel: 'A bulletin board, not an exchange' + 'Under article 25, investors may post interest to buy or sell shares of companies funded here. Osalus does not match orders, set prices, or execute trades. Buyers and sellers complete digital share transfers themselves — notary-free under Estonian law.'",
+  "WAITLIST BAND: --spruce background, white Charter heading 'We open when the licence is granted', email input + 'Join the waitlist' button (white fill, --spruce text), beneath at full contrast on white-on-spruce: the no-advice line and 'Joining the waitlist creates no account and no obligation.'",
+  "COMPLIANCE FOOTER: 4 columns (Platform / For investors / For founders / Legal) on --paper above a --hairline; bottom block set at body-small full --ink: 'Osalus Capital OÜ has applied for authorisation as a crowdfunding service provider under Regulation (EU) 2020/1503. The application is pending with Finantsinspektsioon, the Estonian Financial Supervision Authority. Osalus is not yet authorised to provide crowdfunding services.' + 'Complaints are handled free of charge.' + links: Finantsinspektsioon register, Estonian Business Register (ariregister.rik.ee), e-Residency programme."
+ ],
+ "motion": "Near-static by intent — prospectus, not product tour. Allowed: 160ms ease-out color/underline transitions on links, buttons, card borders; progress bars animate width 0→value once on first intersection (600ms cubic-bezier(0.22,1,0.36,1)) with the minimum-tick static — the only 'live' moment, and it animates a fact; KIIS doc-rows shift background --paper on hover. Forbidden: parallax, scale/lift on cards, autoplay carousels (founder modules are a static grid; any overflow row scrolls manually with prev/next buttons), scroll-jacking, count-up animations on stats (they render set — counting up is urgency theatre). @media (prefers-reduced-motion: reduce): all transitions and the progress animation disabled, bars render at final width. Sticky risk bar never animates, shrinks, or fades on scroll.",
+ "regulatory_furniture": "Designed as the ledger the brand is built on, not chrome. (1) RISK BAR: position sticky top 0, --notice bg, 2px --spruce top border, non-collapsible, no close control; layout: mono uppercase label 'RISK WARNING' left, then the verbatim ECSPR text at 15px --ink (same size/contrast as body-small, wraps to 2–3 lines on mobile — never truncated, never toggled): 'Investing in crowdfunding projects involves risks, including the loss of all of the money invested. Your investment is not covered by deposit guarantee or investor compensation schemes. You may not be able to sell your investment when you wish, and you may receive no return.' (2) NO-ADVICE LINE: a reusable one-line component rendered directly under every CTA (hero, cards' KIIS row area, waitlist band) at 15px full contrast: 'Osalus does not provide investment advice. Offers on this platform are not approved by any supervisory authority.' (3) KIIS: the doc-row object on every offer card and repeated in the founder module — mono file-listing styling gives it equal visual rank with the progress bar. (4) FEES: the €0 panel is a hero-grade element, not small print; raiser fees itemised in the same breath. (5) FRAUD WARNING: inside the 'Before you invest' --notice band as a numbered house-rules list, item 1: 'Never pay a project owner directly. All commitments are made and settled only through the Osalus payment flow. Anyone asking you to transfer money outside the platform is defrauding you.' (6) FOOTER: pending-authorisation statement, complaints-free-of-charge line, live register links — set at body-small --ink, never --muted. Rule enforced globally: risk and disclosure copy shares the exact type size and color of equivalent editorial copy; nothing regulatory is ever the lightest text on screen.",
+ "tech_focus": "The tech thesis is expressed as verifiability, which tech founders and investors both respect. Sector chip system (SaaS, AI, Fintech, Digital platforms, Internet, Marketplaces) filters the offer grid; every card carries historical filed revenue ('Revenue FY2025 €1.9M — annual report on file') — ARR-culture credibility using only registry facts, never projections. The monospace registry-extract aesthetic reads native to a developer audience without hacker cliché. The listing-standard module ('3+ financial years, €0.5M+ revenue, operating company') positions Osalus against pre-revenue idea platforms — Springvest's observed 'Finnish tech. Direct access.' proves a national-tech-focus headline works; ours is the Estonian registry itself. For international founders: section 04 sells the Estonian-OÜ-as-EU-gateway with e-resident.gov.ee's observed pattern (numbered steps + honest timeframes: digital ID weeks, incorporation 1–2 days), the pain-point phrasing they use ('without relocating'), and — the proof — sample offer Northshore Metrics OÜ, founded from Toronto via e-Residency, sitting in the same grid under the same rules: same registry, same direct shares, same KIIS. One line does the positioning: 'Your company is Estonian. Your investors are European. Your desk can be anywhere.'",
+ "invesdor_audit": {
+  "steal": [
+   "Mini-table clarity on equity cards — pre-money valuation, equity %, price per share as labelled rows (observed on their rounds listing); we extend it with filed revenue and instrument.",
+   "Dedicated status chips per card ('Successful', 'Pre-IPO') — we keep the chip slot with calm states: Open / Coming soon / Funded — closed.",
+   "Dual audience paths (invest vs raise) in navigation and page architecture.",
+   "ECSP / EU-regulation framework stated as plain text credential near the fold — we adapt honestly as 'authorisation pending'.",
+   "A dedicated success-story slot in the page rhythm — we keep the slot but rebuild it as the founder-introduction module plus an outcomes register, since their stories carry no founder voice at all.",
+   "Risk disclosure placed in the offer-grid context, not only the footer — we upgrade it to the persistent verbatim bar."
+  ],
+  "avoid": [
+   "'3 days left' countdown chips (observed on their cards) — urgency mechanics; we show a plain closing date instead.",
+   "Interest-rate / return-per-annum figures rendered in the same card grid as equity offers — visual bleed of return expectations onto equity products (art 27 risk); our grid is equity-only, zero return figures.",
+   "Success-story copy like 'attractive return' (observed on Friends & Brgrs card) — return-talk in narrative clothing.",
+   "Founderless offer cards — their cards show logo, tagline and numbers but no human; the entire gap our lens exploits.",
+   "Abstract hero slogan ('Together we fund the future') — adjectives over numbers; our H1 states what you do and own.",
+   "Single small compliance line below the grid as the only risk treatment, and placeholder-feeling hero imagery with no provenance."
+  ]
+ },
+ "sample_copy": {
+  "h1": "Meet the founder. Verify the company. Own the shares.",
+  "sub": "Osalus lists revenue-generating Estonian technology companies — including companies founded from abroad through e-Residency — raising €150,000 to €800,000 for 5–15% equity. Every company has 3+ years of filed accounts. Your shares are registered directly in your name in the Estonian Business Register. Investor fees: €0.",
+  "chips": [
+   "All sectors",
+   "SaaS",
+   "AI",
+   "Fintech",
+   "Digital platforms",
+   "Internet",
+   "Marketplaces"
+  ],
+  "section_heads": [
+   "01 — Companies raising now",
+   "02 — Meet the founders",
+   "03 — How investing works",
+   "04 — Raise from anywhere, incorporate in Estonia",
+   "05 — What it costs",
+   "06 — Every outcome, published",
+   "07 — A bulletin board, not an exchange",
+   "Before you invest"
+  ],
+  "sample_offers": [
+   "Klaar Ledger OÜ — Fintech · Tallinn. Invoice-risk software used by 41 Baltic banks and lenders. Founded 2020, revenue FY2025 €1.9M (annual report on file). Target €500,000 for 8.0% equity · pre-money €5,750,000 · instrument: OÜ shares registered in your name · minimum investment €100. Progress: €312,500 committed of €500,000 · minimum target €300,000 · 284 investors · closes 30 September 2026. Founder row: Maarja Kask, CEO, with the company 6 years. Lead investor: Tarmo Sild, €50,000 on identical terms. KIIS — PDF, 6 pages.",
+   "Metsis AI OÜ — AI · Tartu. Document-processing models that clear customs paperwork for 60+ logistics firms. Founded 2019, revenue FY2025 €1.1M (annual report on file). Target €350,000 for 7.0% equity · pre-money €4,650,000 · instrument: OÜ shares registered in your name · minimum investment €100. Progress: €148,000 committed of €350,000 · minimum target €200,000 · 131 investors · closes 14 October 2026. Founder row: Priit Õunapuu, CEO, with the company 7 years. Lead investor: Baltic Angels syndicate, €40,000 on identical terms. KIIS — PDF, 6 pages.",
+   "Northshore Metrics OÜ — SaaS · Tallinn, founded from Toronto via e-Residency. Product-analytics platform serving 240 subscription businesses in 19 countries. Founded 2021, revenue FY2025 €2.3M (annual report on file). Target €800,000 for 10.0% equity · pre-money €7,200,000 · instrument: OÜ shares registered in your name · minimum investment €100. Progress: €640,000 committed of €800,000 · minimum target €500,000 · 412 investors · closes 21 September 2026. Founder row: Dana Whitfield, CEO, e-resident since 2021, with the company 5 years. Lead investor: Hanno Reim, €75,000 on identical terms. KIIS — PDF, 6 pages."
+  ]
+ }
+}

@@ -1,0 +1,15 @@
+# ---- secrets: never commit ----
+.env
+*.env
+!.env.example
+**/kyc-service/.env
+**/kyc-store.json
+
+# ---- generated / build output ----
+platform-v2/deploy/
+node_modules/
+.DS_Store
+*.log
+
+# ---- scratch ----
+*.tmp

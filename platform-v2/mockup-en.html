@@ -1,0 +1,638 @@
+<title>Osalus — Landing mockup v1</title>
+<style>
+  :root {
+    --paper: #FAFAF7;
+    --surface: #FFFFFF;
+    --ink: #1B1E1C;
+    --ink-2: #58605A;
+    --hair: #E4E6DF;
+    --accent: #0E5138;
+    --accent-soft: #EBF2EC;
+    --btn-bg: #0E5138;
+    --btn-ink: #F7FAF7;
+    --warn-bg: #FBF2DD;
+    --warn-ink: #6A4A0B;
+    --warn-border: #EBD9AE;
+    --shadow: 0 1px 2px rgba(20,30,24,.05), 0 8px 28px rgba(20,30,24,.06);
+    --font-display: "Charter", "Bitstream Charter", "Sitka Text", Cambria, Georgia, serif;
+    --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #141715;
+      --surface: #1B1F1C;
+      --ink: #E9ECE6;
+      --ink-2: #A0A9A1;
+      --hair: #2A2F2A;
+      --accent: #58B389;
+      --accent-soft: #1E2A22;
+      --btn-bg: #4DAA7E;
+      --btn-ink: #0E1F16;
+      --warn-bg: #2E2611;
+      --warn-ink: #E9D2A0;
+      --warn-border: #4A3D1D;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 28px rgba(0,0,0,.25);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #141715;
+    --surface: #1B1F1C;
+    --ink: #E9ECE6;
+    --ink-2: #A0A9A1;
+    --hair: #2A2F2A;
+    --accent: #58B389;
+    --accent-soft: #1E2A22;
+    --btn-bg: #4DAA7E;
+    --btn-ink: #0E1F16;
+    --warn-bg: #2E2611;
+    --warn-ink: #E9D2A0;
+    --warn-border: #4A3D1D;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 28px rgba(0,0,0,.25);
+  }
+  :root[data-theme="light"] {
+    --paper: #FAFAF7;
+    --surface: #FFFFFF;
+    --ink: #1B1E1C;
+    --ink-2: #58605A;
+    --hair: #E4E6DF;
+    --accent: #0E5138;
+    --accent-soft: #EBF2EC;
+    --btn-bg: #0E5138;
+    --btn-ink: #F7FAF7;
+    --warn-bg: #FBF2DD;
+    --warn-ink: #6A4A0B;
+    --warn-border: #EBD9AE;
+    --shadow: 0 1px 2px rgba(20,30,24,.05), 0 8px 28px rgba(20,30,24,.06);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
+  h1, h2, h3 { font-family: var(--font-display); font-weight: 600; letter-spacing: -.01em; text-wrap: balance; margin: 0; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+  .num { font-variant-numeric: tabular-nums; }
+  .eyebrow {
+    font-size: 12px; text-transform: uppercase; letter-spacing: .12em;
+    color: var(--ink-2); font-weight: 600; margin-bottom: 10px;
+  }
+
+  /* ---------- 0. Persistent risk warning ---------- */
+  .risk-bar {
+    background: var(--warn-bg);
+    color: var(--warn-ink);
+    border-bottom: 1px solid var(--warn-border);
+    font-size: 14.5px;
+    line-height: 1.5;
+    padding: 10px 0;
+  }
+  .risk-bar .wrap { display: flex; gap: 14px; align-items: baseline; }
+  .risk-bar .tag {
+    font-size: 11px; text-transform: uppercase; letter-spacing: .1em;
+    font-weight: 700; white-space: nowrap; padding-top: 2px;
+  }
+
+  /* ---------- 1. Header ---------- */
+  header.site {
+    border-bottom: 1px solid var(--hair);
+    background: var(--paper);
+  }
+  .nav-row { display: flex; align-items: center; gap: 32px; padding: 18px 0; }
+  .brand { display: flex; flex-direction: column; gap: 2px; }
+  .brand .word {
+    font-family: var(--font-display); font-size: 26px; font-weight: 700;
+    color: var(--ink); letter-spacing: -.01em;
+  }
+  .brand .word::after { content: "."; color: var(--accent); }
+  .brand .status { font-size: 11px; color: var(--ink-2); letter-spacing: .02em; }
+  nav.main { display: flex; gap: 26px; margin-left: auto; font-size: 15px; }
+  nav.main a { color: var(--ink); }
+  nav.main a:hover { color: var(--accent); text-decoration: none; }
+  .nav-actions { display: flex; gap: 10px; align-items: center; }
+  .lang { font-size: 13px; color: var(--ink-2); margin-right: 6px; white-space: nowrap; }
+  .lang b { color: var(--ink); font-weight: 600; }
+  .btn {
+    display: inline-block; border-radius: 6px; padding: 10px 18px;
+    font-size: 15px; font-weight: 600; border: 1px solid transparent;
+    cursor: pointer; font-family: var(--font-body);
+  }
+  .btn.solid { background: var(--btn-bg); color: var(--btn-ink); }
+  .btn.solid:hover { filter: brightness(1.08); text-decoration: none; }
+  .btn.ghost { border-color: var(--hair); color: var(--ink); background: transparent; }
+  .btn.ghost:hover { border-color: var(--accent); color: var(--accent); text-decoration: none; }
+
+  /* ---------- 2. Hero ---------- */
+  .hero { padding: 72px 0 64px; }
+  .hero .wrap { display: grid; grid-template-columns: 1.05fr .95fr; gap: 56px; align-items: center; }
+  .hero h1 { font-size: clamp(34px, 4.6vw, 52px); line-height: 1.08; }
+  .hero .sub { font-size: 18px; color: var(--ink-2); max-width: 34em; margin: 22px 0 28px; }
+  .hero .sub strong { color: var(--ink); font-weight: 600; }
+  .cta-row { display: flex; gap: 12px; flex-wrap: wrap; }
+  .chips { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 26px; }
+  .chip {
+    font-size: 13px; padding: 6px 12px; border: 1px solid var(--hair);
+    border-radius: 999px; background: var(--surface); color: var(--ink);
+  }
+  .chip::before { content: "✓ "; color: var(--accent); font-weight: 700; }
+  .micro {
+    font-size: 13.5px; color: var(--ink-2); margin-top: 22px; max-width: 40em;
+  }
+  @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  .hero-card-col { animation: rise .6s ease-out both .15s; }
+  .hero-copy { animation: rise .6s ease-out both; }
+  @media (prefers-reduced-motion: reduce) {
+    .hero-card-col, .hero-copy { animation: none; }
+  }
+  .card-caption { font-size: 12.5px; color: var(--ink-2); text-align: center; margin-top: 12px; }
+
+  /* ---------- Offer card ---------- */
+  .offer-card {
+    background: var(--surface); border: 1px solid var(--hair); border-radius: 10px;
+    box-shadow: var(--shadow); padding: 22px 22px 18px; display: flex; flex-direction: column; gap: 14px;
+    transition: border-color .15s ease, transform .15s ease;
+  }
+  .offer-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  @media (prefers-reduced-motion: reduce) { .offer-card:hover { transform: none; } }
+  .oc-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .oc-name { font-family: var(--font-display); font-size: 20px; font-weight: 700; line-height: 1.2; }
+  .oc-meta { font-size: 13px; color: var(--ink-2); margin-top: 3px; }
+  .risk-badge {
+    font-size: 12px; font-weight: 700; border: 1.5px solid var(--ink-2); color: var(--ink-2);
+    border-radius: 6px; padding: 3px 8px; white-space: nowrap; cursor: help;
+  }
+  .oc-table { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 18px; font-size: 14px; }
+  .oc-table div { display: flex; flex-direction: column; gap: 1px; }
+  .oc-table dt, .oc-label { font-size: 12px; color: var(--ink-2); text-transform: uppercase; letter-spacing: .06em; }
+  .oc-table .val { font-weight: 600; font-variant-numeric: tabular-nums; }
+  .progress { display: flex; flex-direction: column; gap: 6px; }
+  .bar { height: 6px; background: var(--hair); border-radius: 3px; overflow: hidden; }
+  .bar span { display: block; height: 100%; background: var(--accent); border-radius: 3px; }
+  .progress .row { display: flex; justify-content: space-between; font-size: 13.5px; color: var(--ink-2); }
+  .progress .row b { color: var(--ink); font-variant-numeric: tabular-nums; }
+  .oc-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; border-top: 1px solid var(--hair); padding-top: 14px; }
+  .oc-foot .kiis { font-size: 14px; font-weight: 600; }
+  .oc-foot .kiis::before { content: "⤓ "; }
+
+  /* ---------- Sections ---------- */
+  section.band { padding: 64px 0; border-top: 1px solid var(--hair); }
+  section.band.tint { background: var(--surface); }
+  .band-head { margin-bottom: 34px; max-width: 42em; }
+  .band-head h2 { font-size: clamp(26px, 3vw, 34px); line-height: 1.15; }
+  .band-head p { color: var(--ink-2); margin: 12px 0 0; font-size: 16.5px; }
+
+  /* 3. ownership cards */
+  .triple { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .fact-card {
+    background: var(--surface); border: 1px solid var(--hair); border-radius: 10px; padding: 24px;
+  }
+  .band.tint .fact-card { background: var(--paper); }
+  .fact-card .icon {
+    width: 34px; height: 34px; border-radius: 8px; background: var(--accent-soft); color: var(--accent);
+    display: flex; align-items: center; justify-content: center; font-size: 17px; font-weight: 700; margin-bottom: 14px;
+  }
+  .fact-card h3 { font-size: 18.5px; margin-bottom: 8px; }
+  .fact-card p { margin: 0; color: var(--ink-2); font-size: 15px; }
+  .band-link { display: inline-block; margin-top: 26px; font-weight: 600; }
+
+  /* 4. offerings */
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .kiis-note { font-size: 14px; color: var(--ink-2); margin: -16px 0 26px; max-width: 52em; }
+
+  /* 5. steps */
+  .steps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 18px; counter-reset: step; }
+  .step { padding-top: 16px; border-top: 2px solid var(--hair); position: relative; }
+  .step::before {
+    counter-increment: step; content: counter(step, decimal-leading-zero);
+    font-variant-numeric: tabular-nums; font-size: 13px; font-weight: 700; color: var(--accent);
+    letter-spacing: .08em; display: block; margin-bottom: 8px;
+  }
+  .step h3 { font-size: 16.5px; font-family: var(--font-body); font-weight: 700; margin-bottom: 6px; }
+  .step p { margin: 0; font-size: 14px; color: var(--ink-2); }
+
+  /* 6. selection */
+  .select-cols { display: grid; grid-template-columns: 1.1fr .9fr; gap: 40px; }
+  ul.checks, ul.crosses { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; font-size: 15.5px; }
+  ul.checks li::before { content: "✓"; color: var(--accent); font-weight: 700; margin-right: 10px; }
+  ul.crosses li::before { content: "—"; color: var(--ink-2); font-weight: 700; margin-right: 10px; }
+  ul.crosses li { color: var(--ink-2); }
+  .select-note { font-size: 13.5px; color: var(--ink-2); margin-top: 26px; max-width: 52em; }
+
+  /* 7. fees */
+  .fees { display: grid; grid-template-columns: 1.15fr .85fr; gap: 20px; }
+  .fee-panel { border: 1px solid var(--hair); border-radius: 10px; padding: 28px; background: var(--paper); }
+  .fee-panel.investor { background: var(--accent-soft); border-color: transparent; }
+  .fee-panel .amount { font-family: var(--font-display); font-size: 44px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .fee-panel.investor .amount { color: var(--accent); }
+  .fee-panel h3 { font-size: 15px; font-family: var(--font-body); font-weight: 700; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 10px; }
+  .fee-panel p { color: var(--ink-2); font-size: 15px; margin: 10px 0 0; }
+  .fee-panel .fine { font-size: 13.5px; }
+
+  /* company CTA strip */
+  .company-strip { display: flex; align-items: center; justify-content: space-between; gap: 24px; border: 1px solid var(--hair); border-radius: 10px; padding: 26px 28px; background: var(--surface); }
+  .company-strip h3 { font-size: 20px; }
+  .company-strip p { margin: 6px 0 0; color: var(--ink-2); font-size: 15px; }
+
+  /* 8. bulletin */
+  .bulletin { font-size: 15.5px; max-width: 56em; }
+  .bulletin p { margin: 10px 0 0; color: var(--ink-2); }
+  .bulletin .disc { color: var(--ink); }
+
+  /* 9. fraud */
+  .fraud {
+    border: 1.5px solid var(--warn-border); background: var(--warn-bg); color: var(--warn-ink);
+    border-radius: 10px; padding: 22px 26px; font-size: 15px; display: flex; gap: 16px; align-items: baseline;
+  }
+  .fraud .icon { font-size: 18px; }
+  .fraud b { display: block; margin-bottom: 4px; }
+
+  /* 10. footer */
+  footer.site { border-top: 1px solid var(--hair); padding: 48px 0 90px; background: var(--surface); }
+  .foot-cols { display: grid; grid-template-columns: repeat(4, 1fr); gap: 28px; margin-bottom: 40px; }
+  .foot-cols h4 { font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: var(--ink-2); margin: 0 0 12px; }
+  .foot-cols ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; font-size: 14.5px; }
+  .foot-cols a { color: var(--ink); }
+  .legal { font-size: 13.5px; color: var(--ink-2); border-top: 1px solid var(--hair); padding-top: 24px; max-width: 62em; }
+
+  .mock-tag {
+    position: fixed; bottom: 14px; left: 14px; z-index: 50;
+    font-size: 11.5px; font-weight: 600; letter-spacing: .04em;
+    background: var(--ink); color: var(--paper); border-radius: 999px; padding: 6px 12px; opacity: .85;
+  }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 980px) {
+    .hero .wrap { grid-template-columns: 1fr; gap: 40px; }
+    .grid-3, .triple { grid-template-columns: 1fr 1fr; }
+    .steps { grid-template-columns: 1fr 1fr; }
+    .select-cols, .fees { grid-template-columns: 1fr; }
+    nav.main { display: none; }
+  }
+  @media (max-width: 640px) {
+    .grid-3, .triple, .steps { grid-template-columns: 1fr; }
+    .company-strip { flex-direction: column; align-items: flex-start; }
+    .nav-row { gap: 16px; }
+  }
+</style>
+
+<!-- 0. Persistent risk warning — ECSPR art 19(6); verbatim, non-collapsible -->
+<div class="risk-bar" role="note" aria-label="Risk warning">
+  <div class="wrap">
+    <span class="tag">Risk warning</span>
+    <span>Investing in crowdfunding projects involves risks, including the loss of all of the money invested. Your investment is not covered by deposit guarantee or investor compensation schemes. You may not be able to sell your investment when you wish, and you may receive no return.</span>
+  </div>
+</div>
+
+<!-- 1. Header -->
+<header class="site">
+  <div class="wrap nav-row">
+    <div class="brand">
+      <span class="word">osalus</span>
+      <span class="status">Authorisation pending — Finantsinspektsioon (Estonia)</span>
+    </div>
+    <nav class="main" aria-label="Main">
+      <a href="#offerings">Invest</a>
+      <a href="#how">How it works</a>
+      <a href="#fees">Fees</a>
+      <a href="#bulletin">Bulletin board</a>
+      <a href="#companies">For companies</a>
+    </nav>
+    <div class="nav-actions">
+      <span class="lang" title="Estonian version: next mockup"><b>EN</b> / ET</span>
+      <a class="btn solid" href="#waitlist">Join the waitlist</a>
+    </div>
+  </div>
+</header>
+
+<!-- 2. Hero -->
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-copy">
+      <h1>Own real shares in established Estonian companies.</h1>
+      <p class="sub">Invest from €100 directly in Estonian businesses with real revenue and years of trading history. Your shares are registered in the <strong>Estonian Business Register in your name</strong> — not held by us, not held by a nominee. And you pay <strong>no investor fees</strong>.</p>
+      <div class="cta-row">
+        <a class="btn solid" href="#offerings">View open offerings</a>
+        <a class="btn ghost" href="#ownership">How direct ownership works</a>
+      </div>
+      <div class="chips">
+        <span class="chip">Shares in your name — Business Register</span>
+        <span class="chip">€0 investor fees, in our terms</span>
+        <span class="chip">Operating companies only — 3+ years trading</span>
+      </div>
+      <p class="micro">Osalus does not provide investment advice or recommendations. Crowdfunding offers are not approved or endorsed by Finantsinspektsioon or any other authority.</p>
+    </div>
+    <div class="hero-card-col">
+      <div class="offer-card" aria-label="Sample offering">
+        <div class="oc-top">
+          <div>
+            <div class="oc-name">Valdek Metall OÜ</div>
+            <div class="oc-meta">Precision metal fabrication · Tartu</div>
+          </div>
+          <span class="risk-badge" title="Osalus internal assessment of business risk — not a credit rating">Risk B</span>
+        </div>
+        <div class="oc-table">
+          <div><span class="oc-label">Target (min–max)</span><span class="val num">€250,000 – €400,000</span></div>
+          <div><span class="oc-label">Equity offered</span><span class="val num">7.2% – 11.1%</span></div>
+          <div><span class="oc-label">Pre-money valuation</span><span class="val num">€3.2M</span></div>
+          <div><span class="oc-label">Instrument</span><span class="val">OÜ shares (admitted instrument)</span></div>
+        </div>
+        <div class="progress">
+          <div class="bar" role="img" aria-label="68 percent of minimum funded"><span style="width:68%"></span></div>
+          <div class="row"><span><b class="num">68%</b> of minimum funded</span><span><b class="num">19</b> days left</span></div>
+        </div>
+        <div class="oc-foot">
+          <a class="kiis" href="#kiis">Download KIIS (PDF)</a>
+          <a class="btn ghost" href="#offerings">View offering</a>
+        </div>
+      </div>
+      <p class="card-caption">Illustrative offering — sample data for design purposes.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 3. Direct ownership explainer -->
+<section class="band tint" id="ownership">
+  <div class="wrap">
+    <div class="band-head">
+      <div class="eyebrow">Direct ownership</div>
+      <h2>Your shares don't live on our servers.</h2>
+    </div>
+    <div class="triple">
+      <div class="fact-card">
+        <div class="icon">§</div>
+        <h3>Registered to you</h3>
+        <p>When an offer completes, you are entered as a shareholder in the Estonian Business Register — the state registry, in your own name.</p>
+      </div>
+      <div class="fact-card">
+        <div class="icon">⊘</div>
+        <h3>No nominees, no custody</h3>
+        <p>We never hold your shares. Our digital cap-table is an evidentiary convenience; legal title sits with the state register.</p>
+      </div>
+      <div class="fact-card">
+        <div class="icon">∞</div>
+        <h3>Platform-independent</h3>
+        <p>Your shareholding exists in the Business Register independently of our platform — with us or without us.</p>
+      </div>
+    </div>
+    <a class="band-link" href="#learn">Read how digital share transfers work →</a>
+  </div>
+</section>
+
+<!-- 4. Live offerings -->
+<section class="band" id="offerings">
+  <div class="wrap">
+    <div class="band-head">
+      <div class="eyebrow">Open offerings</div>
+      <h2>Established businesses, raising for growth.</h2>
+    </div>
+    <p class="kiis-note">Every offer includes a Key Investment Information Sheet (KIIS) prepared by the project owner. Read it before investing. Offers are not vetted or approved by any supervisory authority.</p>
+    <div class="grid-3">
+      <div class="offer-card">
+        <div class="oc-top">
+          <div>
+            <div class="oc-name">Valdek Metall OÜ</div>
+            <div class="oc-meta">Precision metal fabrication · Tartu</div>
+          </div>
+          <span class="risk-badge" title="Osalus internal assessment of business risk — not a credit rating">Risk B</span>
+        </div>
+        <div class="oc-table">
+          <div><span class="oc-label">Target (min–max)</span><span class="val num">€250,000 – €400,000</span></div>
+          <div><span class="oc-label">Equity offered</span><span class="val num">7.2% – 11.1%</span></div>
+          <div><span class="oc-label">Pre-money valuation</span><span class="val num">€3.2M</span></div>
+          <div><span class="oc-label">Instrument</span><span class="val">OÜ shares (admitted instrument)</span></div>
+        </div>
+        <div class="progress">
+          <div class="bar" role="img" aria-label="68 percent of minimum funded"><span style="width:68%"></span></div>
+          <div class="row"><span><b class="num">68%</b> of minimum funded</span><span><b class="num">19</b> days left</span></div>
+        </div>
+        <div class="oc-foot">
+          <a class="kiis" href="#kiis">Download KIIS (PDF)</a>
+          <a class="btn ghost" href="#offerings">View offering</a>
+        </div>
+      </div>
+      <div class="offer-card">
+        <div class="oc-top">
+          <div>
+            <div class="oc-name">Muhu Pagar OÜ</div>
+            <div class="oc-meta">Food production — bakery, retail &amp; export · Muhu</div>
+          </div>
+          <span class="risk-badge" title="Osalus internal assessment of business risk — not a credit rating">Risk C</span>
+        </div>
+        <div class="oc-table">
+          <div><span class="oc-label">Target (min–max)</span><span class="val num">€150,000 – €300,000</span></div>
+          <div><span class="oc-label">Equity offered</span><span class="val num">7.7% – 14.3%</span></div>
+          <div><span class="oc-label">Pre-money valuation</span><span class="val num">€1.8M</span></div>
+          <div><span class="oc-label">Instrument</span><span class="val">OÜ shares (admitted instrument)</span></div>
+        </div>
+        <div class="progress">
+          <div class="bar" role="img" aria-label="41 percent of minimum funded"><span style="width:41%"></span></div>
+          <div class="row"><span><b class="num">41%</b> of minimum funded</span><span><b class="num">26</b> days left</span></div>
+        </div>
+        <div class="oc-foot">
+          <a class="kiis" href="#kiis">Download KIIS (PDF)</a>
+          <a class="btn ghost" href="#offerings">View offering</a>
+        </div>
+      </div>
+      <div class="offer-card">
+        <div class="oc-top">
+          <div>
+            <div class="oc-name">Vesta Energia AS</div>
+            <div class="oc-meta">Commercial solar installation · Tallinn</div>
+          </div>
+          <span class="risk-badge" title="Osalus internal assessment of business risk — not a credit rating">Risk B</span>
+        </div>
+        <div class="oc-table">
+          <div><span class="oc-label">Target (min–max)</span><span class="val num">€400,000 – €800,000</span></div>
+          <div><span class="oc-label">Equity offered</span><span class="val num">6.4% – 12.1%</span></div>
+          <div><span class="oc-label">Pre-money valuation</span><span class="val num">€5.8M</span></div>
+          <div><span class="oc-label">Instrument</span><span class="val">AS shares (transferable securities)</span></div>
+        </div>
+        <div class="progress">
+          <div class="bar" role="img" aria-label="112 percent of minimum funded"><span style="width:100%"></span></div>
+          <div class="row"><span><b class="num">112%</b> of minimum funded</span><span><b class="num">8</b> days left</span></div>
+        </div>
+        <div class="oc-foot">
+          <a class="kiis" href="#kiis">Download KIIS (PDF)</a>
+          <a class="btn ghost" href="#offerings">View offering</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 5. How it works -->
+<section class="band tint" id="how">
+  <div class="wrap">
+    <div class="band-head">
+      <div class="eyebrow">The process</div>
+      <h2>From sign-up to shareholder — fully digital.</h2>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <h3>Verify &amp; learn</h3>
+        <p>Sign up with ID-card, Mobile-ID or Smart-ID. Before your first investment you take a short knowledge test and see a simulation of your ability to bear a loss of 10% of your net worth. You can proceed either way — we'll warn you, not block you.</p>
+      </div>
+      <div class="step">
+        <h3>Read the KIIS</h3>
+        <p>Each offer has a Key Investment Information Sheet: the business, the terms, the risks — six pages, plain language.</p>
+      </div>
+      <div class="step">
+        <h3>Invest</h3>
+        <p>Subscribe digitally from €100. Investing over €1,000 or 5% of your net worth per offer triggers an extra confirmation step.</p>
+      </div>
+      <div class="step">
+        <h3>Change your mind — free</h3>
+        <p>You have a 4-calendar-day reflection period after committing. One click withdraws your commitment, no reason needed, no cost.</p>
+      </div>
+      <div class="step">
+        <h3>Become a registered shareholder</h3>
+        <p>When the offer succeeds, funds move via a segregated third-party payment account and you're entered in the Estonian Business Register.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 6. Selection criteria -->
+<section class="band" id="criteria">
+  <div class="wrap">
+    <div class="band-head">
+      <div class="eyebrow">How we select</div>
+      <h2>We list companies, not ideas.</h2>
+      <p>Fewer offers, real businesses. Our admission criteria:</p>
+    </div>
+    <div class="select-cols">
+      <ul class="checks">
+        <li>3+ years of operating history</li>
+        <li>€0.5–3M annual revenue</li>
+        <li>At least €10,000 fully paid-in share capital</li>
+        <li>Articles of association enabling digital (notary-free) share transfers</li>
+        <li>Management background and financials reviewed</li>
+      </ul>
+      <div>
+        <div class="eyebrow">We do not list</div>
+        <ul class="crosses">
+          <li>Pre-revenue startups</li>
+          <li>Passive asset-holding vehicles</li>
+          <li>Regulated financial firms</li>
+          <li>Gambling, adult content, weapons or crypto businesses</li>
+        </ul>
+      </div>
+    </div>
+    <p class="select-note">Selection reflects our admission criteria only — it is not investment advice or an endorsement, and does not remove the risks described above.</p>
+  </div>
+</section>
+
+<!-- 7. Fees -->
+<section class="band tint" id="fees">
+  <div class="wrap">
+    <div class="band-head">
+      <div class="eyebrow">Fees</div>
+      <h2>One side pays. It isn't you.</h2>
+    </div>
+    <div class="fees">
+      <div class="fee-panel investor">
+        <h3>Investors pay</h3>
+        <div class="amount">€0</div>
+        <p>No account fee. No investment fee. No custody fee. No exit fee. No inactivity fee. Permanently — it's in our terms, not a promotion.</p>
+      </div>
+      <div class="fee-panel">
+        <h3>Project owners pay</h3>
+        <div class="amount num">€1,000 <span style="font-size:22px">+ 6%</span></div>
+        <p>A €1,000 listing fee and a 6% success fee on funds raised — charged only on successful offers.</p>
+        <p class="fine">No hidden charges to either side. Full fee schedule in every KIIS.</p>
+      </div>
+    </div>
+    <div style="margin-top:20px" id="companies">
+      <div class="company-strip">
+        <div>
+          <h3>Raising €150,000–800,000 for growth?</h3>
+          <p>Growth equity without a bank covenant or a board seat — from investors who choose you. Fully digital closing.</p>
+        </div>
+        <a class="btn solid" href="#waitlist">See admission criteria</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 8. Bulletin board -->
+<section class="band" id="bulletin">
+  <div class="wrap bulletin">
+    <div class="eyebrow">Bulletin board</div>
+    <h2 style="font-size:26px">Want to sell later? There's a notice board.</h2>
+    <p>Shareholders can post buying and selling interests on our bulletin board and settle transfers digitally between themselves.</p>
+    <p class="disc">The bulletin board is not a trading venue and does not match orders. Any reference price shown is non-binding and may not reflect achievable value. A buyer may not exist when you want to sell.</p>
+  </div>
+</section>
+
+<!-- 9. Fraud warning -->
+<section class="band" style="padding-top:0; border-top:0">
+  <div class="wrap">
+    <div class="fraud">
+      <span class="icon">⚠</span>
+      <div>
+        <b>Protect yourself</b>
+        Only ever invest through the Osalus platform via our payment partner's segregated client account. Never transfer money directly to a project owner or to anyone contacting you outside the platform — we will never ask you to. Osalus does not provide investment advice; nothing on this site is a recommendation.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Risk warning repeats above footer -->
+<div class="risk-bar" role="note" aria-label="Risk warning">
+  <div class="wrap">
+    <span class="tag">Risk warning</span>
+    <span>Investing in crowdfunding projects involves risks, including the loss of all of the money invested. Your investment is not covered by deposit guarantee or investor compensation schemes. You may not be able to sell your investment when you wish, and you may receive no return.</span>
+  </div>
+</div>
+
+<!-- 10. Footer -->
+<footer class="site" id="waitlist">
+  <div class="wrap">
+    <div class="foot-cols">
+      <div>
+        <h4>Platform</h4>
+        <ul>
+          <li><a href="#offerings">Offerings</a></li>
+          <li><a href="#how">How it works</a></li>
+          <li><a href="#fees">Fees</a></li>
+          <li><a href="#bulletin">Bulletin board</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Companies</h4>
+        <ul>
+          <li><a href="#companies">Raise capital</a></li>
+          <li><a href="#criteria">Admission criteria</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="#kiis">Terms</a></li>
+          <li><a href="#kiis">Privacy</a></li>
+          <li><a href="#kiis">Complaints — free of charge</a></li>
+          <li><a href="#kiis">Conflicts of interest policy</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Registers</h4>
+        <ul>
+          <li><a href="#kiis">Estonian Business Register</a></li>
+          <li><a href="#kiis">Finantsinspektsioon</a></li>
+          <li><a href="#kiis">ESMA crowdfunding register</a></li>
+        </ul>
+      </div>
+    </div>
+    <p class="legal" id="learn">Osalus Capital OÜ, Tallinn, Estonia. Authorisation as a crowdfunding service provider under Regulation (EU) 2020/1503 is pending with Finantsinspektsioon — no crowdfunding services are provided until authorisation is granted. Complaints are handled free of charge — see our complaints procedure. Osalus does not hold client funds or client shares; payments are processed by a licensed payment service provider through segregated client accounts.</p>
+  </div>
+</footer>
+
+<div class="mock-tag" id="kiis">Design mockup v1 · not a live service</div>
