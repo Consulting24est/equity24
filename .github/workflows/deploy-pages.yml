@@ -1,0 +1,58 @@
+name: Deploy site to GitHub Pages
+
+# Publishes only the public product — landing page, app prototype and the
+# mandatory ECSPR art 19 disclosure pages. The licence package, audit records,
+# research and legal drafts stay in the repo and are never published; the build
+# script fails the job if any of them reach dist/.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'platform-v2/*.html'
+      - 'platform-v2/pages.css'
+      - 'scripts/build-site.mjs'
+      - '.github/workflows/deploy-pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Build site
+        run: node scripts/build-site.mjs
+      - name: Verify no secrets or private documents in the output
+        run: |
+          set -e
+          ! grep -rIl 'DIDIT_API_KEY=.\|sb_secret\|service_role' dist/ || (echo "secret found in dist/" && exit 1)
+          test -f dist/robots.txt
+          grep -q 'Disallow: /' dist/robots.txt
+          grep -q 'noindex' dist/index.html
+          echo "checks passed"
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
