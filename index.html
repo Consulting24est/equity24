@@ -96,6 +96,7 @@
   }
   .nav-row { display: flex; align-items: center; gap: 22px; padding: 14px 0; }
   .wordmark { font-size: 19px; font-weight: 600; letter-spacing: 0.02em; color: var(--ink); }
+  .wordmark:hover { color: var(--accent); text-decoration: none; }
   .pending-chip {
     font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em;
     border: 1px solid var(--hairline); border-radius: 999px; padding: 4px 10px;
@@ -569,7 +570,7 @@
 <!-- ============ NAV ============ -->
 <header class="site">
   <div class="wrap nav-row">
-    <span class="wordmark">EQUITY24.IO</span>
+    <a class="wordmark" href="/" aria-label="Equity24.io — home">EQUITY24.IO</a>
     <span class="pending-chip">AUTHORISATION PENDING</span>
     <nav class="main" aria-label="Main">
       <a href="#offers">Offers</a>

@@ -115,7 +115,14 @@ const E24 = {
       provider,
       options: { redirectTo: location.origin + '/app/#/terms' }
     });
-    if (error) return fail(error, provider + ' sign-in is not enabled on this project yet');
+    if (error) {
+      // "Unsupported provider: provider is not enabled" is a configuration
+      // state, not something the person signing up did wrong.
+      if (/not enabled|unsupported provider/i.test(error.message || '')) {
+        return { ok: false, error: 'Google sign-in is not switched on yet. Please sign up with an email address and password for now.' };
+      }
+      return fail(error, 'Could not start ' + provider + ' sign-in');
+    }
     return { ok: true };
   },
 
