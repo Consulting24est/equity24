@@ -33,7 +33,11 @@ const PORT = Number(process.env.PORT || env.PORT || 8787);
 const PUBLIC_BASE_URL = process.env.PUBLIC_BASE_URL || env.PUBLIC_BASE_URL || `http://localhost:${PORT}`;
 
 const DIDIT_BASE = 'https://verification.didit.me';
-const STATIC_ROOT = path.join(__dirname, '..', 'deploy');
+// Serve the built site when there is one — its paths (/app/, /js/) are the ones
+// production actually serves, so local testing exercises the real URLs.
+// STATIC_ROOT overrides both.
+const STATIC_ROOT = path.resolve(__dirname, process.env.STATIC_ROOT || env.STATIC_ROOT ||
+  (fs.existsSync(path.join(__dirname, '..', '..', 'dist', 'index.html')) ? '../../dist' : '../deploy'));
 const STORE_PATH = path.join(__dirname, 'kyc-store.json');
 
 /* ------------------------------------------------------------------- store */

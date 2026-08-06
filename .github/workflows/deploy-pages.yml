@@ -12,6 +12,7 @@ on:
     paths:
       - 'platform-v2/*.html'
       - 'platform-v2/pages.css'
+      - 'platform-v2/js/**'
       - 'scripts/build-site.mjs'
       - '.github/workflows/deploy-pages.yml'
   workflow_dispatch:

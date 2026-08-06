@@ -179,15 +179,14 @@
 
   /* ============ PARAMETER STRIP ============ */
   .param-strip { border-top: 1px solid var(--hairline); border-bottom: 1px solid var(--hairline); }
-  .param-strip .wrap { display: grid; grid-template-columns: repeat(4, 1fr); }
+  .param-strip .wrap { display: grid; grid-template-columns: repeat(3, 1fr); }
   .param-cell { padding: 26px 20px; border-left: 1px solid var(--hairline); }
   .param-cell:first-child { border-left: 0; }
   .param-cell .val { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 30px; color: var(--ink); }
   .param-cell .lbl { margin-top: 6px; display: block; }
   @media (max-width: 800px) {
     .param-strip .wrap { grid-template-columns: 1fr 1fr; }
-    .param-cell:nth-child(3) { border-left: 0; }
-    .param-cell:nth-child(3), .param-cell:nth-child(4) { border-top: 1px solid var(--hairline); }
+    .param-cell:nth-child(3) { border-left: 0; border-top: 1px solid var(--hairline); grid-column: 1 / -1; }
   }
 
   /* ============ SECTION CAPTION RAIL ============ */
@@ -590,7 +589,7 @@
     <div>
       <span class="microlabel kicker">EU TECHNOLOGY COMPANIES · NOMINEE STRUCTURE · FULLY DIGITAL</span>
       <h1>Equity in the EU&rsquo;s operating companies.</h1>
-      <p class="sub">Equity24.io lists ECSPR offers from EU technology companies with <strong>3+ years of trading</strong> and <strong>EUR&nbsp;0.5–3M annual revenue</strong>. Invest from EUR&nbsp;100. Shares are held for you by <strong>us, acting as nominee</strong> — we are entered as the registered shareholder in the Estonian Business Register — one clean cap table per company, simpler shareholder management, smoother secondary transfers. Investor fees: <strong>EUR&nbsp;0</strong>.</p>
+      <p class="sub">Equity24.io lists ECSPR offers from EU technology companies with <strong>EUR&nbsp;0.5–3M annual revenue</strong>. Invest from EUR&nbsp;100. Shares are held for you by <strong>us, acting as nominee</strong> — we are entered as the registered shareholder in the Estonian Business Register — one clean cap table per company, simpler shareholder management, smoother secondary transfers. Investor fees: <strong>EUR&nbsp;0</strong>.</p>
       <div class="cta-row">
         <a class="btn solid" href="#waitlist">Sign up</a>
         <a class="btn ghost" href="#process">How it works →</a>
@@ -623,7 +622,6 @@
     <div class="param-cell"><span class="val" data-count="0" data-prefix="EUR ">EUR 0</span><span class="microlabel lbl">Investor fees, permanently</span></div>
     <div class="param-cell"><span class="val" data-count="100" data-prefix="EUR ">EUR 100</span><span class="microlabel lbl">Minimum investment</span></div>
     <div class="param-cell"><span class="val" data-count="4" data-suffix=" days">4 days</span><span class="microlabel lbl">Reflection period, calendar days</span></div>
-    <div class="param-cell"><span class="val" data-count="3" data-suffix="+ yrs">3+ yrs</span><span class="microlabel lbl">Issuer trading history required</span></div>
   </div>
 </div>
 
@@ -690,7 +688,7 @@
       <div class="focus-cell"><span class="fl">Digital platforms</span><p>Marketplaces and platforms connecting supply and demand.</p></div>
     </div>
     <p style="margin:20px 0 0"><a class="btn ghost" href="/how-we-choose">Read the full admission criteria &rarr;</a></p>
-    <p class="focus-foot">Every issuer is a company registered in an EU member state, with 3+ years of trading and EUR&nbsp;0.5&ndash;3M annual revenue &mdash; non-EU founders qualify through an Estonian O&Uuml; (e-Residency).</p>
+    <p class="focus-foot">Every issuer is a company registered in an EU member state, with EUR&nbsp;0.5&ndash;3M annual revenue &mdash; non-EU founders qualify through an Estonian O&Uuml; (e-Residency).</p>
   </div>
 </section>
 
@@ -797,7 +795,7 @@
     </div>
     <div class="ledger" id="ledgerRaise" role="tabpanel" aria-labelledby="tabRaise">
       <div class="lrow"><span class="idx">01</span><div><div class="lt">Apply</div><div class="ld">EUR 1 000 listing fee. Screening starts with your registry record and filed accounts.</div></div><span class="ann">EUR 1 000</span></div>
-      <div class="lrow"><span class="idx">02</span><div><div class="lt">Screening</div><div class="ld">3+ years trading, EUR 0.5–3M revenue, operating tech business. We decline most applications.</div></div><span class="ann">criteria, not advice</span></div>
+      <div class="lrow"><span class="idx">02</span><div><div class="lt">Screening</div><div class="ld">EUR 0.5–3M revenue, operating tech business. We decline most applications.</div></div><span class="ann">criteria, not advice</span></div>
       <div class="lrow"><span class="idx">03</span><div><div class="lt">KIIS preparation</div><div class="ld">You prepare the Key Investment Information Sheet; we check it for completeness, clarity and consistency.</div></div><span class="ann">art 23</span></div>
       <div class="lrow"><span class="idx">04</span><div><div class="lt">Offer live</div><div class="ld">EUR 100k – 5 million for equity, open to investors across the EU.</div></div><span class="ann">up to 60 days</span></div>
       <div class="lrow"><span class="idx">05</span><div><div class="lt">Settlement</div><div class="ld">6% success fee on funds raised. Nothing beyond the listing fee if the round fails.</div></div><span class="ann">6% on success</span></div>
@@ -881,7 +879,7 @@
     </div>
 
     <div class="route" role="img" aria-label="Route diagram: non-EU tech company to Estonian OÜ to ECSPR offer to EU investors">
-      <div class="node"><b>NON-EU TECH COMPANY</b><span>Operating business, 3+ years trading</span></div>
+      <div class="node"><b>NON-EU TECH COMPANY</b><span>Operating business with revenue</span></div>
       <span class="arrow">→</span>
       <div class="node"><b>ESTONIAN OÜ</b><span>e-Residency · registration 1–2 days</span></div>
       <span class="arrow">→</span>

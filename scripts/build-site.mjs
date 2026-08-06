@@ -51,6 +51,13 @@ for (const p of ['how-we-choose', 'risks', 'complaints', 'terms', 'privacy', 'pr
 
 copyFileSync(join(src, 'pages.css'), join(dist, 'pages.css'));
 
+// Client-side modules (Supabase binding). Only the publishable key travels
+// here; the secret-scan step below fails the build if anything else does.
+mkdirSync(join(dist, 'js'), { recursive: true });
+for (const f of readdirSync(join(src, 'js'))) {
+  if (f.endsWith('.js')) copyFileSync(join(src, 'js', f), join(dist, 'js', f));
+}
+
 // GitHub Pages serves 404.html for unknown paths
 writeFileSync(join(dist, '404.html'), HEAD + `<title>Not found — Equity24.io</title>
 <link rel="stylesheet" href="/pages.css">

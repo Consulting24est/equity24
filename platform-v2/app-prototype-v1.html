@@ -294,6 +294,10 @@
   .steps-dots span { width: 22px; height: 3px; border-radius: 2px; background: var(--surface-raised); }
   .steps-dots span.on { background: var(--accent); }
   .auth-note { font-size: 12.5px; color: var(--ink); border-left: 2px solid var(--hairline); padding-left: 10px; margin-top: 16px; }
+  .auth-msg { font-size: 13px; line-height: 1.45; border: 1px solid var(--hairline); border-radius: 6px;
+    padding: 10px 12px; margin-bottom: 14px; background: var(--surface-raised); }
+  .auth-msg.bad { border-color: var(--warn); color: var(--warn); background: transparent; }
+  .auth-msg.good { border-color: var(--ok); color: var(--ok); background: transparent; }
 
   /* ---- project page ---- */
   .proj-head { display: flex; justify-content: space-between; gap: 18px; align-items: flex-start; flex-wrap: wrap; }
@@ -437,7 +441,10 @@ const state = {
   application: store.application || null,
   invest: null,
   applyStep: 1,
-  signupStep: 1
+  signupStep: 1,
+  // true only when the session came from Supabase, so the demo role buttons
+  // are never mistaken for a real sign-in and logged out from under the user
+  live: store.live || false
 };
 const ACCOUNT_TYPES = {
   raise:     { label: 'RAISING CAPITAL',    title: 'I want to raise capital',  glyph: '\u25B2',
@@ -454,7 +461,8 @@ function persist() {
   localStorage.setItem('osalus-proto', JSON.stringify({
     role: state.role, userName: state.userName, joined: [...state.joined],
     msgs: state.msgs, commitments: state.commitments, chan: state.chan,
-    accountType: state.accountType, avatar: state.avatar, profile: state.profile, kyc: state.kyc, terms: state.terms, application: state.application
+    accountType: state.accountType, avatar: state.avatar, profile: state.profile, kyc: state.kyc, terms: state.terms, application: state.application,
+    live: state.live
   }));
 }
 function toast(t) {
@@ -475,7 +483,11 @@ function route() {
 }
 function home() { return state.role === 'admin' ? 'admin/pipeline' : state.role === 'company' ? 'company/overview' : 'app/dashboard'; }
 function setRole(r) { state.role = r; persist(); nav(home()); }
-function logout() { state.role = 'guest'; persist(); nav('login'); }
+async function logout() {
+  if (window.E24 && window.E24.session) await window.E24.signOut();
+  state.role = 'guest'; state.live = false; state.terms = null;
+  persist(); nav('login'); render();
+}
 
 /* =============== SHARED UI =============== */
 function topRight() {
@@ -572,13 +584,15 @@ function shell(nav_, content) {
 function viewLogin() {
   return `<div class="auth-split"><div class="auth-left"><div class="auth-inner">
     <h2>Log in to Equity24.io</h2>
-    <p class="sub">Sign in with an Estonian e-ID method. Identity verification for investing is separate and handled after sign-in.</p>
-    <div class="eid-grid">
-      <button class="eid-btn" onclick="demoLogin('investor')">ID-CARD</button>
-      <button class="eid-btn" onclick="demoLogin('investor')">SMART-ID</button>
-      <button class="eid-btn" onclick="demoLogin('investor')">MOBIIL-ID</button>
-      <button class="eid-btn" onclick="demoLogin('investor')">eIDAS</button>
-    </div>
+    <p class="sub">Identity verification for investing is separate and handled after sign-in.</p>
+    <div id="authMsg" class="auth-msg" hidden></div>
+    <button class="oauth-btn" onclick="oauthLogin('google')">${G_SVG} Continue with Google</button>
+    <button class="oauth-btn" onclick="oauthLogin('linkedin_oidc')">${L_SVG} Continue with LinkedIn</button>
+    <div class="divider-or"><span>OR</span></div>
+    <label class="f"><span class="microlabel">EMAIL</span><input class="field" id="liEmail" type="email" autocomplete="email" placeholder="you@company.eu"></label>
+    <label class="f"><span class="microlabel">PASSWORD</span><input class="field" id="liPass" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')emailLogin()"></label>
+    <button class="btn solid" style="width:100%" id="liGo" onclick="emailLogin()">Log in</button>
+    <p class="auth-note">Estonian e-ID (ID-card, Smart-ID, Mobiil-ID) and eIDAS are part of the authorised service and are not enabled before authorisation.</p>
     <div style="display:flex; gap:8px; flex-wrap:wrap;">
       <button class="btn ghost small" onclick="demoLogin('investor')">Demo: investor</button>
       <button class="btn ghost small" onclick="demoLogin('company')">Demo: company</button>
@@ -590,8 +604,36 @@ function viewLogin() {
 }
 function demoLogin(role) {
   state.role = role;
+  state.live = false;
   state.userName = role === 'admin' ? 'Compliance Admin' : role === 'company' ? 'Marten Tamm' : 'Demo Investor';
   persist(); nav(home()); toast('Logged in — simulated session');
+}
+/* Sign-in feedback belongs on the form, not in a toast that scrolls away. */
+function authMsg(text, kind) {
+  const el = document.getElementById('authMsg');
+  if (!el) return toast(text);
+  el.textContent = text;
+  el.className = 'auth-msg' + (kind ? ' ' + kind : '');
+  el.hidden = false;
+}
+async function emailLogin() {
+  const email = (document.getElementById('liEmail') || {}).value || '';
+  const pass = (document.getElementById('liPass') || {}).value || '';
+  if (!email || !pass) return authMsg('Enter your email address and password.', 'bad');
+  if (!window.E24 || !window.E24.ok) return authMsg('The account service is unreachable. Use a demo view below, or try again shortly.', 'bad');
+  const btn = document.getElementById('liGo');
+  if (btn) { btn.disabled = true; btn.textContent = 'Signing in…'; }
+  const r = await window.E24.signIn({ email, password: pass });
+  if (btn) { btn.disabled = false; btn.textContent = 'Log in'; }
+  if (!r.ok) return authMsg(r.error, 'bad');
+  syncFromSupabase();
+  nav(state.terms ? home() : 'terms');
+  render(); toast('Signed in');
+}
+async function oauthLogin(provider) {
+  if (!window.E24 || !window.E24.ok) return authMsg('The account service is unreachable.', 'bad');
+  const r = await window.E24.oauth(provider, state.accountType);
+  if (!r.ok) authMsg(r.error, 'bad');
 }
 function avatarInner() {
   return state.avatar ? `<img class="avatar-img" src="${state.avatar}" alt="">` : initials(state.userName);
@@ -600,7 +642,7 @@ function proofPanel(typeKey) {
   const t = ACCOUNT_TYPES[typeKey];
   const rows = t
     ? t.facts.map(f => `<div class="r"><span class="k">${f[0]}</span><span class="v">${f[1]}</span></div>`).join('')
-    : [['Investor fees','EUR 0'],['Minimum investment','EUR 100'],['Reflection period','4 calendar days'],['Issuer bar','3+ years trading']]
+    : [['Investor fees','EUR 0'],['Minimum investment','EUR 100'],['Reflection period','4 calendar days'],['Maximum per issuer','EUR 5M / 12 months']]
         .map(f => `<div class="r"><span class="k">${f[0]}</span><span class="v">${f[1]}</span></div>`).join('');
   return `<div class="auth-proof">
     <span class="microlabel">${t ? t.label + ' — WHAT APPLIES TO YOU' : 'PLATFORM PARAMETERS'}</span>
@@ -631,18 +673,20 @@ function viewSignup() {
     const t = ACCOUNT_TYPES[state.accountType];
     body = `<h2>Register your account</h2>
       <p class="sub">Continuing as <b>${t.title.replace("I'm a ", "").replace('I want to ', '')}</b> · <a href="javascript:backToType()">change</a></p>
-      <button class="oauth-btn" onclick="sgNext()">${G_SVG} Continue with Google</button>
-      <button class="oauth-btn" onclick="sgNext()">${L_SVG} Continue with LinkedIn</button>
+      <div id="authMsg" class="auth-msg" hidden></div>
+      <button class="oauth-btn" onclick="oauthLogin('google')">${G_SVG} Continue with Google</button>
+      <button class="oauth-btn" onclick="oauthLogin('linkedin_oidc')">${L_SVG} Continue with LinkedIn</button>
       <div class="divider-or"><span>OR</span></div>
       <div class="field-row">
         <label class="f"><span class="microlabel">FIRST NAME</span><input class="field" id="sgFirst" placeholder="Mari"></label>
         <label class="f"><span class="microlabel">LAST NAME</span><input class="field" id="sgLast" placeholder="Maasikas"></label>
       </div>
-      ${state.accountType !== 'private' ? `<label class="f"><span class="microlabel">COMPANY</span><input class="field" id="sgCompany" placeholder="Company OÜ"></label>` : ''}
-      <label class="f"><span class="microlabel">EMAIL</span><input class="field" id="sgEmail" type="email" placeholder="you@company.eu"></label>
-      <label class="f"><span class="microlabel">PASSWORD</span><input class="field" type="password" placeholder="At least 12 characters"></label>
-      <label class="checkline"><input type="checkbox" id="sgTerms"> I agree to the Terms of Use and the Privacy Notice.</label>
-      <button class="btn solid" style="width:100%" onclick="sgNext()">Create account</button>
+      ${state.accountType !== 'private' ? `<label class="f"><span class="microlabel">COMPANY</span><input class="field" id="sgCompany" placeholder="Company OÜ"></label>
+      <label class="f"><span class="microlabel">REGISTRY CODE</span><input class="field" id="sgReg" placeholder="16428309"></label>` : ''}
+      <label class="f"><span class="microlabel">EMAIL</span><input class="field" id="sgEmail" type="email" autocomplete="email" placeholder="you@company.eu"></label>
+      <label class="f"><span class="microlabel">PASSWORD</span><input class="field" id="sgPass" type="password" autocomplete="new-password" placeholder="At least 12 characters"></label>
+      <label class="checkline"><input type="checkbox" id="sgTerms"> I agree to the <a href="/terms" target="_blank">Terms of Use</a> and the <a href="/privacy" target="_blank">Privacy Notice</a>.</label>
+      <button class="btn solid" style="width:100%" id="sgGo" onclick="createAccount()">Create account</button>
       <p class="auth-note">Already have an account? <a href="#/login">Log in</a></p>`;
   } else {
     body = `<h2>Verify your identity</h2>
@@ -723,6 +767,43 @@ function kycTagClass(st) {
 function pickType(k) { state.accountType = k; state.signupStep = 2; persist(); render(); }
 function backToType() { state.signupStep = 1; render(); }
 function sgNext() { state.signupStep = Math.min(3, state.signupStep + 1); render(); }
+/* Creates the real account. The profiles row is written by a database trigger
+   from this metadata, so there is no window in which an auth user exists
+   without a profile. */
+async function createAccount() {
+  const val = id => ((document.getElementById(id) || {}).value || '').trim();
+  const first = val('sgFirst'), last = val('sgLast'), email = val('sgEmail'),
+        pass = val('sgPass'), company = val('sgCompany'), reg = val('sgReg');
+  const agreed = (document.getElementById('sgTerms') || {}).checked;
+
+  if (!first) return authMsg('Enter your first name.', 'bad');
+  if (!email) return authMsg('Enter your email address.', 'bad');
+  if (pass.length < 12) return authMsg('Choose a password of at least 12 characters.', 'bad');
+  if (state.accountType !== 'private' && !company) return authMsg('Enter your company name.', 'bad');
+  if (!agreed) return authMsg('Please accept the Terms of Use and the Privacy Notice.', 'bad');
+  if (!window.E24 || !window.E24.ok) return authMsg('The account service is unreachable — your account was not created. Please try again shortly.', 'bad');
+
+  const btn = document.getElementById('sgGo');
+  if (btn) { btn.disabled = true; btn.textContent = 'Creating account…'; }
+  const r = await window.E24.signUp({
+    email, password: pass, accountType: state.accountType,
+    fullName: (first + ' ' + last).trim(), companyName: company, registryCode: reg
+  });
+  if (btn) { btn.disabled = false; btn.textContent = 'Create account'; }
+  if (!r.ok) return authMsg(r.error, 'bad');
+
+  state.userName = (first + ' ' + last).trim();
+  state.profile.email = email;
+  if (company) state.profile.company = company;
+  persist();
+
+  if (r.needsConfirmation) {
+    authMsg('Account created. Check ' + email + ' for a confirmation link, then log in.', 'good');
+    return;
+  }
+  syncFromSupabase();
+  state.signupStep = 3; render();
+}
 function sgFinish() {
   const f = document.getElementById('sgFirst'), l = document.getElementById('sgLast'),
         e = document.getElementById('sgEmail'), c = document.getElementById('sgCompany');
@@ -902,14 +983,26 @@ function changeType(k) {
   persist(); nav(k === 'raise' ? 'company/profile' : 'app/profile');
   toast('Account type changed to ' + ACCOUNT_TYPES[k].label.toLowerCase());
 }
-function saveProfile() {
+async function saveProfile() {
   const n = document.getElementById('pfName'), e = document.getElementById('pfEmail'),
         c = document.getElementById('pfCompany'), co = document.getElementById('pfCountry');
   if (n && n.value.trim()) state.userName = n.value.trim();
   if (e) state.profile.email = e.value;
   if (c) state.profile.company = c.value;
   if (co) state.profile.country = co.value;
-  persist(); render(); toast('Profile saved');
+  persist();
+
+  if (window.E24 && window.E24.ok && window.E24.session) {
+    // The email address on the account is changed through auth, not here, so
+    // it is deliberately not part of this patch.
+    const r = await window.E24.saveProfile({
+      full_name: state.userName,
+      country: state.profile.country || 'EE',
+      company_name: state.profile.company || null
+    });
+    if (!r.ok) return toast('Could not save: ' + r.error);
+  }
+  render(); toast('Profile saved');
 }
 
 /* =============== TERMS GATE — first screen after sign-in =============== */
@@ -932,9 +1025,22 @@ function viewTerms() {
     </div>
   </div></div>`;
 }
-function acceptTerms() {
-  state.terms = { version: '1.0', accepted_at: '2026-08-06 11:42 EET' };
-  persist(); nav(home()); toast('Terms accepted — recorded');
+/* ECSPR art 26 — acceptance is evidence, so it is stamped against the account,
+   not just remembered in the browser. */
+async function acceptTerms() {
+  const btn = document.getElementById('tcGo');
+  if (btn) { btn.disabled = true; btn.textContent = 'Recording…'; }
+  let stamp = new Date().toISOString().replace('T', ' ').slice(0, 16) + ' UTC';
+  if (window.E24 && window.E24.ok && window.E24.session) {
+    const r = await window.E24.acceptTerms();
+    if (!r.ok) {
+      if (btn) { btn.disabled = false; btn.textContent = 'Continue'; }
+      return toast('Could not record your acceptance: ' + r.error);
+    }
+    stamp = new Date(r.profile.terms_accepted_at).toISOString().replace('T', ' ').slice(0, 16) + ' UTC';
+  }
+  state.terms = { version: '1.0', accepted_at: stamp };
+  persist(); nav(home()); render(); toast('Terms accepted — recorded');
 }
 
 /* =============== INVESTOR VIEWS =============== */
@@ -1355,7 +1461,7 @@ function confirmInvest(pid) {
 /* =============== APPLICATION =============== */
 const APPLY_STAGES = [
   ['Application submitted', 'Your details and documents are with us. You can still withdraw at any point before the offer opens.', 'YOU'],
-  ['Eligibility screening', 'We check the published admission criteria: EU-registered technology company, 3+ years trading, EUR 0.5–3M revenue, and the excluded-sector list.', 'EQUITY24.IO'],
+  ['Eligibility screening', 'We check the published admission criteria: EU-registered technology company, EUR 0.5–3M revenue, and the excluded-sector list.', 'EQUITY24.IO'],
   ['Due diligence', 'Criminal-record and jurisdiction checks on the company, its board and beneficial owners; financial, business and instrument review. We decline applications that do not pass.', 'EQUITY24.IO'],
   ['KIIS preparation', 'You prepare the Key Investment Information Sheet. It is your document and your responsibility — we provide the template and written guidance, and we do not write it for you.', 'YOU'],
   ['KIIS completeness check', 'Two reviewers independently check the sheet for completeness, correctness and clarity. Findings come back to you until they are resolved.', 'EQUITY24.IO'],
@@ -1426,7 +1532,6 @@ function applyForm() {
     <p style="font-size:13px; color:var(--ink-muted); margin:0 0 14px;">These are published criteria, not preferences. An application that fails any of them is declined.</p>
     <div class="kv" style="margin-bottom:14px">
       <div class="r"><span class="k">Registered in an EU member state</span><span class="v"><input type="checkbox" checked style="accent-color:var(--accent)"></span></div>
-      <div class="r"><span class="k">3+ years of trading history</span><span class="v"><input type="checkbox" style="accent-color:var(--accent)"></span></div>
       <div class="r"><span class="k">Annual revenue EUR 0.5–3M</span><span class="v"><input type="checkbox" style="accent-color:var(--accent)"></span></div>
       <div class="r"><span class="k">Annual reports filed</span><span class="v"><input type="checkbox" style="accent-color:var(--accent)"></span></div>
       <div class="r"><span class="k">Not in an excluded sector</span><span class="v"><input type="checkbox" style="accent-color:var(--accent)"></span></div>
@@ -1514,15 +1619,61 @@ function viewAdUsers() {
       </div>
       <div id="kycAdminList" style="margin-top:10px;"></div>
     </div>
+    <div class="kyc-row" style="margin-bottom:8px;">
+      <div><span class="microlabel">SIGNUPS</span>
+        <div style="font-size:13px; color:var(--ink-muted); margin-top:4px;" id="signupLine">Loading…</div></div>
+      <button class="btn ghost small" onclick="loadSignups()">Refresh</button>
+    </div>
     <div class="tbl-wrap"><table class="list">
-      <thead><tr><th>User</th><th>Type</th><th>Residency / registry</th><th>e-ID</th><th>Test</th><th>Status</th></tr></thead>
-      <tbody>
-        <tr><td>Demo Investor</td><td>Investor</td><td class="mono">EE resident</td><td class="mono">SMART-ID</td><td><span class="tag ok">PASSED</span></td><td><span class="tag ok">ACTIVE</span></td></tr>
-        <tr><td>Priit Kask</td><td>Investor</td><td class="mono">EE resident</td><td class="mono">ID-CARD</td><td><span class="tag ok">PASSED</span></td><td><span class="tag ok">ACTIVE</span></td></tr>
-        <tr><td>Liis Rebane</td><td>Investor</td><td class="mono">EE resident</td><td class="mono">MOBIIL-ID</td><td><span class="tag warn">EXPIRES 2026-09</span></td><td><span class="tag ok">ACTIVE</span></td></tr>
-        <tr><td>Northshore Metrics OÜ</td><td>Company</td><td class="mono">EE · rg 16871220</td><td class="mono">eIDAS</td><td class="mono">n/a</td><td><span class="tag warn">KYB PENDING</span></td></tr>
-        <tr><td>J. Novak</td><td>Investor</td><td class="mono">CZ resident</td><td class="mono">eIDAS</td><td class="mono">—</td><td><span class="tag">DECLINED · OUTSIDE ONBOARDING SCOPE</span></td></tr>
-      </tbody></table></div>`);
+      <thead><tr><th>User</th><th>Type</th><th>Country / registry</th><th>Terms</th><th>Verification</th><th>Signed up</th></tr></thead>
+      <tbody id="signupRows"><tr><td colspan="6" class="mono">…</td></tr></tbody>
+    </table></div>`);
+}
+const ACC_LABEL = { private_investor: 'Private investor', corporate_investor: 'Corporate investor', company: 'Company' };
+/* Reads live signups. RLS decides what comes back — a non-staff session sees
+   only its own row, so there is no client-side gate to get wrong here. */
+async function loadSignups() {
+  const line = document.getElementById('signupLine');
+  const rows = document.getElementById('signupRows');
+  if (!rows) return;
+  if (!window.E24 || !window.E24.ok) {
+    if (line) line.textContent = 'Database unreachable — check the Supabase project is running.';
+    rows.innerHTML = '<tr><td colspan="6" class="mono">No connection.</td></tr>';
+    return;
+  }
+  if (!window.E24.session) {
+    if (line) line.textContent = 'Sign in with a staff account to see signups.';
+    rows.innerHTML = '<tr><td colspan="6" class="mono">Not signed in.</td></tr>';
+    return;
+  }
+  const r = await window.E24.listSignups();
+  if (!r.ok) {
+    if (line) line.textContent = r.error;
+    rows.innerHTML = '<tr><td colspan="6" class="mono">Could not load.</td></tr>';
+    return;
+  }
+  const staff = window.E24.isStaff();
+  if (line) line.textContent = staff
+    ? r.rows.length + ' account' + (r.rows.length === 1 ? '' : 's') + ' · role: ' + window.E24.staff
+    : 'You are not staff on this project, so you see only your own account.';
+  rows.innerHTML = r.rows.length ? r.rows.map(p => {
+    const k = p.kyc;
+    const kt = k ? `<span class="tag ${kycTagClass(k.status.replace(/(^|_)(\w)/g, (m, a, b) => (a ? ' ' : '') + b.toUpperCase()))}">${k.kind === 'business' ? 'KYB' : 'KYC'} ${k.status.toUpperCase()}</span>` : '<span class="mono">—</span>';
+    const reg = [p.country, p.company_registry_code ? 'rg ' + p.company_registry_code : ''].filter(Boolean).join(' · ');
+    return `<tr>
+      <td>${esc(p.full_name)}<div style="font-size:12px; color:var(--ink-muted)">${esc(p.email)}</div></td>
+      <td>${ACC_LABEL[p.account_type] || p.account_type}${p.company_name ? '<div style="font-size:12px; color:var(--ink-muted)">' + esc(p.company_name) + '</div>' : ''}</td>
+      <td class="mono">${esc(reg)}</td>
+      <td>${p.terms_accepted_at ? '<span class="tag ok">ACCEPTED</span>' : '<span class="tag warn">PENDING</span>'}</td>
+      <td>${kt}</td>
+      <td class="mono">${p.created_at ? p.created_at.slice(0, 10) : '—'}</td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="6" class="mono">No signups yet.</td></tr>';
+}
+/* Names and company names are user-supplied and land in innerHTML. */
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 async function loadKycSessions() {
   const line = document.getElementById('kycAdminLine');
@@ -1594,6 +1745,45 @@ function render() {
   document.getElementById('app').innerHTML = html;
   const f = document.getElementById('feed'); if (f) f.scrollTop = f.scrollHeight;
   if (document.getElementById('kycAdminList')) loadKycSessions();
+  if (document.getElementById('signupRows')) loadSignups();
 }
+
+/* =============== BOOT ===============
+   Render at once so the shell is never blank, then reconcile against the real
+   session when Supabase answers. Demo sessions (state.live === false) are left
+   alone — they never had a session to reconcile against. */
+function syncFromSupabase() {
+  const E = window.E24;
+  if (!E || !E.ok) return;
+  if (!E.session) {
+    if (state.live) { state.live = false; state.role = 'guest'; state.terms = null; persist(); }
+    return;
+  }
+  const p = E.profile;
+  state.live = true;
+  if (!p) return;
+  state.userName = p.full_name || state.userName;
+  state.accountType = E.toUi(p.account_type);
+  state.profile = {
+    email: p.email || '', country: p.country || 'EE',
+    company: p.company_name || '', phone: p.phone || ''
+  };
+  state.terms = p.terms_accepted_at
+    ? { version: p.terms_version || '1.0',
+        accepted_at: new Date(p.terms_accepted_at).toISOString().replace('T', ' ').slice(0, 16) + ' UTC' }
+    : null;
+  if (state.role === 'guest') {
+    state.role = E.isStaff() ? 'admin' : (p.account_type === 'company' ? 'company' : 'investor');
+  }
+  persist();
+}
+
 render();
+/* The binding is an ES module, so it executes after this classic script — we
+   are always in time to hear the event, never in time to read window.E24 here. */
+window.addEventListener('e24-ready', () => {
+  syncFromSupabase(); render();
+  window.E24.onChange(() => { syncFromSupabase(); render(); });
+});
 </script>
+<script type="module" src="/js/e24-supabase.js"></script>
