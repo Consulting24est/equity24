@@ -589,9 +589,7 @@ function viewLogin() {
     <h2>Log in to Equity24.io</h2>
     <p class="sub">Identity verification for investing is separate and handled after sign-in.</p>
     <div id="authMsg" class="auth-msg" hidden></div>
-    <button class="oauth-btn" onclick="oauthLogin('google')">${G_SVG} Continue with Google</button>
-    <button class="oauth-btn" onclick="oauthLogin('linkedin_oidc')">${L_SVG} Continue with LinkedIn</button>
-    <div class="divider-or"><span>OR</span></div>
+    <button class="oauth-btn" onclick="oauthLogin('google')">${G_SVG} Continue with Google</button>    <div class="divider-or"><span>OR</span></div>
     <label class="f"><span class="microlabel">EMAIL</span><input class="field" id="liEmail" type="email" autocomplete="email" placeholder="you@company.eu"></label>
     <label class="f"><span class="microlabel">PASSWORD</span><input class="field" id="liPass" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')emailLogin()"></label>
     <button class="btn solid" style="width:100%" id="liGo" onclick="emailLogin()">Log in</button>
@@ -655,7 +653,6 @@ function proofPanel(typeKey) {
   </div>`;
 }
 const G_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 11v3.2h5.4c-.2 1.4-1.6 4.1-5.4 4.1-3.3 0-6-2.7-6-6s2.7-6 6-6c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.7 3.7 14.6 2.8 12 2.8 6.9 2.8 2.8 6.9 2.8 12S6.9 21.2 12 21.2c5.3 0 8.8-3.7 8.8-8.9 0-.6-.1-1-.1-1.3H12z"/></svg>';
-const L_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.9 8.4H3.6V21h3.3V8.4zM5.2 3A1.9 1.9 0 105.2 6.8 1.9 1.9 0 005.2 3zM20.4 21h-3.3v-6.1c0-1.5-.5-2.5-1.8-2.5-1 0-1.6.7-1.9 1.3-.1.2-.1.6-.1.9V21H10s.1-11.4 0-12.6h3.3v1.8c.4-.7 1.2-1.7 3.1-1.7 2.3 0 4 1.5 4 4.7V21z"/></svg>';
 
 function viewSignup() {
   const s = state.signupStep;
@@ -677,9 +674,7 @@ function viewSignup() {
     body = `<h2>Register your account</h2>
       <p class="sub">Continuing as <b>${t.title.replace("I'm a ", "").replace('I want to ', '')}</b> · <a href="javascript:backToType()">change</a></p>
       <div id="authMsg" class="auth-msg" hidden></div>
-      <button class="oauth-btn" onclick="oauthLogin('google')">${G_SVG} Continue with Google</button>
-      <button class="oauth-btn" onclick="oauthLogin('linkedin_oidc')">${L_SVG} Continue with LinkedIn</button>
-      <div class="divider-or"><span>OR</span></div>
+      <button class="oauth-btn" onclick="oauthLogin('google')">${G_SVG} Continue with Google</button>      <div class="divider-or"><span>OR</span></div>
       <div class="field-row">
         <label class="f"><span class="microlabel">FIRST NAME</span><input class="field" id="sgFirst" placeholder="Mari"></label>
         <label class="f"><span class="microlabel">LAST NAME</span><input class="field" id="sgLast" placeholder="Maasikas"></label>
