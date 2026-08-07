@@ -53,6 +53,33 @@ const E24 = {
 
   onChange(fn) { listeners.add(fn); return () => listeners.delete(fn); },
 
+  providers: null,      // { google: bool, ... } once /auth/v1/settings answers
+
+  /**
+   * Which sign-in providers this project actually has switched on.
+   *
+   * This has to be asked up front. signInWithOAuth does not call the server —
+   * it builds a URL and navigates — so it returns { error: null } even for a
+   * disabled provider, and the failure only appears as raw JSON on Supabase's
+   * own domain after the redirect. Checking first is the only way to keep the
+   * user on our page.
+   */
+  async loadProviders() {
+    try {
+      const res = await fetch(CONFIG.url + '/auth/v1/settings', {
+        headers: { apikey: CONFIG.publishableKey }
+      });
+      if (!res.ok) return null;
+      const s = await res.json();
+      E24.providers = s.external || null;
+      return E24.providers;
+    } catch { return null; }
+  },
+
+  providerEnabled(name) {
+    return !!(E24.providers && E24.providers[name]);
+  },
+
   /* ------------------------------------------------------------- session --- */
   async refresh() {
     const { data, error } = await sb.auth.getSession();
@@ -80,7 +107,11 @@ const E24 = {
       email,
       password,
       options: {
-        emailRedirectTo: location.origin + '/app/#/login',
+        // No fragment. Supabase appends its token to this URL, and appending to
+        // a URL that already has one produces '/app/#/login#access_token=...'
+        // (or '?code=' inside the fragment), which detectSessionInUrl cannot
+        // parse — the confirmation link would sign nobody in.
+        emailRedirectTo: location.origin + '/app/',
         data: {
           account_type: dbType,
           full_name: (fullName || '').trim(),
@@ -110,11 +141,20 @@ const E24 = {
    * private_investor; the chosen role is re-applied on return.
    */
   async oauth(provider, accountType) {
-    if (accountType) sessionStorage.setItem('e24-pending-type', TO_DB[accountType] || accountType);
+    if (E24.providers && !E24.providerEnabled(provider)) {
+      return { ok: false, error: 'Google sign-in is not switched on yet. Please sign up with an email address and password for now.' };
+    }
     const { error } = await sb.auth.signInWithOAuth({
       provider,
-      options: { redirectTo: location.origin + '/app/#/terms' }
+      // Fragment-free, for the same reason as emailRedirectTo above.
+      options: { redirectTo: location.origin + '/app/' }
     });
+    // Stashed only once the redirect is actually going to happen. Writing it
+    // first left a stale role behind on a failed attempt, which a later
+    // unrelated sign-in would then apply to the wrong account.
+    if (!error && accountType) {
+      sessionStorage.setItem('e24-pending-type', TO_DB[accountType] || accountType);
+    }
     if (error) {
       // "Unsupported provider: provider is not enabled" is a configuration
       // state, not something the person signing up did wrong.
@@ -155,6 +195,12 @@ const E24 = {
     const { data, error } = await sb.from('profiles').update(patch)
       .eq('id', E24.session.user.id).select().maybeSingle();
     if (error) return fail(error, 'Could not save your profile');
+    // A zero-row update returns data:null with no error. Treating that as
+    // success would both report a save that did not happen and wipe the
+    // cached profile, so callers must see it as the failure it is.
+    if (!data) {
+      return { ok: false, error: 'Your profile record could not be found. Please sign out and sign in again.' };
+    }
     E24.profile = data; emit();
     return { ok: true, profile: data };
   },
@@ -173,16 +219,22 @@ const E24 = {
   },
 
   /* --------------------------------------------------------------- staff --- */
+  /**
+   * Returns the role string, false for "definitely not staff", or null for
+   * "could not tell". A transient failure must not read as a definitive answer:
+   * it would silently demote a real staff member and let the console state so.
+   */
   async loadStaff() {
     if (!E24.session) return null;
     const { data, error } = await sb.from('staff_roles')
       .select('role, revoked_at').eq('profile_id', E24.session.user.id)
       .is('revoked_at', null).maybeSingle();
-    if (error) return false;             // RLS denies non-staff; that is the answer
-    return data ? data.role : false;
+    if (error) { console.warn('staff role read failed', error.message); return null; }
+    return data ? data.role : false;     // RLS returns no rows for non-staff
   },
 
-  isStaff() { return !!E24.staff; },
+  isStaff() { return typeof E24.staff === 'string'; },
+  staffKnown() { return E24.staff !== null; },
 
   /**
    * Every signup, newest first, with the latest verification decision attached.
@@ -195,15 +247,18 @@ const E24 = {
       .order('created_at', { ascending: false }).limit(limit);
     if (error) return fail(error, 'Could not load signups');
 
-    const { data: kyc } = await sb.from('kyc_sessions')
+    const { data: kyc, error: kycError } = await sb.from('kyc_sessions')
       .select('profile_id, kind, status, updated_at')
       .order('updated_at', { ascending: false });
 
     const latest = new Map();
     for (const k of kyc || []) if (!latest.has(k.profile_id)) latest.set(k.profile_id, k);
 
+    // If the KYC read failed, say so. Rendering a dash for every row would
+    // read as "no verification on record" in a supervision screen.
     return {
       ok: true,
+      kycUnavailable: !!kycError,
       rows: (profiles || []).map(p => ({ ...p, kyc: latest.get(p.id) || null }))
     };
   }
@@ -224,7 +279,8 @@ const announce = result => {
   window.dispatchEvent(new CustomEvent('e24-ready', { detail: result }));
   return result;
 };
-window.E24.ready = E24.refresh()
+window.E24.ready = Promise.all([E24.loadProviders(), E24.refresh()])
+  .then(([, r]) => r)
   .catch(e => {
     console.warn('Supabase unreachable — running on local prototype state.', e);
     E24.ok = false;

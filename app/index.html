@@ -617,7 +617,7 @@ function viewLogin() {
     <h2>Log in to Equity24.io</h2>
     <p class="sub">Identity verification for investing is separate and handled after sign-in.</p>
     <div id="authMsg" class="auth-msg" hidden></div>
-    <button class="oauth-btn" onclick="oauthLogin('google')">${G_SVG} Continue with Google</button>    <div class="divider-or"><span>OR</span></div>
+    ${googleButton()}
     <label class="f"><span class="microlabel">EMAIL</span><input class="field" id="liEmail" type="email" autocomplete="email" placeholder="you@company.eu"></label>
     <label class="f"><span class="microlabel">PASSWORD</span><input class="field" id="liPass" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')emailLogin()"></label>
     <button class="btn solid" style="width:100%" id="liGo" onclick="emailLogin()">Log in</button>
@@ -658,6 +658,17 @@ async function emailLogin() {
   syncFromSupabase();
   nav(state.terms ? home() : 'terms');
   render(); toast('Signed in');
+}
+/* Only offered when the provider is actually switched on in Supabase. Showing
+   a button that redirects to a raw 400 is worse than not showing one; the
+   "OR" divider goes with it, since there is then nothing to be an alternative
+   to. Until the settings call answers, we show it — the click is still
+   guarded — so a slow network does not hide a working option. */
+function googleButton() {
+  const E = window.E24;
+  if (E && E.providers && !E.providerEnabled('google')) return '';
+  return `<button class="oauth-btn" onclick="oauthLogin('google')">${G_SVG} Continue with Google</button>
+    <div class="divider-or"><span>OR</span></div>`;
 }
 async function oauthLogin(provider) {
   if (!window.E24 || !window.E24.ok) return authMsg('The account service is unreachable.', 'bad');
@@ -702,7 +713,7 @@ function viewSignup() {
     body = `<h2>Register your account</h2>
       <p class="sub">Continuing as <b>${t.title.replace("I'm a ", "").replace('I want to ', '')}</b> · <a href="javascript:backToType()">change</a></p>
       <div id="authMsg" class="auth-msg" hidden></div>
-      <button class="oauth-btn" onclick="oauthLogin('google')">${G_SVG} Continue with Google</button>      <div class="divider-or"><span>OR</span></div>
+      ${googleButton()}
       <div class="field-row">
         <label class="f"><span class="microlabel">FIRST NAME</span><input class="field" id="sgFirst" placeholder="Mari"></label>
         <label class="f"><span class="microlabel">LAST NAME</span><input class="field" id="sgLast" placeholder="Maasikas"></label>
@@ -1059,9 +1070,11 @@ async function acceptTerms() {
   let stamp = new Date().toISOString().replace('T', ' ').slice(0, 16) + ' UTC';
   if (window.E24 && window.E24.ok && window.E24.session) {
     const r = await window.E24.acceptTerms();
-    if (!r.ok) {
+    // r.profile is checked as well as r.ok: acceptance is the evidence, so if
+    // we cannot read back the stamp we must not claim it was recorded.
+    if (!r.ok || !r.profile || !r.profile.terms_accepted_at) {
       if (btn) { btn.disabled = false; btn.textContent = 'Continue'; }
-      return toast('Could not record your acceptance: ' + r.error);
+      return toast('Could not record your acceptance: ' + (r.error || 'no confirmation from the database'));
     }
     stamp = new Date(r.profile.terms_accepted_at).toISOString().replace('T', ' ').slice(0, 16) + ' UTC';
   }
@@ -1681,10 +1694,14 @@ async function loadSignups() {
   const staff = window.E24.isStaff();
   if (line) line.textContent = staff
     ? r.rows.length + ' account' + (r.rows.length === 1 ? '' : 's') + ' · role: ' + window.E24.staff
-    : 'You are not staff on this project, so you see only your own account.';
+      + (r.kycUnavailable ? ' · verification status could not be loaded' : '')
+    : window.E24.staffKnown()
+      ? 'You are not staff on this project, so you see only your own account.'
+      : 'Your staff role could not be checked, so this list may be incomplete. Try Refresh.';
   rows.innerHTML = r.rows.length ? r.rows.map(p => {
     const k = p.kyc;
-    const kt = k ? `<span class="tag ${kycTagClass(k.status.replace(/(^|_)(\w)/g, (m, a, b) => (a ? ' ' : '') + b.toUpperCase()))}">${k.kind === 'business' ? 'KYB' : 'KYC'} ${k.status.toUpperCase()}</span>` : '<span class="mono">—</span>';
+    const kt = k ? `<span class="tag ${kycTagClass(k.status.replace(/(^|_)(\w)/g, (m, a, b) => (a ? ' ' : '') + b.toUpperCase()))}">${k.kind === 'business' ? 'KYB' : 'KYC'} ${k.status.toUpperCase()}</span>`
+      : (r.kycUnavailable ? '<span class="mono">not loaded</span>' : '<span class="mono">—</span>');
     const reg = [p.country, p.company_registry_code ? 'rg ' + p.company_registry_code : ''].filter(Boolean).join(' · ');
     return `<tr>
       <td>${esc(p.full_name)}<div style="font-size:12px; color:var(--ink-muted)">${esc(p.email)}</div></td>
