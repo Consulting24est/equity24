@@ -51,7 +51,7 @@ Platvormile lubatakse pakkumine üksnes juhul, kui projektiomanik vastab kõigil
 6. Projektiomanik ei ole platvormiga seotud isik määruse artikli 8 lõike 2 tähenduses.
 
 **Hinnatavad kriteeriumid:**
-7. Finantsseisund (käive [100 000]–[1 000 000 000] eurot).
+7. Finantsseisund (käive [100 000]–[100 000 000] eurot).
 8. Juhtkonna varasem tegevus.
 9. Ärimudel ja turg.
 10. Vahendite kasutuse ja kava usutavus.

@@ -40,7 +40,7 @@ Euroopa VKE-del, kes jäävad allapoole riskikapitali künnist, on piiratud juur
 
 ### 3.3 Sihtsegmendid
 
-**Projektiomanikud.** Tegutsevad ettevõtted, käive [100 000]–[1 000 000 000] eurot, kaasavad [150 000]–[800 000] eurot kasvuks, pakuvad **5–15%** omakapitalist. Välistatud: tulueelsed ideed; ettevõtted, mille põhitegevus on vara passiivne hoidmine; reguleeritud finantsettevõtjad; lisa A §-s 3 loetletud sektorid.
+**Projektiomanikud.** Tegutsevad ettevõtted, käive [100 000]–[100 000 000] eurot, kaasavad [150 000]–[800 000] eurot kasvuks, pakuvad **5–15%** omakapitalist. Välistatud: tulueelsed ideed; ettevõtted, mille põhitegevus on vara passiivne hoidmine; reguleeritud finantsettevõtjad; lisa A §-s 3 loetletud sektorid.
 
 **Investorid.** Mittekogenud investorid, kelle elukoht on [Eesti, Soome, Läti, Leedu] alustamisel, laienedes piiriülese teavitamise kaudu; kogenud investorid, kes vastavad ECSPR II lisa kriteeriumidele; äriinglid, keda kaasatakse [EstBAN-i ja samaväärsete võrgustike] kaudu.
 
