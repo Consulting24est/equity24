@@ -52,7 +52,7 @@ begin
   -- grant the first role through the client. Controlling the mailbox is the
   -- control here, so this must stay a short list of addresses we own, and
   -- Supabase email confirmation must stay switched on.
-  if lower(new.email) in ('mardo@consulting24.co') then
+  if lower(new.email) in ('mardo.soo@gmail.com') then
     insert into staff_roles (profile_id, role) values (new.id, 'board')
     on conflict (profile_id) do nothing;
   end if;

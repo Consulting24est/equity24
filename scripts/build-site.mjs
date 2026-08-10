@@ -31,13 +31,18 @@ const page = (file, out) => {
   writeFileSync(join(dist, out), html);
 };
 
-// Landing page — its sign-up CTAs point into the app
-let landing = HEAD + readFileSync(join(src, 'mockup-en-v2.html'), 'utf8');
-landing = landing.replace(
-  '<a class="btn solid" href="#waitlist">Sign up</a>',
-  '<a class="btn solid" href="/app/#/signup">Sign up</a>'
-);
+// Landing page. The sign-up CTAs point at /app/#/signup in the source itself.
+// They used to be rewritten here, but String.replace with a string pattern only
+// replaces the first match, so exactly one of the two buttons was ever fixed.
+const landing = HEAD + readFileSync(join(src, 'mockup-en-v2.html'), 'utf8');
 writeFileSync(join(dist, 'index.html'), landing);
+
+// Guard: no sign-up control may point back at the old on-page anchor.
+const strayCta = /<a[^>]*href="#waitlist"[^>]*>\s*Sign up/i.test(landing);
+if (strayCta) {
+  console.error('ERROR: a "Sign up" CTA still points at #waitlist instead of /app/#/signup');
+  process.exit(1);
+}
 
 // App
 mkdirSync(join(dist, 'app'), { recursive: true });
