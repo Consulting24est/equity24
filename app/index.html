@@ -512,7 +512,12 @@ function route() {
   const h = location.hash.replace(/^#\/?/, '') || (state.role === 'guest' ? 'login' : home());
   return h.split('/');
 }
-function home() { return state.role === 'admin' ? 'admin/pipeline' : state.role === 'company' ? 'company/overview' : 'app/dashboard'; }
+function home() {
+  // Never return the admin route to someone who cannot see it — the router
+  // redirects to home(), so that would be an endless redirect.
+  if (state.role === 'admin') return canSeeAdmin() ? 'admin/pipeline' : 'app/dashboard';
+  return state.role === 'company' ? 'company/overview' : 'app/dashboard';
+}
 function setRole(r) { state.role = r; persist(); nav(home()); }
 async function logout() {
   if (window.E24 && window.E24.session) await window.E24.signOut();
@@ -526,7 +531,7 @@ function topRight() {
     return '<button class="icon-btn" onclick="toggleTheme()" aria-label="Theme">◐</button>' +
       '<a class="btn ghost small" href="#/login">Log in</a><a class="btn solid small" href="#/signup">Sign up</a>';
   }
-  const roles = ['investor', 'company', 'admin'].map(r =>
+  const roles = ['investor', 'company', 'admin'].filter(r => r !== 'admin' || canSeeAdmin()).map(r =>
     `<button class="${state.role === r ? 'on' : ''}" onclick="setRole('${r}')">${r.toUpperCase()}</button>`).join('');
   return `<div class="role-switch" title="Demo: switch interface">${roles}</div>
     <button class="icon-btn" onclick="toggleTheme()" aria-label="Theme">◐</button>
@@ -589,12 +594,20 @@ function adminNav(active) {
       { route: 'admin/profile', g: '◍', t: 'Profile' } ] }
   ], active);
 }
+/* The admin workspace is staff-only on a real session — staff means a row in
+   staff_roles, which the database grants, not the client. Demo sessions keep it
+   so the prototype stays explorable. RLS is the real boundary either way: a
+   non-staff session that forced the route would see empty tables. */
+function canSeeAdmin() {
+  if (!state.live) return true;
+  return !!(window.E24 && window.E24.isStaff());
+}
 function iconRail() {
   const ctx = [
     { role: 'investor', g: '◈', t: 'Investor' },
     { role: 'company',  g: '▣', t: 'Company' },
     { role: 'admin',    g: '⌗', t: 'Admin' }
-  ];
+  ].filter(c => c.role !== 'admin' || canSeeAdmin());
   return `<nav class="rail" aria-label="Workspace">
     ${ctx.map(c => `<button class="rail-btn ${state.role === c.role ? 'on' : ''}" onclick="setRole('${c.role}')" title="${c.t}">
       <span class="ico">${c.g}</span><span class="lbl">${c.t}</span></button>`).join('')}
@@ -1783,7 +1796,13 @@ function render() {
     else html = ({ dashboard: viewDashboard, offers: viewOffers, messages: viewMessages, portfolio: viewPortfolio, board: viewBoard, profile: viewProfile, verify: viewVerify }[v] || viewDashboard)();
   }
   else if (r[0] === 'company') html = ({ overview: viewCoOverview, raise: viewCoRaise, community: viewCoCommunity, documents: viewCoDocs, profile: viewProfile, verify: viewVerify, apply: viewCoApply }[r[1]] || viewCoOverview)();
-  else if (r[0] === 'admin') html = ({ pipeline: viewAdPipeline, users: viewAdUsers, communities: viewAdCommunities, registers: viewAdRegisters, profile: viewProfile }[r[1]] || viewAdPipeline)();
+  else if (r[0] === 'admin') {
+    // Typing the URL must not reach it either. This is a UI gate, not the
+    // security boundary — that is RLS, which returns nothing to a non-staff
+    // session regardless of what the client renders.
+    if (!canSeeAdmin()) { nav(home()); return; }
+    html = ({ pipeline: viewAdPipeline, users: viewAdUsers, communities: viewAdCommunities, registers: viewAdRegisters, profile: viewProfile }[r[1]] || viewAdPipeline)();
+  }
   else html = viewLogin();
   document.getElementById('app').innerHTML = html;
   const f = document.getElementById('feed'); if (f) f.scrollTop = f.scrollHeight;
@@ -1817,6 +1836,9 @@ function syncFromSupabase() {
     : null;
   if (state.role === 'guest') {
     state.role = E.isStaff() ? 'admin' : (p.account_type === 'company' ? 'company' : 'investor');
+  } else if (state.role === 'admin' && !E.isStaff()) {
+    // A leftover demo role must not survive into a real, non-staff session.
+    state.role = p.account_type === 'company' ? 'company' : 'investor';
   }
   persist();
 }
