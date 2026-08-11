@@ -475,7 +475,9 @@ const state = {
   signupStep: 1,
   // true only when the session came from Supabase, so the demo role buttons
   // are never mistaken for a real sign-in and logged out from under the user
-  live: store.live || false
+  live: store.live || false,
+  // set between sending an SMS code and verifying it; never persisted
+  smsPhone: null
 };
 const ACCOUNT_TYPES = {
   raise:     { label: 'RAISING CAPITAL',    title: 'I want to raise capital',  glyph: '\u25B2',
@@ -634,6 +636,7 @@ function viewLogin() {
     <label class="f"><span class="microlabel">EMAIL</span><input class="field" id="liEmail" type="email" autocomplete="email" placeholder="you@company.eu"></label>
     <label class="f"><span class="microlabel">PASSWORD</span><input class="field" id="liPass" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')emailLogin()"></label>
     <button class="btn solid" style="width:100%" id="liGo" onclick="emailLogin()">Log in</button>
+    ${smsBlock()}
     <p class="auth-note">Estonian e-ID (ID-card, Smart-ID, Mobiil-ID) and eIDAS are part of the authorised service and are not enabled before authorisation.</p>
     <div style="display:flex; gap:8px; flex-wrap:wrap;">
       <button class="btn ghost small" onclick="demoLogin('investor')">Demo: investor</button>
@@ -644,6 +647,50 @@ function viewLogin() {
     <p class="auth-note">Equity24.io does not provide investment advice. No authority has approved any offer on this platform.</p>
   </div></div>${proofPanel(null)}</div>`;
 }
+/* SMS one-time-code sign-in. Shown only when the phone provider is switched on
+   in Supabase, same rule as the OAuth buttons. state.smsPhone is deliberately
+   not persisted — a half-finished code exchange should not survive a reload. */
+function smsBlock() {
+  const E = window.E24;
+  if (E && E.providers && !E.providerEnabled('phone')) return '';
+  if (state.smsPhone) {
+    return `<div class="divider-or"><span>CODE SENT</span></div>
+    <label class="f"><span class="microlabel">CODE SENT TO ${esc(state.smsPhone)}</span>
+      <input class="field" id="smsCode" inputmode="numeric" autocomplete="one-time-code" placeholder="6-digit code" onkeydown="if(event.key==='Enter')verifySms()"></label>
+    <button class="btn solid" style="width:100%" id="smsGo" onclick="verifySms()">Verify and sign in</button>
+    <p class="auth-note">Wrong number? <a href="javascript:resetSms()">Start again</a></p>`;
+  }
+  return `<div class="divider-or"><span>OR</span></div>
+    <label class="f"><span class="microlabel">PHONE</span>
+      <input class="field" id="smsPhone" type="tel" autocomplete="tel" placeholder="+372 5123 4567" onkeydown="if(event.key==='Enter')sendSms()"></label>
+    <button class="btn ghost" style="width:100%" id="smsSend" onclick="sendSms()">Send code by SMS</button>`;
+}
+async function sendSms() {
+  const phone = (document.getElementById('smsPhone') || {}).value || '';
+  if (!window.E24 || !window.E24.ok) return authMsg('The account service is unreachable.', 'bad');
+  const btn = document.getElementById('smsSend');
+  if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
+  const r = await window.E24.sendSmsCode({ phone, accountType: state.accountType, fullName: state.userName });
+  if (btn) { btn.disabled = false; btn.textContent = 'Send code by SMS'; }
+  if (!r.ok) return authMsg(r.error, 'bad');
+  state.smsPhone = r.phone;
+  render();
+  authMsg('Code sent to ' + r.phone + '. It is valid for a few minutes.', 'good');
+}
+async function verifySms() {
+  const code = (document.getElementById('smsCode') || {}).value || '';
+  if (!code) return authMsg('Enter the code from the SMS.', 'bad');
+  const btn = document.getElementById('smsGo');
+  if (btn) { btn.disabled = true; btn.textContent = 'Checking…'; }
+  const r = await window.E24.verifySmsCode({ phone: state.smsPhone, code });
+  if (btn) { btn.disabled = false; btn.textContent = 'Verify and sign in'; }
+  if (!r.ok) return authMsg(r.error, 'bad');
+  state.smsPhone = null;
+  syncFromSupabase();
+  nav(state.terms ? home() : 'terms');
+  render(); toast('Signed in');
+}
+function resetSms() { state.smsPhone = null; render(); }
 function demoLogin(role) {
   state.role = role;
   state.live = false;

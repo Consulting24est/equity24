@@ -136,6 +136,47 @@ const E24 = {
     return { ok: true };
   },
 
+  /* ---------------------------------------------------------------- sms --- */
+  /**
+   * Sends a one-time code by SMS. Supabase creates the auth user on first use,
+   * and the on_auth_user_created trigger writes a profile with the phone and no
+   * email — which is why migration 0005 had to make profiles.email nullable.
+   *
+   * accountType is carried in the metadata so the role chosen on the signup
+   * card survives; unlike OAuth there is no redirect to lose it across.
+   */
+  async sendSmsCode({ phone, accountType, fullName }) {
+    const e164 = String(phone || '').replace(/[^\d+]/g, '');
+    if (!/^\+[1-9]\d{6,14}$/.test(e164)) {
+      return { ok: false, error: 'Enter the number in international format, for example +372 5123 4567.' };
+    }
+    const { error } = await sb.auth.signInWithOtp({
+      phone: e164,
+      options: {
+        data: {
+          account_type: TO_DB[accountType] || 'private_investor',
+          full_name: (fullName || '').trim() || null
+        }
+      }
+    });
+    if (error) {
+      if (/not enabled|unsupported/i.test(error.message || '')) {
+        return { ok: false, error: 'Sign-in by SMS is not switched on yet. Please use email or Google for now.' };
+      }
+      return fail(error, 'Could not send the code');
+    }
+    return { ok: true, phone: e164 };
+  },
+
+  async verifySmsCode({ phone, code }) {
+    const { error } = await sb.auth.verifyOtp({
+      phone, token: String(code || '').trim(), type: 'sms'
+    });
+    if (error) return fail(error, 'That code was not accepted');
+    await E24.refresh();
+    return { ok: true };
+  },
+
   /**
    * OAuth carries no account_type, so the trigger defaults the profile to
    * private_investor; the chosen role is re-applied on return.
