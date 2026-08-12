@@ -931,7 +931,7 @@ function partiesPanel() {
   const overThreshold = p.shareholders.filter(x => x.type !== 'company' && pct(x) > UBO_THRESHOLD);
   const totalPct = p.shareholders.reduce((a, x) => a + pct(x), 0);
   const notes = [];
-  if (overThreshold.length) notes.push(overThreshold.length + ' shareholder' + (overThreshold.length > 1 ? 's' : '') + ' above ' + UBO_THRESHOLD + '% — each is a beneficial owner and needs its own check');
+  if (overThreshold.length) notes.push(overThreshold.length + ' shareholder' + (overThreshold.length > 1 ? 's' : '') + ' above ' + UBO_THRESHOLD + '% — carried into beneficial owners automatically');
   if (corporateHolders.length) notes.push(corporateHolders.length + ' corporate shareholder' + (corporateHolders.length > 1 ? 's' : '') + ' — list the natural persons behind ' + (corporateHolders.length > 1 ? 'them' : 'it') + ' as beneficial owners');
   if (p.shareholders.length && !p.ubos.length && !overThreshold.length && !corporateHolders.length)
     notes.push('no shareholder is above ' + UBO_THRESHOLD + '% — senior management is then treated as the beneficial owner, so list them below');
@@ -967,13 +967,15 @@ function partiesPanel() {
     <div style="height:1px; background:var(--hairline); margin:18px 0;"></div>
 
     <span class="microlabel">BENEFICIAL OWNERS</span>
-    <p class="fee-note" style="margin:4px 0 8px;">Natural persons holding more than ${UBO_THRESHOLD}% directly or indirectly, and anyone who controls the company by other means — a shareholders' agreement or veto rights count regardless of percentage.</p>
+    <p class="fee-note" style="margin:4px 0 8px;">Anyone above ${UBO_THRESHOLD}% on the list above is taken from it — no need to retype. Add only the ones the shareholder list cannot show: owners behind a corporate shareholder, control by other means, or senior management where nobody is above ${UBO_THRESHOLD}%.</p>
+    ${overThreshold.length ? `<div class="kv" style="margin-bottom:10px">${overThreshold.map(x =>
+      `<div class="r"><span class="k">${esc(x.name || 'unnamed shareholder')}</span><span class="v"><span class="tag ok">${esc(x.pct)}% · FROM SHAREHOLDER LIST</span></span></div>`).join('')}</div>` : ''}
     <div class="party-list">${p.ubos.map((x, i) => row('ubos', i, x, [
       { k: 'name', ph: 'Full name' }, { k: 'pct', ph: '% direct or indirect' }, { k: 'basis', ph: 'Basis, e.g. via Holdco OÜ' }])).join('')}</div>
-    <button class="btn ghost small" onclick="partyAdd('ubos')">+ Add beneficial owner</button>
+    <button class="btn ghost small" onclick="partyAdd('ubos')">+ Add beneficial owner not shown above</button>
 
     ${notes.length ? `<div class="kyc-panel" style="margin-top:16px">${notes.map(n => `<p class="fee-note" style="margin:4px 0">${n}</p>`).join('')}</div>` : ''}
-    <p class="fee-note" style="margin-top:14px;">Total to check: <b>${p.board.length + p.ubos.length}</b> ${p.board.length + p.ubos.length === 1 ? 'person' : 'people'}.</p>
+    <p class="fee-note" style="margin-top:14px;">Total to check: <b>${p.board.length + p.ubos.length + overThreshold.length}</b> ${p.board.length + p.ubos.length + overThreshold.length === 1 ? 'person' : 'people'} — ${p.board.length} board, ${p.ubos.length + overThreshold.length} beneficial owner${p.ubos.length + overThreshold.length === 1 ? '' : 's'}. Each needs an identity check and a criminal-record extract.</p>
   </div>`;
 }
 function viewVerify() {
