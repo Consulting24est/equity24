@@ -327,6 +327,7 @@
   .steps-dots span { width: 22px; height: 3px; border-radius: 2px; background: var(--surface-raised); }
   .steps-dots span.on { background: var(--accent); }
   .auth-note { font-size: 12.5px; color: var(--ink); border-left: 2px solid var(--hairline); padding-left: 10px; margin-top: 16px; }
+  .deck-panel { margin-top: 10px; border: 1px solid var(--hairline); border-radius: 8px; padding: 12px; background: var(--bg); }
   .verify-panel { margin: 4px 0 14px; border: 1px solid var(--accent); border-radius: 8px;
     padding: 14px; background: color-mix(in srgb, var(--accent) 6%, var(--bg)); }
   .verify-panel.done { border-color: var(--hairline); background: var(--bg); }
@@ -1560,7 +1561,7 @@ function viewCoApply() {
           <div class="pipe-row ${i < idx ? 'done' : i === idx ? 'now' : 'future'}">
             <span class="pipe-dot">${i < idx ? '✓' : String(i + 1).padStart(2, '0')}</span>
             <div><div class="pipe-t">${st[0]}</div><div class="pipe-d">${st[1]}</div>
-              ${i === 0 && idx < 5 ? `<button class="btn ghost small" style="margin-top:8px" onclick="editApp()">Edit application</button>` : ''}
+              ${i === 0 ? deckPanel(idx) : ''}
               ${i === 1 ? feePanel() : ''}
 
             </div>
@@ -1591,6 +1592,51 @@ const SECTORS = ['Technology company','SaaS company','AI company','Internet busi
    detail without starting again. Only offered before the offer opens — after
    that the terms are locked and a change needs a supplement, which is the same
    line the withdraw right draws. */
+/* Pitch deck upload on the submitted stage. The deck is the company's own
+   material and is NOT the KIIS — the KIIS is prepared later, at stage 4, and is
+   the regulated document under art 23. A deck shown to investors is a marketing
+   communication under art 27, so it has to be consistent with the KIIS and
+   approved before publication; that check belongs to compliance, not here. */
+function deckPanel(idx) {
+  const d = state.application && state.application.deck;
+  return `<div class="deck-panel">
+    <div class="fee-head">
+      <span class="microlabel">PITCH DECK</span>
+      ${d ? `<span class="tag ok">UPLOADED</span>` : `<span class="tag">NOT UPLOADED</span>`}
+    </div>
+    ${d
+      ? `<p class="fee-note"><b>${esc(d.name)}</b> · ${d.size} · added ${d.at}</p>`
+      : `<p class="fee-note">Optional, and it is not the Key Investment Information Sheet — that comes later and is your own document under ECSPR art 23. A deck helps us understand the business during review. PDF, up to 20 MB.</p>`}
+    <div class="wiz-nav" style="margin-top:10px">
+      <label class="btn ghost small" style="cursor:pointer; margin:0">
+        ${d ? 'Replace deck' : 'Upload pitch deck'}
+        <input type="file" accept="application/pdf,.pdf" style="display:none" onchange="uploadDeck(event)">
+      </label>
+      ${d ? `<button class="btn ghost small" onclick="removeDeck()">Remove</button>` : ''}
+      ${idx < 5 ? `<button class="btn ghost small" onclick="editApp()">Edit application</button>` : ''}
+    </div>
+  </div>`;
+}
+function uploadDeck(ev) {
+  const f = ev.target.files && ev.target.files[0];
+  if (!f) return;
+  if (f.type !== 'application/pdf' && !/\.pdf$/i.test(f.name)) return toast('The deck must be a PDF.');
+  if (f.size > 20 * 1024 * 1024) return toast('That file is over 20 MB. Please compress it and try again.');
+  if (!state.application) return;
+  // Only the file's details are kept. The bytes need Supabase Storage, which is
+  // not wired yet — recording a name we cannot produce later would be worse.
+  state.application.deck = {
+    name: f.name,
+    size: (f.size / 1024 / 1024).toFixed(1) + ' MB',
+    at: new Date().toISOString().slice(0, 10)
+  };
+  persist(); render(); toast('Pitch deck attached — ' + f.name);
+}
+function removeDeck() {
+  if (!state.application) return;
+  delete state.application.deck;
+  persist(); render(); toast('Pitch deck removed');
+}
 function cancelEdit() { state.editing = false; state.applyDraft = {}; state.applyStep = 1; persist(); render(); }
 function editApp() {
   const a = state.application || {};
