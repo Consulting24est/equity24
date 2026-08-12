@@ -1864,10 +1864,9 @@ function applyForm() {
   else if (st === 3) body = `
     <span class="microlabel">STEP 3 OF 4 · ELIGIBILITY</span>
     <h3 style="font-size:18px; margin:6px 0 6px;">Do you meet the admission criteria?</h3>
-    <p style="font-size:13px; color:var(--ink-muted); margin:0 0 14px;">These are published criteria, not preferences. An application that fails any of them is declined.</p>
+    <p style="font-size:13px; color:var(--ink-muted); margin:0 0 14px;">These are published criteria, not preferences. An application that fails any of them is declined. EU registration, filed annual reports and the excluded-sector list are checked against the registers during due diligence rather than declared here.</p>
     <div class="kv" style="margin-bottom:14px">
-      ${[['apEu','Registered in an EU member state'],['apRev','Annual revenue EUR 100k–25M'],
-          ['apReports','Annual reports filed'],['apSectorOk','Not in an excluded sector']].map(([id,label]) =>
+      ${[['apRev','Annual revenue EUR 100k–25M']].map(([id,label]) =>
         `<div class="r"><span class="k">${label}</span><span class="v"><input type="checkbox" id="${id}"${d[id] ? ' checked' : ''} style="accent-color:var(--accent)"></span></div>`).join('')}
     </div>
     <span class="microlabel">ANNUAL REVENUE (EUR)</span>
@@ -1924,7 +1923,7 @@ function applyForm() {
    apCountry while standing on step 3, where those inputs no longer exist, and
    silently submitted the placeholder defaults instead. */
 const APPLY_TEXT = ['apName','apReg','apCountry','apSector','apWeb','apTarget','apEquity','apValuation','apShares','apSharesSold','apPrice','apRev2024','apRev2025','apRev2026'];
-const APPLY_CHECKS = ['apEu','apRev','apReports','apSectorOk'];
+const APPLY_CHECKS = ['apRev'];
 function captureApply() {
   const d = state.applyDraft || (state.applyDraft = {});
   APPLY_TEXT.forEach(id => { const e = document.getElementById(id); if (e) d[id] = e.value; });
