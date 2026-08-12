@@ -330,6 +330,9 @@
   .steps-dots span { width: 22px; height: 3px; border-radius: 2px; background: var(--surface-raised); }
   .steps-dots span.on { background: var(--accent); }
   .auth-note { font-size: 12.5px; color: var(--ink); border-left: 2px solid var(--hairline); padding-left: 10px; margin-top: 16px; }
+  .verify-panel { margin: 4px 0 14px; border: 1px solid var(--accent); border-radius: 8px;
+    padding: 14px; background: color-mix(in srgb, var(--accent) 6%, var(--bg)); }
+  .verify-panel.done { border-color: var(--hairline); background: var(--bg); }
   .fee-panel { margin-top: 12px; border: 1px solid var(--hairline); border-radius: 8px; padding: 14px; background: var(--bg); }
   .fee-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
   .fee-note { font-size: 12.5px; color: var(--ink-muted); margin: 6px 0 0; line-height: 1.5; }
@@ -1555,14 +1558,12 @@ function viewCoApply() {
       <span class="microlabel">WHAT HAPPENS NEXT</span>
       <div class="pipe" style="margin-top:10px">
         ${APPLY_STAGES.map((st, i) => `
+          ${i === 2 ? verifyPanel() : ''}
           <div class="pipe-row ${i < idx ? 'done' : i === idx ? 'now' : 'future'}">
             <span class="pipe-dot">${i < idx ? '✓' : String(i + 1).padStart(2, '0')}</span>
             <div><div class="pipe-t">${st[0]}</div><div class="pipe-d">${st[1]}</div>
               ${i === 1 ? feePanel() : ''}
-              ${i === 2 ? `<div style="margin-top:8px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-                <span class="tag ${kycTagClass(state.kyc && state.kyc.status)}">COMPANY VERIFICATION: ${state.kyc && state.kyc.status ? state.kyc.status.toUpperCase() : 'NOT STARTED'}</span>
-                ${state.kyc && state.kyc.status === 'Approved' ? '' : `<button class="btn solid small" onclick="goVerify()">Verify the company</button>`}
-              </div>` : ''}
+
             </div>
             <span class="pipe-who">${st[2]}</span>
           </div>`).join('')}
@@ -1583,6 +1584,22 @@ const SECTORS = ['Technology company','SaaS company','AI company','Internet busi
    because that is the work the fee pays for. Transfers are reconciled by hand,
    so the reference has to be the company name or the payment cannot be matched
    to the application. */
+/* Company verification belongs to due diligence, but it is something the
+   applicant has to do now — so it sits above that stage at full opacity rather
+   than inside it. A dimmed row would render an actionable button as though it
+   were disabled. */
+function verifyPanel() {
+  const st = state.kyc && state.kyc.status;
+  const done = st === 'Approved';
+  return `<div class="verify-panel${done ? ' done' : ''}">
+    <div class="fee-head">
+      <span class="microlabel">COMPANY VERIFICATION (KYB)</span>
+      <span class="tag ${kycTagClass(st)}">${st ? st.toUpperCase() : 'NOT STARTED'}</span>
+    </div>
+    <p class="fee-note">We verify the company and the people who represent it before due diligence can complete. It takes a few minutes and you can start it now — you do not need to wait for the payment to be matched.</p>
+    ${done ? '' : `<button class="btn solid small" style="margin-top:10px" onclick="goVerify()">Verify the company</button>`}
+  </div>`;
+}
 function feePanel() {
   return `<div class="fee-panel">
     <div class="fee-head">
