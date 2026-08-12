@@ -338,6 +338,9 @@
   .fee-what summary { font-size: 13px; cursor: pointer; color: var(--accent); }
   .fee-what ul { margin: 10px 0 0; padding-left: 18px; font-size: 12.5px; color: var(--ink); line-height: 1.55; }
   .fee-what li { margin-bottom: 5px; }
+  .wiz-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .save-state { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .07em;
+    text-transform: uppercase; color: var(--ink-muted); }
   .wiz-nav { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
   .auth-msg { font-size: 13px; line-height: 1.45; border: 1px solid var(--hairline); border-radius: 6px;
     padding: 10px 12px; margin-bottom: 14px; background: var(--surface-raised); }
@@ -1670,6 +1673,28 @@ function removeDeck() {
    shares as a proportion of the post-raise total should match the equity
    figure. Shown as a note, not a block — a structure with existing shares
    changing hands is legitimate and would not reconcile the same way. */
+/* Everything typed is saved as it is typed. captureApply only ran on step
+   changes, so a reload — or closing the tab — in the middle of a step lost that
+   step's answers. Debounced so a burst of keystrokes is one write. */
+let applySaveTimer = null;
+function queueApplySave() {
+  clearTimeout(applySaveTimer);
+  const el = document.getElementById('saveState');
+  if (el) el.textContent = 'Saving…';
+  applySaveTimer = setTimeout(() => {
+    captureApply();
+    persist();
+    const e = document.getElementById('saveState');
+    if (e) e.textContent = 'Saved';
+  }, 500);
+}
+function bindApplyAutosave() {
+  const wiz = document.getElementById('applyWizard');
+  if (!wiz || wiz.dataset.bound) return;
+  wiz.dataset.bound = '1';
+  wiz.addEventListener('input', queueApplySave);
+  wiz.addEventListener('change', queueApplySave);
+}
 function shareMath() {
   const el = document.getElementById('shareMath');
   if (!el) return;
@@ -1816,8 +1841,11 @@ function applyForm() {
       </div>
       <button class="btn solid big" onclick="nav('company/apply')">Submit application</button>
     </div>
-    <div class="card" style="max-width:720px;">
-      <div class="steps-dots">${dots}</div>
+    <div class="card" id="applyWizard" style="max-width:720px;">
+      <div class="wiz-top">
+        <div class="steps-dots">${dots}</div>
+        <span class="save-state" id="saveState">${Object.keys(state.applyDraft || {}).length ? 'Saved' : ''}</span>
+      </div>
       ${body}
     </div>`;
 }
@@ -2042,6 +2070,7 @@ function render() {
   if (document.getElementById('kycAdminList')) loadKycSessions();
   if (document.getElementById('signupRows')) loadSignups();
   if (document.getElementById('shareMath')) shareMath();
+  bindApplyAutosave();
 }
 
 /* =============== BOOT ===============
@@ -2076,6 +2105,11 @@ function syncFromSupabase() {
   }
   persist();
 }
+
+// A reload or a closed tab must not lose the last few keystrokes.
+window.addEventListener('beforeunload', () => {
+  if (document.getElementById('applyWizard')) { captureApply(); persist(); }
+});
 
 render();
 /* The binding is an ES module, so it executes after this classic script — we
