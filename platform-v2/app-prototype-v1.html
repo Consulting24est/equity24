@@ -329,6 +329,10 @@
   .auth-note { font-size: 12.5px; color: var(--ink); border-left: 2px solid var(--hairline); padding-left: 10px; margin-top: 16px; }
   .btn.danger { color: var(--warn); border-color: var(--warn); }
   .btn.danger:hover { background: color-mix(in srgb, var(--warn) 10%, transparent); }
+  .party-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+  .party-row { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 8px; align-items: center; }
+  .party-row .field { margin: 0; }
+  @media (max-width: 620px) { .party-row { grid-template-columns: 1fr 1fr auto; } }
   .deck-panel { margin-top: 10px; border: 1px solid var(--hairline); border-radius: 8px; padding: 12px; background: var(--bg); }
   .verify-panel { margin: 4px 0 14px; border: 1px solid var(--accent); border-radius: 8px;
     padding: 14px; background: color-mix(in srgb, var(--accent) 6%, var(--bg)); }
@@ -494,6 +498,7 @@ const state = {
   applyDraft: store.applyDraft || {},
   editing: store.editing || false,
   confirmDelete: false,
+  parties: store.parties || { board: [], shareholders: [], ubos: [] },
   signupStep: 1,
   // true only when the session came from Supabase, so the demo role buttons
   // are never mistaken for a real sign-in and logged out from under the user
@@ -515,7 +520,7 @@ function persist() {
     role: state.role, userName: state.userName, joined: [...state.joined],
     msgs: state.msgs, commitments: state.commitments, chan: state.chan,
     accountType: state.accountType, avatar: state.avatar, profile: state.profile, kyc: state.kyc, terms: state.terms, application: state.application,
-    live: state.live, applyDraft: state.applyDraft, editing: state.editing
+    live: state.live, applyDraft: state.applyDraft, editing: state.editing, parties: state.parties
   }));
 }
 function toast(t) {
@@ -900,6 +905,77 @@ function verifyBadge() {
 }
 
 /* =============== VERIFICATION =============== */
+/* Board members, shareholders and beneficial owners — the art 5 evidence file.
+   lisa 4 s1 requires a criminal-record check on the project owner, every board
+   member and every beneficial owner, so each person listed here is somebody a
+   check has to be run against.
+
+   The UBO threshold is more than 25% (Dir 2015/849 art 3(6), RahaPTS s9) — not
+   the 20% in our own terms, which is the art 8(2) bar on OUR shareholders and
+   applies to a different set of people entirely. A corporate shareholder is
+   never itself a UBO: the chain has to be followed to natural persons. */
+const UBO_THRESHOLD = 25;
+function parties() {
+  const p = state.parties || (state.parties = { board: [], shareholders: [], ubos: [] });
+  p.board = p.board || []; p.shareholders = p.shareholders || []; p.ubos = p.ubos || [];
+  return p;
+}
+function partyAdd(kind) { parties()[kind].push({}); persist(); render(); }
+function partyDel(kind, i) { parties()[kind].splice(i, 1); persist(); render(); }
+function partySet(kind, i, field, v) { parties()[kind][i][field] = v; persist(); if (field === 'pct' || field === 'type') render(); }
+
+function partiesPanel() {
+  const p = parties();
+  const pct = x => parseFloat(String(x.pct || '').replace(',', '.')) || 0;
+  const corporateHolders = p.shareholders.filter(x => x.type === 'company');
+  const overThreshold = p.shareholders.filter(x => x.type !== 'company' && pct(x) > UBO_THRESHOLD);
+  const totalPct = p.shareholders.reduce((a, x) => a + pct(x), 0);
+  const notes = [];
+  if (overThreshold.length) notes.push(overThreshold.length + ' shareholder' + (overThreshold.length > 1 ? 's' : '') + ' above ' + UBO_THRESHOLD + '% — each is a beneficial owner and needs its own check');
+  if (corporateHolders.length) notes.push(corporateHolders.length + ' corporate shareholder' + (corporateHolders.length > 1 ? 's' : '') + ' — list the natural persons behind ' + (corporateHolders.length > 1 ? 'them' : 'it') + ' as beneficial owners');
+  if (p.shareholders.length && !p.ubos.length && !overThreshold.length && !corporateHolders.length)
+    notes.push('no shareholder is above ' + UBO_THRESHOLD + '% — senior management is then treated as the beneficial owner, so list them below');
+  if (totalPct > 100.5) notes.push('shareholdings add up to ' + totalPct.toFixed(1) + '%');
+  else if (p.shareholders.length && totalPct < 99.5) notes.push('shareholdings add up to ' + totalPct.toFixed(1) + '% — the remainder is unaccounted for');
+
+  const row = (kind, i, x, fields) => `<div class="party-row">
+    ${fields.map(f => f.type === 'select'
+      ? `<select class="field" onchange="partySet('${kind}',${i},'${f.k}',this.value)">${f.opts.map(o =>
+          `<option value="${o}"${x[f.k] === o ? ' selected' : ''}>${o === 'person' ? 'Natural person' : 'Company'}</option>`).join('')}</select>`
+      : `<input class="field" placeholder="${f.ph}" value="${esc(x[f.k] || '')}" oninput="partySet('${kind}',${i},'${f.k}',this.value)">`).join('')}
+    <button class="btn ghost small" onclick="partyDel('${kind}',${i})" aria-label="Remove">✕</button>
+  </div>`;
+
+  return `<div class="card" style="margin-bottom:16px;">
+    <span class="microlabel">PEOPLE WE MUST CHECK</span>
+    <p class="fee-note" style="margin:8px 0 16px;">Every board member and every beneficial owner needs an identity check and a criminal-record extract from the country of establishment and of residence, no older than three months. Listing them here is what that check runs against.</p>
+
+    <span class="microlabel">BOARD MEMBERS</span>
+    <p class="fee-note" style="margin:4px 0 8px;">All of them, whatever they own.</p>
+    <div class="party-list">${p.board.map((x, i) => row('board', i, x, [
+      { k: 'name', ph: 'Full name' }, { k: 'role', ph: 'Role, e.g. juhatuse liige' }, { k: 'country', ph: 'Country of residence' }])).join('')}</div>
+    <button class="btn ghost small" onclick="partyAdd('board')">+ Add board member</button>
+
+    <div style="height:1px; background:var(--hairline); margin:18px 0;"></div>
+
+    <span class="microlabel">SHAREHOLDERS</span>
+    <p class="fee-note" style="margin:4px 0 8px;">Everyone on the shareholder list, with the percentage held.</p>
+    <div class="party-list">${p.shareholders.map((x, i) => row('shareholders', i, x, [
+      { k: 'name', ph: 'Name' }, { k: 'type', type: 'select', opts: ['person', 'company'] }, { k: 'pct', ph: '% held' }])).join('')}</div>
+    <button class="btn ghost small" onclick="partyAdd('shareholders')">+ Add shareholder</button>
+
+    <div style="height:1px; background:var(--hairline); margin:18px 0;"></div>
+
+    <span class="microlabel">BENEFICIAL OWNERS</span>
+    <p class="fee-note" style="margin:4px 0 8px;">Natural persons holding more than ${UBO_THRESHOLD}% directly or indirectly, and anyone who controls the company by other means — a shareholders' agreement or veto rights count regardless of percentage.</p>
+    <div class="party-list">${p.ubos.map((x, i) => row('ubos', i, x, [
+      { k: 'name', ph: 'Full name' }, { k: 'pct', ph: '% direct or indirect' }, { k: 'basis', ph: 'Basis, e.g. via Holdco OÜ' }])).join('')}</div>
+    <button class="btn ghost small" onclick="partyAdd('ubos')">+ Add beneficial owner</button>
+
+    ${notes.length ? `<div class="kyc-panel" style="margin-top:16px">${notes.map(n => `<p class="fee-note" style="margin:4px 0">${n}</p>`).join('')}</div>` : ''}
+    <p class="fee-note" style="margin-top:14px;">Total to check: <b>${p.board.length + p.ubos.length}</b> ${p.board.length + p.ubos.length === 1 ? 'person' : 'people'}.</p>
+  </div>`;
+}
 function viewVerify() {
   const isCompany = state.role === 'company';
   const nav_ = isCompany ? companyNav('company/verify') : investorNav('app/verify');
@@ -936,6 +1012,8 @@ function viewVerify() {
         ? 'Company verification is handled by our provider, Didit. You will be asked for the registry extract and ownership documents, and the people who represent or own the company complete a linked identity check. Equity24.io stores the decision and its timestamp — not your documents.'
         : 'Verification is handled by our provider, Didit. It takes about two minutes on a phone or laptop with a camera. Equity24.io stores the decision and its timestamp — not your document images.'}</p>
     </div>
+
+    ${isCompany ? partiesPanel() : ''}
 
     <div class="grid g2">
       <div class="card">
