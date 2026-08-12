@@ -1373,6 +1373,9 @@ function viewCoOverview() {
         ${app.registry ? `<div class="r"><span class="k">Registry code</span><span class="v mono">${esc(app.registry)}</span></div>` : ''}
         ${app.sector ? `<div class="r"><span class="k">Sector</span><span class="v">${esc(app.sector)}</span></div>` : ''}
         ${app.target ? `<div class="r"><span class="k">Raising</span><span class="v mono">EUR ${esc(app.target)}${app.equity ? ' · ' + esc(app.equity) : ''}</span></div>` : ''}
+        ${app.shares ? `<div class="r"><span class="k">Total shares</span><span class="v mono">${esc(app.shares)}</span></div>` : ''}
+        ${app.sharesSold ? `<div class="r"><span class="k">Shares offered</span><span class="v mono">${esc(app.sharesSold)}</span></div>` : ''}
+        ${app.pricePerShare ? `<div class="r"><span class="k">Price per share</span><span class="v mono">EUR ${esc(app.pricePerShare)}</span></div>` : ''}
         <div class="r"><span class="k">Reference</span><span class="v mono">${esc(app.ref)}</span></div>
         <div class="r"><span class="k">Pitch deck</span><span class="v">${app.deck ? esc(app.deck.name) : 'not uploaded'}</span></div>
       </div>
@@ -1666,13 +1669,40 @@ function removeDeck() {
   delete state.application.deck;
   persist(); render(); toast('Pitch deck removed');
 }
+/* Shares offered x price per share should come to the target, and the offered
+   shares as a proportion of the post-raise total should match the equity
+   figure. Shown as a note, not a block — a structure with existing shares
+   changing hands is legitimate and would not reconcile the same way. */
+function shareMath() {
+  const el = document.getElementById('shareMath');
+  if (!el) return;
+  const num = id => {
+    const e = document.getElementById(id);
+    return e ? parseFloat(String(e.value).replace(/[^\d.,]/g, '').replace(/\s/g, '').replace(',', '.')) : NaN;
+  };
+  const total = num('apShares'), sold = num('apSharesSold'), price = num('apPrice'), target = num('apTarget');
+  const parts = [];
+  if (sold > 0 && price > 0) {
+    const raised = sold * price;
+    parts.push('Shares offered x price = ' + eur(Math.round(raised)));
+    if (target > 0) {
+      const off = Math.abs(raised - target) / target;
+      if (off > 0.02) parts.push('that is ' + Math.round(off * 100) + '% away from the target you entered');
+    }
+  }
+  if (total > 0 && sold > 0) {
+    parts.push('offered shares are ' + (sold / (total + sold) * 100).toFixed(1) + '% of the company after the raise');
+  }
+  el.textContent = parts.join(' · ');
+}
 function cancelEdit() { state.editing = false; state.applyDraft = {}; state.applyStep = 1; persist(); render(); }
 function editApp() {
   const a = state.application || {};
   state.applyDraft = Object.assign({}, state.applyDraft, {
     apName: a.company || '', apReg: a.registry || '', apCountry: a.country || '',
     apSector: a.sector || '', apWeb: a.website || '',
-    apTarget: a.target || '', apEquity: a.equity || '', apValuation: a.valuation || ''
+    apTarget: a.target || '', apEquity: a.equity || '', apValuation: a.valuation || '',
+    apShares: a.shares || '', apSharesSold: a.sharesSold || '', apPrice: a.pricePerShare || ''
   });
   state.editing = true; state.applyStep = 1; persist(); render();
   toast('Editing your application — resubmit to save the changes');
@@ -1766,6 +1796,12 @@ function applyForm() {
       <label class="f"><span class="microlabel">TARGET (EUR 100 000 – 5 000 000)</span><input class="field" id="apTarget" placeholder="200 000" value="${esc(d.apTarget || '')}"></label>
       <label class="f"><span class="microlabel">EQUITY OFFERED</span><input class="field" id="apEquity" placeholder="6.1%" value="${esc(d.apEquity || '')}"></label>
     </div>
+    <div class="field-row">
+      <label class="f"><span class="microlabel">TOTAL SHARES BEFORE THE RAISE</span><input class="field" id="apShares" inputmode="numeric" placeholder="1 000 000" value="${esc(d.apShares || '')}" oninput="shareMath()"></label>
+      <label class="f"><span class="microlabel">SHARES OFFERED</span><input class="field" id="apSharesSold" inputmode="numeric" placeholder="65 000" value="${esc(d.apSharesSold || '')}" oninput="shareMath()"></label>
+    </div>
+    <label class="f"><span class="microlabel">PRICE PER SHARE (EUR)</span><input class="field" id="apPrice" inputmode="decimal" placeholder="3.08" value="${esc(d.apPrice || '')}" oninput="shareMath()"></label>
+    <p id="shareMath" class="fee-note" style="margin:0 0 14px;"></p>
     <label class="f"><span class="microlabel">PRE-MONEY VALUATION AND HOW YOU SET IT</span>
       <textarea class="field" rows="3" id="apValuation" placeholder="EUR 3.3M — basis for the figure">${esc(d.apValuation || '')}</textarea></label>
     <p style="font-size:12.5px; color:var(--ink); border-left:2px solid var(--hairline); padding-left:12px; margin:0 0 16px;">
@@ -1792,7 +1828,7 @@ function applyForm() {
    step changes — otherwise it is gone. submitApp() used to read apName/apReg/
    apCountry while standing on step 3, where those inputs no longer exist, and
    silently submitted the placeholder defaults instead. */
-const APPLY_TEXT = ['apName','apReg','apCountry','apSector','apWeb','apTarget','apEquity','apValuation'];
+const APPLY_TEXT = ['apName','apReg','apCountry','apSector','apWeb','apTarget','apEquity','apValuation','apShares','apSharesSold','apPrice'];
 const APPLY_CHECKS = ['apEu','apRev','apReports','apSectorOk'];
 function captureApply() {
   const d = state.applyDraft || (state.applyDraft = {});
@@ -1815,6 +1851,9 @@ function submitApp() {
     target: d.apTarget || '',
     equity: d.apEquity || '',
     valuation: d.apValuation || '',
+    shares: d.apShares || '',
+    sharesSold: d.apSharesSold || '',
+    pricePerShare: d.apPrice || '',
     submitted_at: prev && prev.submitted_at ? prev.submitted_at : '2026-08-06',
     stage: prev ? prev.stage : 1
   };
@@ -2005,6 +2044,7 @@ function render() {
   const f = document.getElementById('feed'); if (f) f.scrollTop = f.scrollHeight;
   if (document.getElementById('kycAdminList')) loadKycSessions();
   if (document.getElementById('signupRows')) loadSignups();
+  if (document.getElementById('shareMath')) shareMath();
 }
 
 /* =============== BOOT ===============
