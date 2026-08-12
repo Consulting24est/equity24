@@ -1577,7 +1577,17 @@ function applyForm() {
     <div class="field-row">
       <label class="f"><span class="microlabel">COUNTRY OF REGISTRATION</span><input class="field" value="Estonia" id="apCountry"></label>
       <label class="f"><span class="microlabel">SECTOR</span>
-        <select class="field" id="apSector"><option>SaaS</option><option>AI</option><option>Fintech</option><option>Internet</option><option>Digital platform</option></select></label>
+        <!-- Must stay in step with the focus grid on the landing page: an
+             applicant who cannot find their own category reads as being in the
+             wrong place. -->
+        <select class="field" id="apSector">
+          <option>Technology company</option>
+          <option>SaaS company</option>
+          <option>AI company</option>
+          <option>Internet business</option>
+          <option>FinTech company</option>
+          <option>Digital platform</option>
+        </select></label>
     </div>
     <label class="f"><span class="microlabel">WEBSITE</span><input class="field" id="apWeb" placeholder="company.eu"></label>
     <button class="btn solid" onclick="applyNext()">Continue</button>`;
