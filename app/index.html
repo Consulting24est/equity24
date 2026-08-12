@@ -1370,10 +1370,7 @@ function viewCoOverview() {
   return shell(companyNav('company/overview'), `
     <div class="page-head"><h2>${esc(title)}</h2><span class="sub">${esc(sub)}</span></div>
     ${preOffer ? `<div class="card" style="margin-bottom:16px;">
-      <div class="fee-head">
-        <span class="microlabel">YOUR APPLICATION</span>
-        <span class="tag acc">${APPLY_STAGES[app.stage][0].toUpperCase()}</span>
-      </div>
+      <span class="microlabel">YOUR APPLICATION</span>
       <div class="kv" style="margin:10px 0 12px;">
         <div class="r"><span class="k">Company</span><span class="v">${esc(app.company || '—')}</span></div>
         ${app.registry ? `<div class="r"><span class="k">Registry code</span><span class="v mono">${esc(app.registry)}</span></div>` : ''}
