@@ -1530,8 +1530,8 @@ function confirmInvest(pid) {
 /* =============== APPLICATION =============== */
 const APPLY_STAGES = [
   ['Application submitted', 'Your details and documents are with us. You can still withdraw at any point before the offer opens.', 'YOU'],
-  ['Application payment and screening', 'Pay the EUR 1 000 application fee, then we check the published admission criteria: EU-registered technology company, EUR 100k–25M revenue, and the excluded-sector list. Screening starts once the payment is matched to your application.', 'BOTH'],
-  ['Due diligence', 'Criminal-record and jurisdiction checks on the company, its board and beneficial owners; financial, business and instrument review. We decline applications that do not pass.', 'EQUITY24.IO'],
+  ['Application payment', 'Pay the EUR 1 000 application fee. We match the transfer to your application by the reference, confirm receipt, and the review begins from there.', 'YOU'],
+  ['Due diligence', 'We check the published admission criteria — EU-registered technology company, EUR 100k–25M revenue, the excluded-sector list — then run criminal-record and jurisdiction checks on the company, its board and beneficial owners, and review the financials, the business and the instrument. We decline applications that do not pass.', 'EQUITY24.IO'],
   ['KIIS preparation', 'You prepare the Key Investment Information Sheet. It is your document and your responsibility — we provide the template and written guidance, and we do not write it for you.', 'YOU'],
   ['KIIS completeness check', 'Two reviewers independently check the sheet for completeness, correctness and clarity. Findings come back to you until they are resolved.', 'EQUITY24.IO'],
   ['Offer opens', 'Terms are locked, the offer is published and investors can commit. Changes after this point require a supplement.', 'BOTH'],
@@ -1558,11 +1558,11 @@ function viewCoApply() {
           <div class="pipe-row ${i < idx ? 'done' : i === idx ? 'now' : 'future'}">
             <span class="pipe-dot">${i < idx ? '✓' : String(i + 1).padStart(2, '0')}</span>
             <div><div class="pipe-t">${st[0]}</div><div class="pipe-d">${st[1]}</div>
-              ${i === 1 ? `<div style="margin-top:8px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+              ${i === 1 ? feePanel() : ''}
+              ${i === 2 ? `<div style="margin-top:8px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
                 <span class="tag ${kycTagClass(state.kyc && state.kyc.status)}">COMPANY VERIFICATION: ${state.kyc && state.kyc.status ? state.kyc.status.toUpperCase() : 'NOT STARTED'}</span>
                 ${state.kyc && state.kyc.status === 'Approved' ? '' : `<button class="btn solid small" onclick="goVerify()">Verify the company</button>`}
-              </div>
-              ${feePanel()}` : ''}
+              </div>` : ''}
             </div>
             <span class="pipe-who">${st[2]}</span>
           </div>`).join('')}
@@ -1716,8 +1716,10 @@ function submitApp() {
 function advanceApp() {
   if (!state.application) return;
   const kybOk = state.kyc && state.kyc.status === 'Approved';
-  if (state.application.stage === 1 && !kybOk) {
-    toast('Company verification must be approved before screening can complete');
+  // Verification now sits on due diligence, so the gate moves with it —
+  // otherwise it would block the payment stage, where there is nothing to verify.
+  if (state.application.stage === 2 && !kybOk) {
+    toast('Company verification must be approved before due diligence can complete');
     return goVerify();
   }
   state.application.stage = Math.min(APPLY_STAGES.length - 1, state.application.stage + 1);
