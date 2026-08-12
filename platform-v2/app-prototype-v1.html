@@ -486,6 +486,7 @@ const state = {
   invest: null,
   applyStep: 1,
   applyDraft: store.applyDraft || {},
+  editing: store.editing || false,
   signupStep: 1,
   // true only when the session came from Supabase, so the demo role buttons
   // are never mistaken for a real sign-in and logged out from under the user
@@ -507,7 +508,7 @@ function persist() {
     role: state.role, userName: state.userName, joined: [...state.joined],
     msgs: state.msgs, commitments: state.commitments, chan: state.chan,
     accountType: state.accountType, avatar: state.avatar, profile: state.profile, kyc: state.kyc, terms: state.terms, application: state.application,
-    live: state.live, applyDraft: state.applyDraft
+    live: state.live, applyDraft: state.applyDraft, editing: state.editing
   }));
 }
 function toast(t) {
@@ -1539,7 +1540,7 @@ const APPLY_STAGES = [
 ];
 function viewCoApply() {
   const app = state.application;
-  if (!app) return shell(companyNav('company/apply'), applyForm());
+  if (!app || state.editing) return shell(companyNav('company/apply'), applyForm());
   const idx = app.stage;
   return shell(companyNav('company/apply'), `
     <div class="page-head"><h2>Application</h2>
@@ -1559,6 +1560,7 @@ function viewCoApply() {
           <div class="pipe-row ${i < idx ? 'done' : i === idx ? 'now' : 'future'}">
             <span class="pipe-dot">${i < idx ? '✓' : String(i + 1).padStart(2, '0')}</span>
             <div><div class="pipe-t">${st[0]}</div><div class="pipe-d">${st[1]}</div>
+              ${i === 0 && idx < 5 ? `<button class="btn ghost small" style="margin-top:8px" onclick="editApp()">Edit application</button>` : ''}
               ${i === 1 ? feePanel() : ''}
 
             </div>
@@ -1585,6 +1587,21 @@ const SECTORS = ['Technology company','SaaS company','AI company','Internet busi
    applicant has to do now — so it sits above that stage at full opacity rather
    than inside it. A dimmed row would render an actionable button as though it
    were disabled. */
+/* Reopens the wizard with what was submitted, so an applicant can correct a
+   detail without starting again. Only offered before the offer opens — after
+   that the terms are locked and a change needs a supplement, which is the same
+   line the withdraw right draws. */
+function cancelEdit() { state.editing = false; state.applyDraft = {}; state.applyStep = 1; persist(); render(); }
+function editApp() {
+  const a = state.application || {};
+  state.applyDraft = Object.assign({}, state.applyDraft, {
+    apName: a.company || '', apReg: a.registry || '', apCountry: a.country || '',
+    apSector: a.sector || '', apWeb: a.website || '',
+    apTarget: a.target || '', apEquity: a.equity || '', apValuation: a.valuation || ''
+  });
+  state.editing = true; state.applyStep = 1; persist(); render();
+  toast('Editing your application — resubmit to save the changes');
+}
 function verifyPanel() {
   const st = state.kyc && state.kyc.status;
   const done = st === 'Approved';
@@ -1652,7 +1669,8 @@ function applyForm() {
           `<option${d.apSector === x ? ' selected' : ''}>${x}</option>`).join('')}</select></label>
     </div>
     <label class="f"><span class="microlabel">WEBSITE</span><input class="field" id="apWeb" placeholder="company.eu" value="${esc(d.apWeb || '')}"></label>
-    <div class="wiz-nav"><button class="btn solid" onclick="applyNext()">Continue</button></div>`;
+    <div class="wiz-nav"><button class="btn solid" onclick="applyNext()">Continue</button>
+      ${state.editing ? `<button class="btn ghost" onclick="cancelEdit()">Cancel</button>` : ''}</div>`;
   else if (st === 2) body = `
     <span class="microlabel">STEP 2 OF 3 · ELIGIBILITY</span>
     <h3 style="font-size:18px; margin:6px 0 6px;">Do you meet the admission criteria?</h3>
@@ -1711,8 +1729,9 @@ function applyBack() { captureApply(); state.applyStep = Math.max(1, state.apply
 function submitApp() {
   captureApply();
   const d = state.applyDraft || {};
+  const prev = state.editing ? (state.application || {}) : null;
   state.application = {
-    ref: 'APP-2026-0184',
+    ref: prev && prev.ref ? prev.ref : 'APP-2026-0184',
     company: d.apName || 'Company A OÜ',
     registry: d.apReg || '16xxxxxx',
     country: d.apCountry || 'Estonia',
@@ -1721,11 +1740,14 @@ function submitApp() {
     target: d.apTarget || '',
     equity: d.apEquity || '',
     valuation: d.apValuation || '',
-    submitted_at: '2026-08-06',
-    stage: 1
+    submitted_at: prev && prev.submitted_at ? prev.submitted_at : '2026-08-06',
+    stage: prev ? prev.stage : 1
   };
+  const wasEdit = !!prev;
+  state.editing = false;
   state.applyStep = 1; state.applyDraft = {}; persist(); render();
-  toast('Application submitted — reference APP-2026-0184');
+  toast(wasEdit ? 'Application updated — reference ' + state.application.ref
+                : 'Application submitted — reference ' + state.application.ref);
 }
 function advanceApp() {
   if (!state.application) return;
