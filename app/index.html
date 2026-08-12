@@ -1867,7 +1867,7 @@ function applyForm() {
   else if (st === 3) body = `
     <span class="microlabel">STEP 3 OF 4 · ELIGIBILITY</span>
     <h3 style="font-size:18px; margin:6px 0 6px;">Do you meet the admission criteria?</h3>
-    <p style="font-size:13px; color:var(--ink-muted); margin:0 0 14px;">These are published criteria, not preferences. An application that fails any of them is declined. EU registration, filed annual reports and the excluded-sector list are checked against the registers during due diligence rather than declared here.</p>
+    <p style="font-size:13px; color:var(--ink-muted); margin:0 0 14px;">Revenue is the one criterion we cannot look up, so we ask you for it. EU registration, filed annual reports and the excluded-sector list we check against the registers ourselves during due diligence. All four are published in full and applied the same way to everyone — an application that fails any of them is declined.</p>
     <div class="kv" style="margin-bottom:14px">
       ${[['apRev','Annual revenue EUR 100k–25M']].map(([id,label]) =>
         `<div class="r"><span class="k">${label}</span><span class="v"><input type="checkbox" id="${id}"${d[id] ? ' checked' : ''} style="accent-color:var(--accent)"></span></div>`).join('')}
