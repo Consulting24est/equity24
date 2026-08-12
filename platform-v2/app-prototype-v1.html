@@ -331,8 +331,9 @@
   .btn.danger:hover { background: color-mix(in srgb, var(--warn) 10%, transparent); }
   .party-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
   .party-row { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 8px; align-items: center; }
+  .party-row.with-status { grid-template-columns: 1fr 1fr 1fr auto auto; }
   .party-row .field { margin: 0; }
-  @media (max-width: 620px) { .party-row { grid-template-columns: 1fr 1fr auto; } }
+  @media (max-width: 620px) { .party-row, .party-row.with-status { grid-template-columns: 1fr 1fr auto; } }
   .deck-panel { margin-top: 10px; border: 1px solid var(--hairline); border-radius: 8px; padding: 12px; background: var(--bg); }
   .verify-panel { margin: 4px 0 14px; border: 1px solid var(--accent); border-radius: 8px;
     padding: 14px; background: color-mix(in srgb, var(--accent) 6%, var(--bg)); }
@@ -938,11 +939,12 @@ function partiesPanel() {
   if (totalPct > 100.5) notes.push('shareholdings add up to ' + totalPct.toFixed(1) + '%');
   else if (p.shareholders.length && totalPct < 99.5) notes.push('shareholdings add up to ' + totalPct.toFixed(1) + '% — the remainder is unaccounted for');
 
-  const row = (kind, i, x, fields) => `<div class="party-row">
+  const row = (kind, i, x, fields, withStatus) => `<div class="party-row${withStatus ? ' with-status' : ''}">
     ${fields.map(f => f.type === 'select'
       ? `<select class="field" onchange="partySet('${kind}',${i},'${f.k}',this.value)">${f.opts.map(o =>
           `<option value="${o}"${x[f.k] === o ? ' selected' : ''}>${o === 'person' ? 'Natural person' : 'Company'}</option>`).join('')}</select>`
-      : `<input class="field" placeholder="${f.ph}" value="${esc(x[f.k] || '')}" oninput="partySet('${kind}',${i},'${f.k}',this.value)">`).join('')}
+      : `<input class="field" type="${f.k === 'email' ? 'email' : 'text'}" placeholder="${f.ph}" value="${esc(x[f.k] || '')}" oninput="partySet('${kind}',${i},'${f.k}',this.value)">`).join('')}
+    ${withStatus ? `<span class="tag ${x.verified ? 'ok' : ''}">${x.verified ? 'VERIFIED' : 'NOT VERIFIED'}</span>` : ''}
     <button class="btn ghost small" onclick="partyDel('${kind}',${i})" aria-label="Remove">✕</button>
   </div>`;
 
@@ -951,10 +953,11 @@ function partiesPanel() {
     <p class="fee-note" style="margin:8px 0 16px;">Every board member and every beneficial owner needs an identity check and a criminal-record extract from the country of establishment and of residence, no older than three months. Listing them here is what that check runs against.</p>
 
     <span class="microlabel">BOARD MEMBERS</span>
-    <p class="fee-note" style="margin:4px 0 8px;">All of them, whatever they own.</p>
+    <p class="fee-note" style="margin:4px 0 8px;">All of them, whatever they own. Each is sent their own verification link, so the email address has to be one they read.</p>
     <div class="party-list">${p.board.map((x, i) => row('board', i, x, [
-      { k: 'name', ph: 'Full name' }, { k: 'role', ph: 'Role, e.g. juhatuse liige' }, { k: 'country', ph: 'Country of residence' }])).join('')}</div>
+      { k: 'name', ph: 'Full name' }, { k: 'email', ph: 'Email address' }, { k: 'country', ph: 'Country of residence' }], true)).join('')}</div>
     <button class="btn ghost small" onclick="partyAdd('board')">+ Add board member</button>
+    ${p.board.length ? `<p class="fee-note" style="margin-top:8px;">${p.board.filter(x => x.verified).length} of ${p.board.length} verified.</p>` : ''}
 
     <div style="height:1px; background:var(--hairline); margin:18px 0;"></div>
 
