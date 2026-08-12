@@ -1065,8 +1065,11 @@ function viewTerms() {
     <p class="lede">Before you can access Equity24.io, please review and accept our terms.</p>
     <label class="terms-check">
       <input type="checkbox" id="tcBox" onchange="document.getElementById('tcGo').disabled = !this.checked">
-      <span>I accept the <a href="javascript:toast('Prototype: investor terms of use (T2) open here.')">terms of use</a>
-      and the <a href="javascript:toast('Prototype: privacy notice opens here.')">privacy notice</a>, and I understand that
+      <!-- Real documents, opened in a new tab so the gate is not lost. The click
+           must not bubble to the label, or reading the terms would tick the box
+           that says you have read them. -->
+      <span>I accept the <a href="/terms" target="_blank" rel="noopener" onclick="event.stopPropagation()">terms of use</a>
+      and the <a href="/privacy" target="_blank" rel="noopener" onclick="event.stopPropagation()">privacy notice</a>, and I understand that
       Equity24.io does not provide investment advice and that no offer on this platform is approved by any authority.</span>
     </label>
     <div class="terms-foot">
