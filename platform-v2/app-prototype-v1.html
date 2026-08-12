@@ -322,6 +322,7 @@
   .steps-dots span { width: 22px; height: 3px; border-radius: 2px; background: var(--surface-raised); }
   .steps-dots span.on { background: var(--accent); }
   .auth-note { font-size: 12.5px; color: var(--ink); border-left: 2px solid var(--hairline); padding-left: 10px; margin-top: 16px; }
+  .wiz-nav { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
   .auth-msg { font-size: 13px; line-height: 1.45; border: 1px solid var(--hairline); border-radius: 6px;
     padding: 10px 12px; margin-bottom: 14px; background: var(--surface-raised); }
   .auth-msg.bad { border-color: var(--warn); color: var(--warn); background: transparent; }
@@ -469,6 +470,7 @@ const state = {
   application: store.application || null,
   invest: null,
   applyStep: 1,
+  applyDraft: store.applyDraft || {},
   signupStep: 1,
   // true only when the session came from Supabase, so the demo role buttons
   // are never mistaken for a real sign-in and logged out from under the user
@@ -490,7 +492,7 @@ function persist() {
     role: state.role, userName: state.userName, joined: [...state.joined],
     msgs: state.msgs, commitments: state.commitments, chan: state.chan,
     accountType: state.accountType, avatar: state.avatar, profile: state.profile, kyc: state.kyc, terms: state.terms, application: state.application,
-    live: state.live
+    live: state.live, applyDraft: state.applyDraft
   }));
 }
 function toast(t) {
@@ -1560,57 +1562,58 @@ function viewCoApply() {
       and no offer on this platform is approved by any authority.
     </p>`);
 }
+const SECTORS = ['Technology company','SaaS company','AI company','Internet business','FinTech company','Digital platform'];
 function applyForm() {
   const st = state.applyStep;
+  const d = state.applyDraft || {};
   const dots = [1,2,3].map(i => `<span class="${i <= st ? 'on' : ''}"></span>`).join('');
   let body;
   if (st === 1) body = `
     <span class="microlabel">STEP 1 OF 3 · COMPANY</span>
     <h3 style="font-size:18px; margin:6px 0 14px;">Tell us about the company</h3>
     <div class="field-row">
-      <label class="f"><span class="microlabel">LEGAL NAME</span><input class="field" id="apName" placeholder="Company OÜ"></label>
-      <label class="f"><span class="microlabel">REGISTRY CODE</span><input class="field" id="apReg" placeholder="16xxxxxx"></label>
+      <label class="f"><span class="microlabel">LEGAL NAME</span><input class="field" id="apName" placeholder="Company OÜ" value="${esc(d.apName || '')}"></label>
+      <label class="f"><span class="microlabel">REGISTRY CODE</span><input class="field" id="apReg" placeholder="16xxxxxx" value="${esc(d.apReg || '')}"></label>
     </div>
     <div class="field-row">
-      <label class="f"><span class="microlabel">COUNTRY OF REGISTRATION</span><input class="field" value="Estonia" id="apCountry"></label>
+      <label class="f"><span class="microlabel">COUNTRY OF REGISTRATION</span><input class="field" id="apCountry" value="${esc(d.apCountry || 'Estonia')}"></label>
       <label class="f"><span class="microlabel">SECTOR</span>
         <!-- Must stay in step with the focus grid on the landing page: an
              applicant who cannot find their own category reads as being in the
              wrong place. -->
-        <select class="field" id="apSector">
-          <option>Technology company</option>
-          <option>SaaS company</option>
-          <option>AI company</option>
-          <option>Internet business</option>
-          <option>FinTech company</option>
-          <option>Digital platform</option>
-        </select></label>
+        <select class="field" id="apSector">${SECTORS.map(x =>
+          `<option${d.apSector === x ? ' selected' : ''}>${x}</option>`).join('')}</select></label>
     </div>
-    <label class="f"><span class="microlabel">WEBSITE</span><input class="field" id="apWeb" placeholder="company.eu"></label>
-    <button class="btn solid" onclick="applyNext()">Continue</button>`;
+    <label class="f"><span class="microlabel">WEBSITE</span><input class="field" id="apWeb" placeholder="company.eu" value="${esc(d.apWeb || '')}"></label>
+    <div class="wiz-nav"><button class="btn solid" onclick="applyNext()">Continue</button></div>`;
   else if (st === 2) body = `
     <span class="microlabel">STEP 2 OF 3 · ELIGIBILITY</span>
     <h3 style="font-size:18px; margin:6px 0 6px;">Do you meet the admission criteria?</h3>
     <p style="font-size:13px; color:var(--ink-muted); margin:0 0 14px;">These are published criteria, not preferences. An application that fails any of them is declined.</p>
     <div class="kv" style="margin-bottom:14px">
-      <div class="r"><span class="k">Registered in an EU member state</span><span class="v"><input type="checkbox" checked style="accent-color:var(--accent)"></span></div>
-      <div class="r"><span class="k">Annual revenue EUR 100k–25M</span><span class="v"><input type="checkbox" style="accent-color:var(--accent)"></span></div>
-      <div class="r"><span class="k">Annual reports filed</span><span class="v"><input type="checkbox" style="accent-color:var(--accent)"></span></div>
-      <div class="r"><span class="k">Not in an excluded sector</span><span class="v"><input type="checkbox" style="accent-color:var(--accent)"></span></div>
+      ${[['apEu','Registered in an EU member state'],['apRev','Annual revenue EUR 100k–25M'],
+          ['apReports','Annual reports filed'],['apSectorOk','Not in an excluded sector']].map(([id,label]) =>
+        `<div class="r"><span class="k">${label}</span><span class="v"><input type="checkbox" id="${id}"${d[id] ? ' checked' : ''} style="accent-color:var(--accent)"></span></div>`).join('')}
     </div>
-    <button class="btn solid" onclick="applyNext()">Continue</button>`;
+    <div class="wiz-nav">
+      <button class="btn ghost" onclick="applyBack()">← Back</button>
+      <button class="btn solid" onclick="applyNext()">Continue</button>
+    </div>`;
   else body = `
     <span class="microlabel">STEP 3 OF 3 · RAISE</span>
     <h3 style="font-size:18px; margin:6px 0 14px;">What are you raising?</h3>
     <div class="field-row">
-      <label class="f"><span class="microlabel">TARGET (EUR 100 000 – 5 000 000)</span><input class="field" id="apTarget" placeholder="200 000"></label>
-      <label class="f"><span class="microlabel">EQUITY OFFERED</span><input class="field" id="apEquity" placeholder="6.1%"></label>
+      <label class="f"><span class="microlabel">TARGET (EUR 100 000 – 5 000 000)</span><input class="field" id="apTarget" placeholder="200 000" value="${esc(d.apTarget || '')}"></label>
+      <label class="f"><span class="microlabel">EQUITY OFFERED</span><input class="field" id="apEquity" placeholder="6.1%" value="${esc(d.apEquity || '')}"></label>
     </div>
     <label class="f"><span class="microlabel">PRE-MONEY VALUATION AND HOW YOU SET IT</span>
-      <textarea class="field" rows="3" placeholder="EUR 3.3M — basis for the figure"></textarea></label>
+      <textarea class="field" rows="3" id="apValuation" placeholder="EUR 3.3M — basis for the figure">${esc(d.apValuation || '')}</textarea></label>
     <p style="font-size:12.5px; color:var(--ink); border-left:2px solid var(--hairline); padding-left:12px; margin:0 0 16px;">
       The valuation is yours and is not verified or endorsed by Equity24.io. You will state its basis in the KIIS.</p>
-    <button class="btn solid big" onclick="submitApp()">Submit application</button>`;
+    <div class="wiz-nav">
+      <button class="btn ghost" onclick="applyBack()">← Back</button>
+      <button class="btn solid big" onclick="submitApp()">Submit application</button>
+    </div>`;
   return `
     <div class="page-head"><h2>Raise on Equity24.io</h2><span class="sub">EUR 1 000 application fee, payable on applying. A further EUR 1 000 listing fee applies if we accept you.</span></div>
     <div class="apply-hero">
@@ -1625,18 +1628,36 @@ function applyForm() {
       ${body}
     </div>`;
 }
-function applyNext() { state.applyStep = Math.min(3, state.applyStep + 1); render(); }
+/* Each step replaces the DOM, so anything typed has to be captured before the
+   step changes — otherwise it is gone. submitApp() used to read apName/apReg/
+   apCountry while standing on step 3, where those inputs no longer exist, and
+   silently submitted the placeholder defaults instead. */
+const APPLY_TEXT = ['apName','apReg','apCountry','apSector','apWeb','apTarget','apEquity','apValuation'];
+const APPLY_CHECKS = ['apEu','apRev','apReports','apSectorOk'];
+function captureApply() {
+  const d = state.applyDraft || (state.applyDraft = {});
+  APPLY_TEXT.forEach(id => { const e = document.getElementById(id); if (e) d[id] = e.value; });
+  APPLY_CHECKS.forEach(id => { const e = document.getElementById(id); if (e) d[id] = e.checked; });
+}
+function applyNext() { captureApply(); state.applyStep = Math.min(3, state.applyStep + 1); persist(); render(); }
+function applyBack() { captureApply(); state.applyStep = Math.max(1, state.applyStep - 1); persist(); render(); }
 function submitApp() {
-  const g = id => { const e = document.getElementById(id); return e && e.value ? e.value : ''; };
+  captureApply();
+  const d = state.applyDraft || {};
   state.application = {
     ref: 'APP-2026-0184',
-    company: g('apName') || 'Company A OÜ',
-    registry: g('apReg') || '16xxxxxx',
-    country: g('apCountry') || 'Estonia',
+    company: d.apName || 'Company A OÜ',
+    registry: d.apReg || '16xxxxxx',
+    country: d.apCountry || 'Estonia',
+    sector: d.apSector || '',
+    website: d.apWeb || '',
+    target: d.apTarget || '',
+    equity: d.apEquity || '',
+    valuation: d.apValuation || '',
     submitted_at: '2026-08-06',
     stage: 1
   };
-  state.applyStep = 1; persist(); render();
+  state.applyStep = 1; state.applyDraft = {}; persist(); render();
   toast('Application submitted — reference APP-2026-0184');
 }
 function advanceApp() {
