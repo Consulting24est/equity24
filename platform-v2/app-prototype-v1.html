@@ -1635,6 +1635,26 @@ const SECTORS = ['Technology company','SaaS company','AI company','Internet busi
 /* Removes the application from the applicant's account. It is a withdrawal, not
    an erasure: art 26 requires the application and its outcome to be retained for
    five years, so the copy says so rather than implying the record disappears. */
+/* Manual reconciliation: the transfer is matched on the bank statement, then
+   confirmed here. Records who confirmed and when — under art 26 a fee decision
+   has to be attributable, not just true. Undo exists because a wrong match
+   found later has to be reversible. */
+function confirmFee() {
+  if (!state.application) return;
+  state.application.feeVerified = true;
+  state.application.feeVerifiedAt = new Date().toISOString().slice(0, 10);
+  state.application.feeVerifiedBy = state.userName || 'staff';
+  persist(); render();
+  toast('Payment confirmed — company verification is now open for the applicant');
+}
+function unconfirmFee() {
+  if (!state.application) return;
+  delete state.application.feeVerified;
+  delete state.application.feeVerifiedAt;
+  delete state.application.feeVerifiedBy;
+  persist(); render();
+  toast('Payment confirmation removed');
+}
 function deleteApp() {
   state.application = null;
   state.applyDraft = {};
@@ -1792,20 +1812,26 @@ function editApp() {
 function verifyPanel() {
   const st = state.kyc && state.kyc.status;
   const done = st === 'Approved';
+  const paid = state.application && state.application.feeVerified;
   return `<div class="verify-panel${done ? ' done' : ''}">
     <div class="fee-head">
-      <span class="microlabel">PAYMENT VERIFICATION PENDING</span>
+      <span class="microlabel">${paid ? 'COMPANY VERIFICATION' : 'PAYMENT VERIFICATION PENDING'}</span>
       <span class="tag ${kycTagClass(st)}">KYB: ${st ? st.toUpperCase() : 'NOT STARTED'}</span>
     </div>
     <p class="fee-note" style="margin-top:8px"><b>Company verification (KYB)</b> — we verify the company and the people who represent it before due diligence can complete.</p>
-    <p class="fee-note">It opens once we have matched your application fee and confirmed receipt. We will notify you; there is nothing to do until then.</p>
+    ${paid
+      ? `<p class="fee-note">Your application fee was confirmed on ${esc(state.application.feeVerifiedAt || '')}. Verification takes a few minutes.</p>
+         ${done ? '' : `<button class="btn solid small" style="margin-top:10px" onclick="goVerify()">Verify the company</button>`}`
+      : `<p class="fee-note">It opens once we have matched your application fee and confirmed receipt. We will notify you; there is nothing to do until then.</p>`}
   </div>`;
 }
 function feePanel() {
   return `<div class="fee-panel">
     <div class="fee-head">
       <span class="microlabel">APPLICATION FEE · EUR 1 000</span>
-      <span class="tag warn">PAYMENT VERIFICATION PENDING</span>
+      ${state.application && state.application.feeVerified
+        ? `<span class="tag ok">PAYMENT CONFIRMED</span>`
+        : `<span class="tag warn">PAYMENT VERIFICATION PENDING</span>`}
     </div>
     <div class="kv" style="margin:10px 0 12px;">
       <div class="r"><span class="k">Beneficiary</span><span class="v mono">AureviaFund OÜ</span></div>
@@ -1996,8 +2022,31 @@ function withdrawApp() { state.application = null; state.applyStep = 1; persist(
 
 /* =============== ADMIN VIEWS =============== */
 function viewAdPipeline() {
+  const a = state.application;
   return shell(adminNav('admin/pipeline'), `
     <div class="page-head"><h2>Offer pipeline</h2><span class="sub">Four-eyes approval required at every gate.</span></div>
+    <div class="card" style="margin-bottom:16px;">
+      <div class="fee-head">
+        <span class="microlabel">APPLICATIONS · AWAITING PAYMENT CONFIRMATION</span>
+        <span class="tag">${a && !a.feeVerified ? '1' : '0'} PENDING</span>
+      </div>
+      ${a ? `<div class="tbl-wrap" style="margin-top:10px"><table class="list">
+        <thead><tr><th>Company</th><th>Reference</th><th>Fee</th><th>Stage</th><th>Action</th></tr></thead>
+        <tbody><tr>
+          <td>${esc(a.company || '—')}${a.registry ? `<div style="font-size:12px; color:var(--ink-muted)">rg ${esc(a.registry)}</div>` : ''}</td>
+          <td class="mono">${esc(a.ref)}</td>
+          <td>${a.feeVerified
+            ? `<span class="tag ok">CONFIRMED ${esc(a.feeVerifiedAt || '')}</span>`
+            : `<span class="tag warn">NOT CONFIRMED</span>`}</td>
+          <td class="mono">${esc(APPLY_STAGES[a.stage][0])}</td>
+          <td>${a.feeVerified
+            ? `<button class="btn ghost small" onclick="unconfirmFee()">Undo</button>`
+            : `<button class="btn solid small" onclick="confirmFee()">Confirm payment received</button>`}</td>
+        </tr></tbody></table></div>
+        <p class="fee-note" style="margin-top:10px">Match the EUR 1 000 transfer on the LHV statement to this reference before confirming. Confirming records who confirmed it and when, and opens company verification for the applicant.</p>`
+      : `<p class="fee-note" style="margin-top:10px">No applications awaiting confirmation.</p>`}
+      <p class="fee-note"><b>Prototype limitation:</b> applications are held in this browser, so only the one submitted here is visible. Seeing every applicant's submission needs the <span class="mono">applications</span> table wired to Supabase.</p>
+    </div>
     <div class="tbl-wrap"><table class="list">
       <thead><tr><th>Company</th><th>Stage</th><th>KIIS</th><th>Committed</th><th>Action</th></tr></thead>
       <tbody>
