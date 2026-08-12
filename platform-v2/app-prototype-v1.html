@@ -327,6 +327,8 @@
   .steps-dots span { width: 22px; height: 3px; border-radius: 2px; background: var(--surface-raised); }
   .steps-dots span.on { background: var(--accent); }
   .auth-note { font-size: 12.5px; color: var(--ink); border-left: 2px solid var(--hairline); padding-left: 10px; margin-top: 16px; }
+  .btn.danger { color: var(--warn); border-color: var(--warn); }
+  .btn.danger:hover { background: color-mix(in srgb, var(--warn) 10%, transparent); }
   .deck-panel { margin-top: 10px; border: 1px solid var(--hairline); border-radius: 8px; padding: 12px; background: var(--bg); }
   .verify-panel { margin: 4px 0 14px; border: 1px solid var(--accent); border-radius: 8px;
     padding: 14px; background: color-mix(in srgb, var(--accent) 6%, var(--bg)); }
@@ -491,6 +493,7 @@ const state = {
   applyStep: 1,
   applyDraft: store.applyDraft || {},
   editing: store.editing || false,
+  confirmDelete: false,
   signupStep: 1,
   // true only when the session came from Supabase, so the demo role buttons
   // are never mistaken for a real sign-in and logged out from under the user
@@ -1629,6 +1632,18 @@ const SECTORS = ['Technology company','SaaS company','AI company','Internet busi
    the regulated document under art 23. A deck shown to investors is a marketing
    communication under art 27, so it has to be consistent with the KIIS and
    approved before publication; that check belongs to compliance, not here. */
+/* Removes the application from the applicant's account. It is a withdrawal, not
+   an erasure: art 26 requires the application and its outcome to be retained for
+   five years, so the copy says so rather than implying the record disappears. */
+function deleteApp() {
+  state.application = null;
+  state.applyDraft = {};
+  state.applyStep = 1;
+  state.editing = false;
+  state.confirmDelete = false;
+  persist(); render();
+  toast('Application withdrawn and removed from your account');
+}
 function deckPanel(idx) {
   const d = state.application && state.application.deck;
   return `<div class="deck-panel">
@@ -1646,7 +1661,12 @@ function deckPanel(idx) {
       </label>
       ${d ? `<button class="btn ghost small" onclick="removeDeck()">Remove</button>` : ''}
       ${idx < 5 ? `<button class="btn ghost small" onclick="editApp()">Edit application</button>` : ''}
+      ${idx < 5 ? (state.confirmDelete
+        ? `<button class="btn ghost small danger" onclick="deleteApp()">Confirm delete</button>
+           <button class="btn ghost small" onclick="state.confirmDelete=false;render()">Cancel</button>`
+        : `<button class="btn ghost small danger" onclick="state.confirmDelete=true;render()">Delete application</button>`) : ''}
     </div>
+    ${state.confirmDelete ? `<p class="fee-note" style="margin-top:8px"><b>This withdraws your application.</b> The application fee is not refunded, and we keep the record and its decision for five years as ECSPR art 26 requires — deleting it here removes it from your account, not from our records.</p>` : ''}
   </div>`;
 }
 function uploadDraftDeck(ev) {
