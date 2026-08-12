@@ -1774,11 +1774,11 @@ function verifyPanel() {
   const done = st === 'Approved';
   return `<div class="verify-panel${done ? ' done' : ''}">
     <div class="fee-head">
-      <span class="microlabel">COMPANY VERIFICATION (KYB)</span>
-      <span class="tag ${kycTagClass(st)}">${st ? st.toUpperCase() : 'NOT STARTED'}</span>
+      <span class="microlabel">PAYMENT VERIFICATION PENDING</span>
+      <span class="tag ${kycTagClass(st)}">KYB: ${st ? st.toUpperCase() : 'NOT STARTED'}</span>
     </div>
-    <p class="fee-note">We verify the company and the people who represent it before due diligence can complete. It takes a few minutes and you can start it now — you do not need to wait for the payment to be matched.</p>
-    ${done ? '' : `<button class="btn solid small" style="margin-top:10px" onclick="goVerify()">Verify the company</button>`}
+    <p class="fee-note" style="margin-top:8px"><b>Company verification (KYB)</b> — we verify the company and the people who represent it before due diligence can complete.</p>
+    <p class="fee-note">It opens once we have matched your application fee and confirmed receipt. We will notify you; there is nothing to do until then.</p>
   </div>`;
 }
 function feePanel() {
