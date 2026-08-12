@@ -1349,8 +1349,33 @@ function viewBoard() {
 /* =============== COMPANY VIEWS =============== */
 function viewCoOverview() {
   const p = PROJECTS.laine;
+  const app = state.application;
+  // Until an offer actually opens, the company's own application is what this
+  // page is about. Showing the demo offer's committed total and investor count
+  // to a company that has only applied would state a raise it does not have.
+  const preOffer = app && app.stage < 5;
+  const title = app && app.company ? app.company : p.name;
+  const sub = preOffer
+    ? `Company account · application ${app.ref} · ${APPLY_STAGES[app.stage][0].toLowerCase()}`
+    : `Company account · offer ${p.status} · closes ${p.closes}`;
   return shell(companyNav('company/overview'), `
-    <div class="page-head"><h2>${p.name}</h2><span class="sub">Company account · offer ${p.status} · closes ${p.closes}</span></div>
+    <div class="page-head"><h2>${esc(title)}</h2><span class="sub">${esc(sub)}</span></div>
+    ${preOffer ? `<div class="card" style="margin-bottom:16px;">
+      <div class="fee-head">
+        <span class="microlabel">YOUR APPLICATION</span>
+        <span class="tag acc">${APPLY_STAGES[app.stage][0].toUpperCase()}</span>
+      </div>
+      <div class="kv" style="margin:10px 0 12px;">
+        <div class="r"><span class="k">Company</span><span class="v">${esc(app.company || '—')}</span></div>
+        ${app.registry ? `<div class="r"><span class="k">Registry code</span><span class="v mono">${esc(app.registry)}</span></div>` : ''}
+        ${app.sector ? `<div class="r"><span class="k">Sector</span><span class="v">${esc(app.sector)}</span></div>` : ''}
+        ${app.target ? `<div class="r"><span class="k">Raising</span><span class="v mono">EUR ${esc(app.target)}${app.equity ? ' · ' + esc(app.equity) : ''}</span></div>` : ''}
+        <div class="r"><span class="k">Reference</span><span class="v mono">${esc(app.ref)}</span></div>
+        <div class="r"><span class="k">Pitch deck</span><span class="v">${app.deck ? esc(app.deck.name) : 'not uploaded'}</span></div>
+      </div>
+      <p style="font-size:12.5px; color:var(--ink-muted); margin:0 0 12px;">${APPLY_STAGES[app.stage][1]}</p>
+      <button class="btn solid" onclick="nav('company/apply')">Open the application</button>
+    </div>` : ''}
     ${state.kyc && state.kyc.status === 'Approved' ? '' : `<div class="apply-hero" style="border-color:var(--risk-border); background:var(--risk-bg);">
       <div class="txt">
         <h3 style="color:var(--risk-ink)">Company verification required</h3>
@@ -1365,6 +1390,7 @@ function viewCoOverview() {
       </div>
       <button class="btn solid big" onclick="nav('company/apply')">Submit application</button>
     </div>`}
+    ${preOffer ? `<div class="microlabel" style="display:block; margin:20px 0 8px;">SAMPLE LISTING · ILLUSTRATIVE</div>` : ''}
     <div class="grid g3" style="margin-bottom:16px;">
       <div class="card stat"><span class="microlabel">COMMITTED</span><span class="big">${eur(p.committed)}</span></div>
       <div class="card stat"><span class="microlabel">INVESTORS</span><span class="big">${p.investors}</span></div>
