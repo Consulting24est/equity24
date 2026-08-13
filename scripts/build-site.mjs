@@ -101,4 +101,30 @@ if (forbidden.length) {
   process.exit(1);
 }
 if (!existsSync(join(dist, 'robots.txt'))) { console.error('ERROR: robots.txt missing'); process.exit(1); }
-console.log('\nguards passed: only public product files, noindex in place');
+
+// Guard: no live credential may reach a public repo. This was a manual grep
+// before every deploy, which is exactly the kind of step that gets skipped on
+// the one deploy that matters. The publishable Supabase key is the deliberate
+// exception — it is designed to be public and RLS is what protects the data.
+const SECRETS = [
+  [/\bsb_secret_[A-Za-z0-9_-]{10,}/, 'Supabase secret key'],
+  [/\bservice_role\b/i,              'service-role key'],
+  [/\bre_[A-Za-z0-9]{8}_[A-Za-z0-9]{20,}/, 'Resend API key'],
+  [/\bGOCSPX-[A-Za-z0-9_-]{10,}/,    'Google OAuth client secret'],
+  [/\bSG\.[A-Za-z0-9_-]{20,}/,       'SendGrid key'],
+  [/\bsk-[A-Za-z0-9]{32,}/,          'OpenAI-style key'],
+  [/\beyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\./, 'a JWT']
+];
+const leaks = [];
+for (const f of files) {
+  if (/\.(png|jpg|jpeg|gif|webp|ico|woff2?)$/i.test(f)) continue;
+  const text = readFileSync(join(dist, f), 'utf8');
+  for (const [re, what] of SECRETS) if (re.test(text)) leaks.push(`${f} — looks like ${what}`);
+}
+if (leaks.length) {
+  console.error('\nERROR: refusing to build. This repo is PUBLIC and dist/ contains:');
+  for (const l of leaks) console.error('  ' + l);
+  process.exit(1);
+}
+
+console.log('\nguards passed: only public product files, noindex in place, no credentials');
