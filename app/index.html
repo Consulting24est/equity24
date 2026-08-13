@@ -1115,7 +1115,9 @@ function rulesTable() {
       </tr></thead>
       <tbody>${rows.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join('')}</tbody>
     </table>
-    <p class="rules-foot">${UBO_THRESHOLD}% is the only threshold here, and it applies to shareholders alone &mdash; directors and beneficial owners are checked whatever they hold. A corporate shareholder is verified as a company (KYB) rather than as a person, and its own directors and owners are checked the same way. A company may sit in the chain once: whoever owns a corporate shareholder must be a natural person.</p>
+    <p class="rules-foot">${UBO_THRESHOLD}% is the only threshold here, and it applies to shareholders alone &mdash; board members and beneficial owners are checked whatever they hold.<br><br>
+      <b>A company holding more than ${UBO_THRESHOLD}% provides exactly the same documents as the applicant.</b> Company verification (KYB), its own board members and beneficial owners named and verified, and a criminal-record extract for the company and for each of those people. Nothing is reduced because it is a shareholder rather than the applicant.<br><br>
+      A company may sit in the chain once: whoever owns a corporate shareholder must be a natural person, not another company.</p>
   </div>`;
 }
 function partiesPanel() {
