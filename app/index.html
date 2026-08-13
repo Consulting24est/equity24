@@ -983,7 +983,7 @@ function checkList(p, overThreshold) {
     const v = parseFloat(String(x.pct || '').replace(',', '.')) || 0;
     if (x.type === 'company' && v > UBO_THRESHOLD && (x.name || '').trim()) {
       seen.set('co:' + x.name.trim().toLowerCase(),
-        { name: x.name, email: '', why: ['corporate shareholder above ' + UBO_THRESHOLD + '%'], key: 'co:' + x.name.trim().toLowerCase(), entity: true });
+        { name: x.name, email: x.email || '', why: ['corporate shareholder above ' + UBO_THRESHOLD + '%'], key: 'co:' + x.name.trim().toLowerCase(), entity: true });
     }
   });
   (p.board || []).forEach(x => add(x, 'board'));
@@ -1015,9 +1015,9 @@ function removeRecord(key) {
    company is excluded — a legal entity has no identity document; the KYB check
    on the company covers it. */
 function identityPeople(p, overThreshold) {
-  return checkList(p, overThreshold).filter(x => x.key !== '__company__' && !x.entity);
+  return checkList(p, overThreshold).filter(x => x.key !== '__company__');
 }
-async function sendPersonCheck(key, name, email) {
+async function sendPersonCheck(key, name, email, isEntity) {
   if (!email) return toast('Add an email address for ' + (name || 'this person') + ' first.');
   const p = parties();
   p.invites = p.invites || {};
@@ -1026,7 +1026,7 @@ async function sendPersonCheck(key, name, email) {
   try {
     const res = await fetch('/api/kyc/session', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ user_id: email, account_type: 'private', country: 'EE', name })
+      body: JSON.stringify({ user_id: email, account_type: isEntity ? 'raise' : 'private', country: 'EE', name })
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'could not create the check');
@@ -1048,7 +1048,7 @@ function identityPanel(p, overThreshold) {
   const done = people.filter(x => isVerified(x)).length;
   return `<div style="height:1px; background:var(--hairline); margin:18px 0;"></div>
     <span class="microlabel">IDENTITY CHECKS</span>
-    <p class="fee-note" style="margin:4px 0 10px;">Each person gets their own link by email and completes the check themselves. One check per person, whatever roles they hold — nobody is asked twice.</p>
+    <p class="fee-note" style="margin:4px 0 10px;">Each one gets their own link by email. People complete an identity check; a corporate shareholder completes a company check (KYB) covering its own directors and owners. One check each, whatever roles they hold — nobody is asked twice.</p>
     <div class="kv">
       ${people.map(x => {
         const i = inv[x.key] || {};
@@ -1059,12 +1059,12 @@ function identityPanel(p, overThreshold) {
           : i.status === 'failed' ? `<span class="tag warn">NOT SENT</span>`
           : `<span class="tag">NOT STARTED</span>`;
         return `<div class="r">
-          <span class="k">${esc(x.name || 'unnamed')}
+          <span class="k">${esc(x.name || 'unnamed')}${x.entity ? ' <span class="tag" style="font-size:9px">KYB</span>' : ''}
             <div style="font-size:12px; color:var(--ink-muted)">${esc(x.email || 'no email yet')} · ${x.why.join(' · ')}</div></span>
           <span class="v" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
             ${tag}
             ${v ? '' : `<button class="btn ${i.status === 'sent' ? 'ghost' : 'solid'} small" ${x.email ? '' : 'disabled'}
-              onclick="sendPersonCheck('${esc(x.key)}', '${esc(x.name || '')}', '${esc(x.email || '')}')">${i.status === 'sent' ? 'Resend' : 'Send verification'}</button>`}
+              onclick="sendPersonCheck('${esc(x.key)}', '${esc(x.name || '')}', '${esc(x.email || '')}', ${x.entity ? 'true' : 'false'})">${i.status === 'sent' ? 'Resend' : 'Send verification'}</button>`}
           </span></div>`;
       }).join('')}
     </div>
@@ -1103,7 +1103,7 @@ function rulesTable() {
   const rows = [
     ['Shareholder, ' + UBO_THRESHOLD + '% or less', Y, N, N],
     ['Shareholder over ' + UBO_THRESHOLD + '% &mdash; natural person', Y, Y, Y],
-    ['Shareholder over ' + UBO_THRESHOLD + '% &mdash; company', Y, N, Y],
+    ['Shareholder over ' + UBO_THRESHOLD + '% &mdash; company', Y, Y, Y],
     ['Every board member, whatever they own', Y, Y, Y],
     ['Every beneficial owner', Y, Y, Y],
     ['The company itself', N, N, Y]
@@ -1115,7 +1115,7 @@ function rulesTable() {
       </tr></thead>
       <tbody>${rows.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join('')}</tbody>
     </table>
-    <p class="rules-foot">${UBO_THRESHOLD}% is the only threshold here, and it applies to shareholders alone &mdash; directors and beneficial owners are checked whatever they hold. A company may sit in the chain once: whoever owns a corporate shareholder must be a natural person.</p>
+    <p class="rules-foot">${UBO_THRESHOLD}% is the only threshold here, and it applies to shareholders alone &mdash; directors and beneficial owners are checked whatever they hold. A corporate shareholder is verified as a company (KYB) rather than as a person, and its own directors and owners are checked the same way. A company may sit in the chain once: whoever owns a corporate shareholder must be a natural person.</p>
   </div>`;
 }
 function partiesPanel() {
@@ -1158,7 +1158,7 @@ function partiesPanel() {
     <span class="microlabel">SHAREHOLDERS</span>
     <p class="fee-note" style="margin:4px 0 8px;">Everyone on the list, adding up to 100%. Only holders above ${UBO_THRESHOLD}% are verified — an email is needed for those, so they can be sent their own check. A company may hold shares, but only one level: whoever owns that company must be a natural person, not another company.</p>
     <div class="party-list">${p.shareholders.map((x, i) => {
-      const needs = x.type !== 'company' && pct(x) > UBO_THRESHOLD;
+      const needs = pct(x) > UBO_THRESHOLD;   // person or company — both are verified
       return `<div class="party-row four${needs ? ' with-status' : ''}">
         <input class="field" placeholder="Name" value="${esc(x.name || '')}" oninput="partySet('shareholders',${i},'name',this.value)">
         <select class="field" onchange="partySet('shareholders',${i},'type',this.value);partyCommit()">
