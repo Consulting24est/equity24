@@ -961,6 +961,15 @@ function checkList(p, overThreshold) {
   // has a register entry of its own and it is required evidence.
   const co = (state.application && state.application.company) || (state.applyDraft && state.applyDraft.apName);
   if (co) seen.set('__company__', { name: co, email: '', why: ['the company itself'], key: '__company__' });
+  // A corporate shareholder above the threshold has a register entry of its own,
+  // so it needs an entity extract even though it can never be a beneficial owner.
+  (p.shareholders || []).forEach(x => {
+    const v = parseFloat(String(x.pct || '').replace(',', '.')) || 0;
+    if (x.type === 'company' && v > UBO_THRESHOLD && (x.name || '').trim()) {
+      seen.set('co:' + x.name.trim().toLowerCase(),
+        { name: x.name, email: '', why: ['corporate shareholder above ' + UBO_THRESHOLD + '%'], key: 'co:' + x.name.trim().toLowerCase(), entity: true });
+    }
+  });
   (p.board || []).forEach(x => add(x, 'board'));
   (overThreshold || []).forEach(x => add(x, 'shareholder above ' + UBO_THRESHOLD + '%'));
   (p.ubos || []).forEach(x => add(x, 'beneficial owner'));
@@ -990,7 +999,7 @@ function removeRecord(key) {
    company is excluded — a legal entity has no identity document; the KYB check
    on the company covers it. */
 function identityPeople(p, overThreshold) {
-  return checkList(p, overThreshold).filter(x => x.key !== '__company__');
+  return checkList(p, overThreshold).filter(x => x.key !== '__company__' && !x.entity);
 }
 async function sendPersonCheck(key, name, email) {
   if (!email) return toast('Add an email address for ' + (name || 'this person') + ' first.');
@@ -1079,7 +1088,7 @@ function partiesPanel() {
   const totalPct = p.shareholders.reduce((a, x) => a + pct(x), 0);
   const notes = [];
   if (overThreshold.length) notes.push(overThreshold.length + ' shareholder' + (overThreshold.length > 1 ? 's' : '') + ' above ' + UBO_THRESHOLD + '% — carried into beneficial owners automatically');
-  if (corporateHolders.length) notes.push(corporateHolders.length + ' corporate shareholder' + (corporateHolders.length > 1 ? 's' : '') + ' — list the natural persons behind ' + (corporateHolders.length > 1 ? 'them' : 'it') + ' as beneficial owners');
+  if (corporateHolders.length) notes.push(corporateHolders.length + ' corporate shareholder' + (corporateHolders.length > 1 ? 's' : '') + ' — list the natural persons behind ' + (corporateHolders.length > 1 ? 'them' : 'it') + ' as beneficial owners. We accept one company in the chain: the owners of a corporate shareholder must themselves be natural persons.');
   if (p.shareholders.length && !p.ubos.length && !overThreshold.length && !corporateHolders.length)
     notes.push('no shareholder is above ' + UBO_THRESHOLD + '% — senior management is then treated as the beneficial owner, so list them below');
   if (totalPct > 100.5) notes.push('shareholdings add up to ' + totalPct.toFixed(1) + '%');
@@ -1108,7 +1117,7 @@ function partiesPanel() {
     <div style="height:1px; background:var(--hairline); margin:18px 0;"></div>
 
     <span class="microlabel">SHAREHOLDERS</span>
-    <p class="fee-note" style="margin:4px 0 8px;">Everyone on the list, adding up to 100%. Only holders above ${UBO_THRESHOLD}% are verified — an email is needed for those, so they can be sent their own check.</p>
+    <p class="fee-note" style="margin:4px 0 8px;">Everyone on the list, adding up to 100%. Only holders above ${UBO_THRESHOLD}% are verified — an email is needed for those, so they can be sent their own check. A company may hold shares, but only one level: whoever owns that company must be a natural person, not another company.</p>
     <div class="party-list">${p.shareholders.map((x, i) => {
       const needs = x.type !== 'company' && pct(x) > UBO_THRESHOLD;
       return `<div class="party-row four${needs ? ' with-status' : ''}">
