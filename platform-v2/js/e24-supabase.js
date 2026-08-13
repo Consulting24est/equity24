@@ -236,6 +236,46 @@ const E24 = {
   isStaff() { return typeof E24.staff === 'string'; },
   staffKnown() { return E24.staff !== null; },
 
+  /* -------------------------------------------------- verification invites --- */
+  /**
+   * Ask one of the people behind an application to verify themselves.
+   *
+   * The token never comes back here. It is minted server-side, hashed into the
+   * invite row and put in the email — so nothing in this browser, and nothing
+   * the applicant can read, can be turned into a working link for somebody
+   * else's identity check.
+   */
+  async sendVerification(person) {
+    if (!E24.session) return { ok: false, error: 'Please sign in again.' };
+    try {
+      const res = await fetch(CONFIG.url + '/functions/v1/send-verification', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: CONFIG.publishableKey,
+          Authorization: 'Bearer ' + E24.session.access_token
+        },
+        body: JSON.stringify(person)
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) return { ok: false, error: data.error || 'Could not send the verification.' };
+      // delivered:false means the invite is real but no email left the building.
+      return { ok: true, delivered: data.delivered !== false };
+    } catch (e) {
+      return { ok: false, error: 'Could not reach the server. Check your connection and try again.' };
+    }
+  },
+
+  /** How far each invited person has got. Keyed by person_key (their email). */
+  async inviteProgress() {
+    if (!E24.session) return { ok: false, error: 'Not signed in', rows: {} };
+    const { data, error } = await sb.rpc('invite_progress');
+    if (error) { console.warn('invite progress failed', error.message); return { ok: false, rows: {} }; }
+    const rows = {};
+    for (const r of data || []) rows[r.person_key] = r;
+    return { ok: true, rows };
+  },
+
   /**
    * Every signup, newest first, with the latest verification decision attached.
    * RLS returns only the caller's own row unless is_staff() passes, so this is

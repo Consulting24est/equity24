@@ -48,6 +48,11 @@ if (strayCta) {
 mkdirSync(join(dist, 'app'), { recursive: true });
 writeFileSync(join(dist, 'app', 'index.html'), HEAD + readFileSync(join(src, 'app-prototype-v1.html'), 'utf8'));
 
+// The verification landing page. Reached only from a link in an email, by
+// someone who has no account here — so it sits outside /app/ and never loads
+// the app shell or asks anybody to sign in.
+page('verify.html', 'verify/index.html');
+
 // Mandatory ECSPR art 19 disclosure pages, at clean URLs and as .html
 for (const p of ['how-we-choose', 'risks', 'complaints', 'terms', 'privacy', 'pricing']) {
   page(`${p}.html`, `${p}/index.html`);
