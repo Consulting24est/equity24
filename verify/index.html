@@ -1,0 +1,283 @@
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8">
+<title>Verify your identity — Equity24.io</title>
+<link rel="stylesheet" href="/pages.css">
+<style>
+  .v-card { border: 1px solid var(--hairline); border-radius: 10px; background: var(--surface);
+    padding: 26px 28px; margin-top: 22px; }
+  .v-card h2 { font-size: 17px; margin: 0 0 6px; }
+  .v-card p { font-size: 14.5px; color: var(--ink-muted); margin: 0 0 16px; max-width: 62ch; }
+  .v-listed { font-size: 20px; line-height: 1.45; font-weight: 600; max-width: 34ch; }
+  .v-listed b { color: var(--accent); }
+  .v-state { display: inline-flex; align-items: center; gap: 7px; font-family: var(--font-mono);
+    font-size: 11px; letter-spacing: .07em; text-transform: uppercase; color: var(--ink-muted); }
+  .v-state.done { color: var(--accent); }
+  .v-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--hairline); }
+  .v-state.done .v-dot { background: var(--accent); }
+  .v-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .v-file { display: none; }
+  .v-msg { font-size: 14px; margin-top: 12px; }
+  .v-msg.bad { color: var(--risk-ink); }
+  .v-card .sec-top { display: flex; justify-content: space-between; align-items: baseline;
+    gap: 14px; margin-bottom: 8px; }
+  .v-card .sec-top h2 { margin: 0; }
+  .v-hide { display: none; }
+  @media (max-width: 620px) { .v-card { padding: 20px 18px; } .v-listed { font-size: 18px; } }
+</style>
+
+<header class="site">
+  <div class="nav-row">
+    <a href="/" class="wordmark">EQUITY24.IO</a>
+    <span class="pending-chip">AUTHORISATION PENDING</span>
+    <div class="nav-right">
+      <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle colour theme">◐</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- while the token resolves -->
+  <div id="loading" class="page-head">
+    <h1>One moment.</h1>
+    <p class="lede">Checking your link.</p>
+  </div>
+
+  <!-- token did not resolve -->
+  <div id="dead" class="page-head v-hide">
+    <span class="microlabel" id="deadLabel">LINK NOT VALID</span>
+    <h1 id="deadTitle">This link no longer works.</h1>
+    <p class="lede" id="deadWhy"></p>
+    <p class="note" id="deadNote">If you were expecting to verify your identity, ask the company that listed you to send a new
+      link. If you have no idea why you received this, you can ignore it — write to
+      <a href="mailto:kyc@equity24.io">kyc@equity24.io</a> and we will remove you.</p>
+  </div>
+
+  <!-- the real thing -->
+  <main id="main" class="v-hide">
+    <div class="page-head">
+      <div class="sec-top">
+        <span class="microlabel">IDENTITY VERIFICATION</span>
+        <span class="microlabel" id="expiry"></span>
+      </div>
+      <h1 class="v-listed" id="listed"></h1>
+      <p class="lede">Equity24.io is applying for a crowdfunding-service-provider licence in Estonia. A licence
+        application has to identify the people behind the companies that raise on the platform, which is why you
+        have been asked.</p>
+    </div>
+
+    <div class="callout">
+      <b>What happens to your documents.</b>
+      They are held by AureviaFund OÜ, the company applying for the licence, and are used only to verify you for
+      this application. <b style="display:inline">They are not shown to the company that listed you.</b>
+      We keep them for five years because the regulation requires it, and for nothing else.
+    </div>
+
+    <div class="v-card" id="cardId">
+      <div class="sec-top">
+        <h2 id="idTitle">Identity check</h2>
+        <span class="v-state" id="idState"><span class="v-dot"></span><span>Not started</span></span>
+      </div>
+      <p id="idBlurb">You will be asked to photograph your passport or national ID card and take a short selfie.
+        It takes about three minutes and happens on our identity provider's page.</p>
+      <div class="v-actions">
+        <button class="btn solid" id="idBtn" onclick="startKyc()">Start identity check</button>
+      </div>
+      <div class="v-msg v-hide" id="idMsg"></div>
+    </div>
+
+    <div class="v-card v-hide" id="cardRec">
+      <div class="sec-top">
+        <h2>Criminal-record extract</h2>
+        <span class="v-state" id="recState"><span class="v-dot"></span><span>Not received</span></span>
+      </div>
+      <p>An extract from the criminal record of the country where you live and, if different, the country of your
+        citizenship. It must be no older than three months. A PDF from the register's own portal is ideal; a clear
+        photo is fine.</p>
+      <div class="v-actions">
+        <button class="btn solid" id="recBtn" onclick="document.getElementById('recFile').click()">Upload extract</button>
+        <input type="file" id="recFile" class="v-file" accept=".pdf,.jpg,.jpeg,.png,.heic" onchange="upload(this)">
+      </div>
+      <div class="v-msg v-hide" id="recMsg"></div>
+    </div>
+
+    <div class="v-card v-hide" id="cardDone">
+      <h2>That is everything.</h2>
+      <p style="margin:0">Thank you. Nothing further is needed from you. If we have a question about what you sent,
+        we will write to you at the address this link was sent to.</p>
+    </div>
+
+    <p class="note" style="margin-top:26px">Questions, or think you were listed by mistake?
+      <a href="mailto:kyc@equity24.io">kyc@equity24.io</a>. See also our
+      <a href="/privacy">privacy notice</a>.</p>
+  </main>
+</div>
+
+<script>
+const FN = 'https://wmwcpfdqxkvojuddwhls.supabase.co/functions/v1/verify-invite';
+const KEY = 'sb_publishable_Zm4Z_PiGWbpNsHm8RmlKgQ_DH7cCoL3';
+
+const TOKEN = new URLSearchParams(location.search).get('t') || '';
+let invite = null;
+
+const $ = id => document.getElementById(id);
+const show = (id, on) => $(id).classList.toggle('v-hide', !on);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c =>
+  ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+// Never throws. An unhandled rejection here leaves the page on "One moment."
+// for ever, which is the worst of the failure modes: the person cannot tell
+// whether it is their link, their connection or us, and there is nothing on
+// screen to act on.
+async function call(action, extra) {
+  try {
+    const res = await fetch(FN, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: KEY, Authorization: 'Bearer ' + KEY },
+      body: JSON.stringify(Object.assign({ token: TOKEN, action: action }, extra || {}))
+    });
+    const data = await res.json().catch(() => ({}));
+    return { ok: res.ok, status: res.status, data };
+  } catch (e) {
+    return { ok: false, status: 0, offline: true,
+             data: { error: 'We could not reach Equity24.io. Check your connection and open the link again.' } };
+  }
+}
+
+const ROLE = { board: 'a member of the board', shareholder: 'a shareholder', ubo: 'a beneficial owner' };
+
+function listedLine(inv) {
+  const words = (inv.roles || []).map(r => ROLE[r]).filter(Boolean);
+  let s = words.length === 0 ? 'someone connected to the company'
+        : words.length === 1 ? words[0]
+        : words.slice(0, -1).join(', ') + ' and ' + words[words.length - 1];
+  if (inv.equityPct != null && (inv.roles || []).indexOf('shareholder') >= 0) {
+    s += ' (' + inv.equityPct + '%)';
+  }
+  return '<b>' + esc(inv.company) + '</b> has listed you as ' + esc(s) + '.';
+}
+
+function paint() {
+  const inv = invite;
+  $('listed').innerHTML = listedLine(inv);
+  $('expiry').textContent = 'LINK VALID UNTIL ' +
+    new Date(inv.expiresAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+
+  if (inv.isEntity) {
+    $('idTitle').textContent = 'Company verification (KYB)';
+    $('idBlurb').textContent = 'You will be asked for the company’s registry details and for the identity of ' +
+      'the person representing it. Have the registry extract to hand.';
+    $('idBtn').textContent = 'Start company verification';
+  }
+
+  setState('idState', inv.idVerified, 'Verified', 'Not started');
+  show('idBtn', !inv.idVerified);
+  if (inv.idVerified) $('idBlurb').textContent = 'Your identity has been verified. Nothing further is needed here.';
+
+  show('cardRec', inv.needsCriminalRecord);
+  setState('recState', inv.recordsReceived, 'Received', 'Not received');
+  if (inv.recordsReceived) {
+    $('recBtn').textContent = 'Upload a different file';
+    $('recBtn').classList.remove('solid');
+    $('recBtn').classList.add('ghost');
+  }
+
+  show('cardDone', !!inv.complete);
+}
+
+function setState(id, done, doneWord, pendingWord) {
+  const el = $(id);
+  el.classList.toggle('done', !!done);
+  el.lastElementChild.textContent = done ? doneWord : pendingWord;
+}
+
+function msg(id, text, bad) {
+  const el = $(id);
+  el.textContent = text;
+  el.classList.toggle('bad', !!bad);
+  show(id, !!text);
+}
+
+async function startKyc() {
+  $('idBtn').disabled = true;
+  msg('idMsg', '');
+  const r = await call('start-kyc');
+  if (r.ok && r.data.url) { location.href = r.data.url; return; }
+  $('idBtn').disabled = false;
+  msg('idMsg', r.data.message || r.data.error || 'Could not start the check just now.', true);
+}
+
+async function upload(input) {
+  const file = input.files && input.files[0];
+  input.value = '';
+  if (!file) return;
+  if (file.size > 15 * 1024 * 1024) return msg('recMsg', 'That file is larger than 15 MB. Please send a smaller scan.', true);
+
+  $('recBtn').disabled = true;
+  msg('recMsg', 'Uploading…');
+
+  const signed = await call('upload-url', { filename: file.name });
+  if (!signed.ok) { $('recBtn').disabled = false; return msg('recMsg', signed.data.error || 'Could not start the upload.', true); }
+
+  const put = await fetch(signed.data.url, {
+    method: 'PUT', body: file, headers: { 'Content-Type': file.type || 'application/octet-stream' }
+  });
+  if (!put.ok) { $('recBtn').disabled = false; return msg('recMsg', 'The upload did not complete. Please try again.', true); }
+
+  const done = await call('record-upload', {
+    path: signed.data.path, filename: file.name, bytes: file.size, contentType: file.type
+  });
+  $('recBtn').disabled = false;
+  if (!done.ok) return msg('recMsg', done.data.error || 'The file uploaded but we could not record it.', true);
+
+  invite = done.data.invite;
+  paint();
+  msg('recMsg', 'Received — thank you.');
+}
+
+async function boot() {
+  if (!TOKEN) {
+    show('loading', false);
+    $('deadWhy').textContent = 'This address is missing the personal part of the link. Open the link from your email exactly as it was sent.';
+    show('dead', true);
+    return;
+  }
+  const r = await call('open');
+  show('loading', false);
+  if (!r.ok) {
+    // A connection failure is not a dead link, and telling somebody their link
+    // has expired when it has not sends them back to the company for nothing.
+    if (r.offline || r.status >= 500) {
+      $('deadLabel').textContent = 'COULD NOT CONNECT';
+      $('deadTitle').textContent = 'We could not check your link just now.';
+      $('deadNote').innerHTML = 'Your link is probably fine. Try opening it again in a few minutes. If it keeps failing, write to <a href="mailto:kyc@equity24.io">kyc@equity24.io</a>.';
+    }
+    $('deadWhy').textContent = r.data.error || 'We could not read this link.';
+    show('dead', true);
+    return;
+  }
+  invite = r.data.invite;
+  paint();
+  show('main', true);
+
+  // Returning from the identity provider. The result arrives by webhook, not
+  // in this redirect, so the page may still say "not started" for a few
+  // seconds — say that rather than showing a stale state with no explanation.
+  if (new URLSearchParams(location.search).get('done') && !invite.idVerified) {
+    msg('idMsg', 'Thank you — your check has been submitted. It can take a minute or two to come back. You can close this page; there is nothing else to do for this step.');
+    setTimeout(async () => {
+      const again = await call('open');
+      if (again.ok) { invite = again.data.invite; paint(); }
+    }, 8000);
+  }
+}
+
+function toggleTheme() {
+  var r = document.documentElement;
+  var cur = r.getAttribute('data-theme') || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+  r.setAttribute('data-theme', cur === 'dark' ? 'light' : 'dark');
+}
+
+boot();
+</script>

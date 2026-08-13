@@ -520,6 +520,8 @@ const state = {
   kyc: store.kyc || null,
   terms: store.terms || null,
   application: store.application || null,
+  invites: {},        // read back from the database — never persisted locally
+  sending: {},
   invest: null,
   applyStep: 1,
   applyDraft: store.applyDraft || {},
@@ -972,11 +974,22 @@ function isVerified(x) {
 }
 function checkList(p, overThreshold) {
   const seen = new Map();
-  const add = (person, why) => {
+  // why[] is what the applicant reads; roles[] is what the email and the invite
+  // record use. They have to stay separate — the first is a sentence, the
+  // second is data, and merging them means the wording cannot be changed
+  // without changing what is stored against a person.
+  const add = (person, why, role, pct) => {
     const key = String(person.email || person.name || '').trim().toLowerCase();
     if (!key) return;
-    if (seen.has(key)) { seen.get(key).why.push(why); return; }
-    seen.set(key, { name: person.name || '', email: person.email || '', why: [why], key });
+    if (seen.has(key)) {
+      const e = seen.get(key);
+      e.why.push(why);
+      if (role && e.roles.indexOf(role) < 0) e.roles.push(role);
+      if (pct != null) e.pct = pct;
+      return;
+    }
+    seen.set(key, { name: person.name || '', email: person.email || '', why: [why],
+                    roles: role ? [role] : [], pct: pct == null ? null : pct, key });
   };
   // lisa 4 s1 names the project owner itself, not only its people — a company
   // has a register entry of its own and it is required evidence.
@@ -986,12 +999,14 @@ function checkList(p, overThreshold) {
     const v = parseFloat(String(x.pct || '').replace(',', '.')) || 0;
     if (x.type === 'company' && v > UBO_THRESHOLD && (x.name || '').trim()) {
       seen.set('co:' + x.name.trim().toLowerCase(),
-        { name: x.name, email: x.email || '', why: ['corporate shareholder above ' + UBO_THRESHOLD + '%'], key: 'co:' + x.name.trim().toLowerCase(), entity: true });
+        { name: x.name, email: x.email || '', why: ['corporate shareholder above ' + UBO_THRESHOLD + '%'],
+          roles: ['shareholder'], pct: v, key: 'co:' + x.name.trim().toLowerCase(), entity: true });
     }
   });
-  (p.board || []).forEach(x => add(x, 'board'));
-  (overThreshold || []).forEach(x => add(x, 'shareholder above ' + UBO_THRESHOLD + '%'));
-  (p.ubos || []).forEach(x => add(x, 'beneficial owner'));
+  (p.board || []).forEach(x => add(x, 'board', 'board'));
+  (overThreshold || []).forEach(x => add(x, 'shareholder above ' + UBO_THRESHOLD + '%', 'shareholder',
+                                          parseFloat(String(x.pct || '').replace(',', '.')) || null));
+  (p.ubos || []).forEach(x => add(x, 'beneficial owner', 'ubo'));
   return [...seen.values()];
 }
 function recordAge(at) {
@@ -1020,54 +1035,95 @@ function removeRecord(key) {
 function identityPeople(p, overThreshold) {
   return checkList(p, overThreshold).filter(x => x.key !== '__company__');
 }
+/* -------------------------------------------------------- verification --- */
+/* Progress lives in the database, not here: the person completes their check on
+   a page this browser never sees, so the only honest source is a read-back. */
+async function refreshInvites() {
+  if (!window.E24 || !E24.session) return;
+  const r = await E24.inviteProgress();
+  if (r.ok) { state.invites = r.rows; render(); }
+}
+
+const INVITE_TAG = {
+  sent:             ['warn', 'SENT · AWAITING'],
+  opened:           ['warn', 'OPENED · IN PROGRESS'],
+  id_verified:      ['warn', 'ID VERIFIED · EXTRACT DUE'],
+  records_received: ['warn', 'EXTRACT IN · ID DUE'],
+  complete:         ['ok',   'VERIFIED'],
+  expired:          ['warn', 'LINK EXPIRED'],
+  revoked:          ['',     'NOT STARTED']
+};
+
 async function sendPersonCheck(key, name, email, isEntity) {
   if (!email) return toast('Add an email address for ' + (name || 'this person') + ' first.');
-  const p = parties();
-  p.invites = p.invites || {};
-  p.invites[key] = { status: 'sending', email };
+  if (!window.E24 || !E24.session) return toast('Sign in before sending verification requests.');
+
+  const person = (checkList(parties(), overThresholdShareholders()) || []).find(x => x.key === key) || {};
+  state.sending = Object.assign({}, state.sending, { [key]: true });
   render();
-  try {
-    const res = await fetch('/api/kyc/session', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ user_id: email, account_type: isEntity ? 'raise' : 'private', country: 'EE', name })
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'could not create the check');
-    p.invites[key] = { status: 'sent', email, at: new Date().toISOString().slice(0, 10),
-                       session: data.session_id, url: data.url };
-    persist(); render();
-    toast('Verification sent to ' + email);
-  } catch (e) {
-    console.warn('identity check failed:', e);
-    p.invites[key] = { status: 'failed', email };
-    persist(); render();
-    toast('Could not send the verification just now');
-  }
+
+  const res = await E24.sendVerification({
+    name: name,
+    email: email,
+    companyName: applicantCompanyName(),
+    roles: person.roles || [],
+    equityPct: person.pct,
+    isEntity: !!isEntity,
+    needsCriminalRecord: true
+  });
+
+  delete state.sending[key];
+  if (!res.ok) { render(); return toast(res.error); }
+
+  await refreshInvites();
+  // Do not claim a send that did not happen. Until the mail provider is
+  // configured the invite is real and the link works, but nothing was posted.
+  toast(res.delivered
+    ? 'Verification sent to ' + email
+    : 'Verification created — email is not switched on yet, so nothing was sent.');
+}
+
+/* The company doing the asking, named in the email the person receives. */
+function applicantCompanyName() {
+  return (state.application && state.application.company)
+      || (state.applyDraft && state.applyDraft.apName)
+      || (E24.profile && E24.profile.company_name)
+      || 'The company';
+}
+
+function overThresholdShareholders() {
+  const p = parties();
+  return (p.shareholders || []).filter(x =>
+    x.type !== 'company' && (parseFloat(String(x.pct || '').replace(',', '.')) || 0) > UBO_THRESHOLD);
 }
 function identityPanel(p, overThreshold) {
   const people = identityPeople(p, overThreshold);
   if (!people.length) return '';
-  const inv = p.invites || {};
-  const done = people.filter(x => isVerified(x)).length;
+  const inv = state.invites || {};
+  const lookup = x => inv[String(x.email || '').trim().toLowerCase()] || {};
+  const done = people.filter(x => isVerified(x) || lookup(x).status === 'complete').length;
   return `<div style="height:1px; background:var(--hairline); margin:18px 0;"></div>
     <span class="microlabel">VERIFICATION</span>
     <p class="fee-note" style="margin:4px 0 10px;">Each one gets their own link by email. People complete an identity check; a corporate shareholder completes a company check (KYB) covering its own directors and owners. One check each, whatever roles they hold — nobody is asked twice.</p>
     <div class="kv">
       ${people.map(x => {
-        const i = inv[x.key] || {};
-        const v = isVerified(x);
-        const tag = v ? `<span class="tag ok">VERIFIED</span>`
-          : i.status === 'sent' ? `<span class="tag warn">SENT ${esc(i.at || '')} · AWAITING</span>`
-          : i.status === 'sending' ? `<span class="tag">SENDING…</span>`
-          : i.status === 'failed' ? `<span class="tag warn">NOT SENT</span>`
-          : `<span class="tag">NOT STARTED</span>`;
+        const i = lookup(x);
+        const sending = state.sending && state.sending[x.key];
+        const v = isVerified(x) || i.status === 'complete';
+        const t = INVITE_TAG[i.status] || ['', 'NOT STARTED'];
+        const tag = sending ? `<span class="tag">SENDING…</span>`
+          : v ? `<span class="tag ok">VERIFIED</span>`
+          : `<span class="tag ${t[0]}">${t[1]}</span>`;
+        const sent = !!i.status && i.status !== 'revoked';
         return `<div class="r">
           <span class="k">${esc(x.name || 'unnamed')}${x.entity ? ' <span class="tag" style="font-size:9px">KYB</span>' : ''}
-            <div style="font-size:12px; color:var(--ink-muted)">${esc(x.email || 'no email yet')} · ${x.why.join(' · ')}</div></span>
+            <div style="font-size:12px; color:var(--ink-muted)">${esc(x.email || 'no email yet')} · ${x.why.join(' · ')}${
+              i.sent_at ? ' · sent ' + esc(String(i.sent_at).slice(0, 10)) : ''}</div>
+            ${i.review_required ? `<div style="font-size:12px; color:var(--warn, #b26a00)">we are checking something on this one</div>` : ''}</span>
           <span class="v" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
             ${tag}
-            ${v ? '' : `<button class="btn ${i.status === 'sent' ? 'ghost' : 'solid'} small" ${x.email ? '' : 'disabled'}
-              onclick="sendPersonCheck('${esc(x.key)}', '${esc(x.name || '')}', '${esc(x.email || '')}', ${x.entity ? 'true' : 'false'})">${i.status === 'sent' ? 'Resend' : 'Send verification'}</button>`}
+            ${v ? '' : `<button class="btn ${sent ? 'ghost' : 'solid'} small" ${x.email && !sending ? '' : 'disabled'}
+              onclick="sendPersonCheck('${esc(x.key)}', '${esc(x.name || '')}', '${esc(x.email || '')}', ${x.entity ? 'true' : 'false'})">${sent ? 'Resend' : 'Send verification'}</button>`}
           </span></div>`;
       }).join('')}
     </div>
@@ -2565,8 +2621,13 @@ render();
 /* The binding is an ES module, so it executes after this classic script — we
    are always in time to hear the event, never in time to read window.E24 here. */
 window.addEventListener('e24-ready', () => {
-  syncFromSupabase(); render();
-  window.E24.onChange(() => { syncFromSupabase(); render(); });
+  syncFromSupabase(); render(); refreshInvites();
+  window.E24.onChange(() => { syncFromSupabase(); render(); refreshInvites(); });
 });
+/* Someone finishing their check does not touch this browser, so the screen has
+   to go and look. Only while it is the visible tab — a background tab polling
+   the database for hours helps nobody. */
+setInterval(() => { if (!document.hidden && location.hash.indexOf('verif') >= 0) refreshInvites(); }, 60000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshInvites(); });
 </script>
 <script type="module" src="/js/e24-supabase.js"></script>
