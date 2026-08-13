@@ -1262,15 +1262,25 @@ function removeCompanyDoc(k) {
 /* Taken from the application, never re-typed. Asking for the company's own name
    a second time invites two spellings of it in one file, and the register entry
    is the thing both the extract and the KYB check are matched against. */
+/* Writes to the application itself, not to a copy. The block's whole claim is
+   that there is one version of these details; a second store behind this screen
+   would make that false the first time the two disagreed. */
+function appSet(field, draftField, v) {
+  state.application = state.application || {};
+  state.application[field] = v;
+  state.applyDraft = Object.assign({}, state.applyDraft, { [draftField]: v });
+  persist();
+}
+
 function companyBlock() {
   const a = state.application || {};
   const d = state.applyDraft || {};
   const pick = (x, y) => String(a[x] || d[y] || '').trim();
   const rows = [
-    ['Legal name',              pick('company', 'apName')],
-    ['Registry code',           pick('registry', 'apReg')],
-    ['Country of registration', pick('country', 'apCountry')],
-    ['Registered address',      pick('address', 'apAddr')]
+    ['Legal name',              pick('company', 'apName'),   'company',  'apName',   'Company OÜ'],
+    ['Registry code',           pick('registry', 'apReg'),   'registry', 'apReg',    '16xxxxxx'],
+    ['Country of registration', pick('country', 'apCountry'),'country',  'apCountry','Estonia'],
+    ['Registered address',      pick('address', 'apAddr'),   'address',  'apAddr',   'Street, city, postcode']
   ];
   const missing = rows.filter(r => !r[1]).map(r => r[0]);
   const docs = (parties().companyDocs) || {};
@@ -1279,11 +1289,16 @@ function companyBlock() {
     <p class="fee-note" style="margin:4px 0 8px;">Taken from your application, so there is only ever one version of it. Change it in the application and it changes here.</p>
     <div class="kv">
       ${rows.map(r => `<div class="r"><span class="k">${r[0]}</span>
-        <span class="v ${r[1] ? 'mono' : ''}">${r[1] ? esc(r[1]) : '<span class="tag warn">MISSING</span>'}</span></div>`).join('')}
+        <span class="v ${r[1] ? 'mono' : ''}">${r[1] ? esc(r[1])
+          // Missing here means missing from the application, and the application
+          // is four steps away. Filling it in place writes to the same record,
+          // so nobody walks a wizard to add one line of an address.
+          : `<input class="field" style="max-width:280px" placeholder="${r[4]}"
+               oninput="appSet('${r[2]}','${r[3]}',this.value)" onblur="partyCommit()">`}</span></div>`).join('')}
     </div>
     ${missing.length
-      ? `<p class="fee-note" style="margin-top:8px;">${missing.join(' and ')} ${missing.length > 1 ? 'are' : 'is'} not in your application yet.
-         <button class="btn ghost small" style="margin-left:6px" onclick="editApp()">Add ${missing.length > 1 ? 'them' : 'it'}</button></p>`
+      ? `<p class="fee-note" style="margin-top:8px;">${missing.join(' and ')} ${missing.length > 1 ? 'are' : 'is'} not in your application yet — type ${missing.length > 1 ? 'them' : 'it'} above, or
+         <button class="btn ghost small" style="margin-left:2px" onclick="editApp()">open the application</button></p>`
       : `<button class="btn ghost small" style="margin-top:8px" onclick="editApp()">Edit in application</button>`}
 
     <div style="height:1px; background:var(--hairline); margin:18px 0;"></div>
