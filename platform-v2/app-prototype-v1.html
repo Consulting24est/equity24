@@ -332,8 +332,10 @@
   .party-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
   .party-row { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 8px; align-items: center; }
   .party-row.with-status { grid-template-columns: 1fr 1fr 1fr auto auto; }
+  .party-row.four { grid-template-columns: 1fr 1fr .6fr 1fr auto; }
+  .party-row.four.with-status { grid-template-columns: 1fr 1fr .6fr 1fr auto auto; }
   .party-row .field { margin: 0; }
-  @media (max-width: 620px) { .party-row, .party-row.with-status { grid-template-columns: 1fr 1fr auto; } }
+  @media (max-width: 620px) { .party-row, .party-row.with-status, .party-row.four, .party-row.four.with-status { grid-template-columns: 1fr 1fr auto; } }
   .deck-panel { margin-top: 10px; border: 1px solid var(--hairline); border-radius: 8px; padding: 12px; background: var(--bg); }
   .verify-panel { margin: 4px 0 14px; border: 1px solid var(--accent); border-radius: 8px;
     padding: 14px; background: color-mix(in srgb, var(--accent) 6%, var(--bg)); }
@@ -925,6 +927,74 @@ function partyAdd(kind) { parties()[kind].push({}); persist(); render(); }
 function partyDel(kind, i) { parties()[kind].splice(i, 1); persist(); render(); }
 function partySet(kind, i, field, v) { parties()[kind][i][field] = v; persist(); if (field === 'pct' || field === 'type') render(); }
 
+/* One criminal-record extract per person, not per role. Someone who is both a
+   board member and a 60% shareholder needs one extract, and listing them twice
+   would have the applicant chasing a document they already sent.
+   lisa 4 s1: from the country of establishment AND of residence, not older than
+   three months — so the age is checked, not just the presence of a file. */
+function checkList(p, overThreshold) {
+  const seen = new Map();
+  const add = (person, why) => {
+    const key = String(person.email || person.name || '').trim().toLowerCase();
+    if (!key) return;
+    if (seen.has(key)) { seen.get(key).why.push(why); return; }
+    seen.set(key, { name: person.name || '', email: person.email || '', why: [why], key });
+  };
+  // lisa 4 s1 names the project owner itself, not only its people — a company
+  // has a register entry of its own and it is required evidence.
+  const co = (state.application && state.application.company) || (state.applyDraft && state.applyDraft.apName);
+  if (co) seen.set('__company__', { name: co, email: '', why: ['the company itself'], key: '__company__' });
+  (p.board || []).forEach(x => add(x, 'board'));
+  (overThreshold || []).forEach(x => add(x, 'shareholder above ' + UBO_THRESHOLD + '%'));
+  (p.ubos || []).forEach(x => add(x, 'beneficial owner'));
+  return [...seen.values()];
+}
+function recordAge(at) {
+  if (!at) return null;
+  const days = Math.floor((Date.now() - new Date(at).getTime()) / 86400000);
+  return { days, stale: days > 90 };
+}
+function uploadRecord(key, ev) {
+  const f = ev.target.files && ev.target.files[0];
+  if (!f) return;
+  if (f.type !== 'application/pdf' && !/\.pdf$/i.test(f.name)) return toast('The extract must be a PDF.');
+  if (f.size > 10 * 1024 * 1024) return toast('That file is over 10 MB.');
+  const p = parties();
+  p.records = p.records || {};
+  p.records[key] = { name: f.name, at: new Date().toISOString().slice(0, 10) };
+  persist(); render(); toast('Extract attached for ' + key);
+}
+function removeRecord(key) {
+  const p = parties();
+  if (p.records) delete p.records[key];
+  persist(); render(); toast('Extract removed');
+}
+function recordsPanel(p, overThreshold) {
+  const people = checkList(p, overThreshold);
+  const recs = p.records || {};
+  const have = people.filter(x => recs[x.key]).length;
+  if (!people.length) return '';
+  return `<div style="height:1px; background:var(--hairline); margin:18px 0;"></div>
+    <span class="microlabel">CRIMINAL RECORD EXTRACTS</span>
+    <p class="fee-note" style="margin:4px 0 10px;">One per person, whatever roles they hold. From the register of the country of establishment and of residence, no older than three months — commercial law, insolvency law, financial services law, money laundering, fraud and professional liability.</p>
+    <div class="kv">
+      ${people.map(x => {
+        const r = recs[x.key];
+        const age = r ? recordAge(r.at) : null;
+        return `<div class="r">
+          <span class="k">${esc(x.name || x.email || 'unnamed')}
+            <div style="font-size:12px; color:var(--ink-muted)">${x.why.join(' · ')}</div></span>
+          <span class="v" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
+            ${r ? `<span class="tag ${age && age.stale ? 'warn' : 'ok'}">${esc(r.name)} · ${esc(r.at)}${age && age.stale ? ' · OVER 3 MONTHS' : ''}</span>
+                   <button class="btn ghost small" onclick="removeRecord('${esc(x.key)}')">Remove</button>`
+                : `<span class="tag">NOT PROVIDED</span>`}
+            <label class="btn ghost small" style="cursor:pointer; margin:0">${r ? 'Replace' : 'Upload'}
+              <input type="file" accept="application/pdf,.pdf" style="display:none" onchange="uploadRecord('${esc(x.key)}', event)"></label>
+          </span></div>`;
+      }).join('')}
+    </div>
+    <p class="fee-note" style="margin-top:8px;">${have} of ${people.length} provided.</p>`;
+}
 function partiesPanel() {
   const p = parties();
   const pct = x => parseFloat(String(x.pct || '').replace(',', '.')) || 0;
@@ -962,9 +1032,19 @@ function partiesPanel() {
     <div style="height:1px; background:var(--hairline); margin:18px 0;"></div>
 
     <span class="microlabel">SHAREHOLDERS</span>
-    <p class="fee-note" style="margin:4px 0 8px;">Everyone on the shareholder list, with the percentage held.</p>
-    <div class="party-list">${p.shareholders.map((x, i) => row('shareholders', i, x, [
-      { k: 'name', ph: 'Name' }, { k: 'type', type: 'select', opts: ['person', 'company'] }, { k: 'pct', ph: '% held' }])).join('')}</div>
+    <p class="fee-note" style="margin:4px 0 8px;">Everyone on the list, adding up to 100%. Only holders above ${UBO_THRESHOLD}% are verified — an email is needed for those, so they can be sent their own check.</p>
+    <div class="party-list">${p.shareholders.map((x, i) => {
+      const needs = x.type !== 'company' && pct(x) > UBO_THRESHOLD;
+      return `<div class="party-row four${needs ? ' with-status' : ''}">
+        <input class="field" placeholder="Name" value="${esc(x.name || '')}" oninput="partySet('shareholders',${i},'name',this.value)">
+        <select class="field" onchange="partySet('shareholders',${i},'type',this.value)">
+          <option value="person"${x.type !== 'company' ? ' selected' : ''}>Natural person</option>
+          <option value="company"${x.type === 'company' ? ' selected' : ''}>Company</option></select>
+        <input class="field" placeholder="% held" value="${esc(x.pct || '')}" oninput="partySet('shareholders',${i},'pct',this.value)">
+        <input class="field" type="email" placeholder="${needs ? 'Email address' : 'Email (only if over ' + UBO_THRESHOLD + '%)'}" value="${esc(x.email || '')}" oninput="partySet('shareholders',${i},'email',this.value)">
+        ${needs ? `<span class="tag ${x.verified ? 'ok' : ''}">${x.verified ? 'VERIFIED' : 'NOT VERIFIED'}</span>` : ''}
+        <button class="btn ghost small" onclick="partyDel('shareholders',${i})" aria-label="Remove">✕</button>
+      </div>`; }).join('')}</div>
     <button class="btn ghost small" onclick="partyAdd('shareholders')">+ Add shareholder</button>
 
     <div style="height:1px; background:var(--hairline); margin:18px 0;"></div>
@@ -972,12 +1052,13 @@ function partiesPanel() {
     <span class="microlabel">BENEFICIAL OWNERS</span>
     <p class="fee-note" style="margin:4px 0 8px;">Anyone above ${UBO_THRESHOLD}% on the list above is taken from it — no need to retype. Add only the ones the shareholder list cannot show: owners behind a corporate shareholder, control by other means, or senior management where nobody is above ${UBO_THRESHOLD}%.</p>
     ${overThreshold.length ? `<div class="kv" style="margin-bottom:10px">${overThreshold.map(x =>
-      `<div class="r"><span class="k">${esc(x.name || 'unnamed shareholder')}</span><span class="v"><span class="tag ok">${esc(x.pct)}% · FROM SHAREHOLDER LIST</span></span></div>`).join('')}</div>` : ''}
+      `<div class="r"><span class="k">${esc(x.name || 'unnamed shareholder')}${x.email ? `<div style="font-size:12px; color:var(--ink-muted)">${esc(x.email)}</div>` : ''}</span><span class="v"><span class="tag ${x.verified ? 'ok' : ''}">${esc(x.pct)}% · ${x.verified ? 'VERIFIED' : 'NOT VERIFIED'}</span></span></div>`).join('')}</div>` : ''}
     <div class="party-list">${p.ubos.map((x, i) => row('ubos', i, x, [
-      { k: 'name', ph: 'Full name' }, { k: 'pct', ph: '% direct or indirect' }, { k: 'basis', ph: 'Basis, e.g. via Holdco OÜ' }])).join('')}</div>
+      { k: 'name', ph: 'Full name' }, { k: 'email', ph: 'Email address' }, { k: 'basis', ph: 'Basis, e.g. via Holdco OÜ' }], true)).join('')}</div>
     <button class="btn ghost small" onclick="partyAdd('ubos')">+ Add beneficial owner not shown above</button>
 
     ${notes.length ? `<div class="kyc-panel" style="margin-top:16px">${notes.map(n => `<p class="fee-note" style="margin:4px 0">${n}</p>`).join('')}</div>` : ''}
+    ${recordsPanel(p, overThreshold)}
     <p class="fee-note" style="margin-top:14px;">Total to check: <b>${p.board.length + p.ubos.length + overThreshold.length}</b> ${p.board.length + p.ubos.length + overThreshold.length === 1 ? 'person' : 'people'} — ${p.board.length} board, ${p.ubos.length + overThreshold.length} beneficial owner${p.ubos.length + overThreshold.length === 1 ? '' : 's'}. Each needs an identity check and a criminal-record extract.</p>
   </div>`;
 }
