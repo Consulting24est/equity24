@@ -501,7 +501,7 @@ const state = {
   applyDraft: store.applyDraft || {},
   editing: store.editing || false,
   confirmDelete: false,
-  parties: store.parties || { board: [], shareholders: [], ubos: [] },
+  parties: store.parties || { board: [], shareholders: [], ubos: [], records: {}, verified: {} },
   signupStep: 1,
   // true only when the session came from Supabase, so the demo role buttons
   // are never mistaken for a real sign-in and logged out from under the user
@@ -921,6 +921,7 @@ const UBO_THRESHOLD = 25;
 function parties() {
   const p = state.parties || (state.parties = { board: [], shareholders: [], ubos: [] });
   p.board = p.board || []; p.shareholders = p.shareholders || []; p.ubos = p.ubos || [];
+  p.records = p.records || {}; p.verified = p.verified || {};
   return p;
 }
 function partyAdd(kind) { parties()[kind].push({}); persist(); render(); }
@@ -932,6 +933,14 @@ function partySet(kind, i, field, v) { parties()[kind][i][field] = v; persist();
    would have the applicant chasing a document they already sent.
    lisa 4 s1: from the country of establishment AND of residence, not older than
    three months — so the age is checked, not just the presence of a file. */
+/* Verification, like the extract, is per person rather than per role. Reading a
+   flag off each row let the same human be VERIFIED as a director and NOT
+   VERIFIED as a shareholder in the same file. */
+function personKey(x) { return String(x.email || x.name || '').trim().toLowerCase(); }
+function isVerified(x) {
+  const k = personKey(x);
+  return !!(k && parties().verified && parties().verified[k]);
+}
 function checkList(p, overThreshold) {
   const seen = new Map();
   const add = (person, why) => {
@@ -1014,7 +1023,7 @@ function partiesPanel() {
       ? `<select class="field" onchange="partySet('${kind}',${i},'${f.k}',this.value)">${f.opts.map(o =>
           `<option value="${o}"${x[f.k] === o ? ' selected' : ''}>${o === 'person' ? 'Natural person' : 'Company'}</option>`).join('')}</select>`
       : `<input class="field" type="${f.k === 'email' ? 'email' : 'text'}" placeholder="${f.ph}" value="${esc(x[f.k] || '')}" oninput="partySet('${kind}',${i},'${f.k}',this.value)">`).join('')}
-    ${withStatus ? `<span class="tag ${x.verified ? 'ok' : ''}">${x.verified ? 'VERIFIED' : 'NOT VERIFIED'}</span>` : ''}
+    ${withStatus ? `<span class="tag ${isVerified(x) ? 'ok' : ''}">${isVerified(x) ? 'VERIFIED' : 'NOT VERIFIED'}</span>` : ''}
     <button class="btn ghost small" onclick="partyDel('${kind}',${i})" aria-label="Remove">✕</button>
   </div>`;
 
@@ -1027,7 +1036,7 @@ function partiesPanel() {
     <div class="party-list">${p.board.map((x, i) => row('board', i, x, [
       { k: 'name', ph: 'Full name' }, { k: 'email', ph: 'Email address' }, { k: 'country', ph: 'Country of residence' }], true)).join('')}</div>
     <button class="btn ghost small" onclick="partyAdd('board')">+ Add board member</button>
-    ${p.board.length ? `<p class="fee-note" style="margin-top:8px;">${p.board.filter(x => x.verified).length} of ${p.board.length} verified.</p>` : ''}
+    ${p.board.length ? `<p class="fee-note" style="margin-top:8px;">${p.board.filter(isVerified).length} of ${p.board.length} verified.</p>` : ''}
 
     <div style="height:1px; background:var(--hairline); margin:18px 0;"></div>
 
@@ -1042,7 +1051,7 @@ function partiesPanel() {
           <option value="company"${x.type === 'company' ? ' selected' : ''}>Company</option></select>
         <input class="field" placeholder="% held" value="${esc(x.pct || '')}" oninput="partySet('shareholders',${i},'pct',this.value)">
         <input class="field" type="email" placeholder="${needs ? 'Email address' : 'Email (only if over ' + UBO_THRESHOLD + '%)'}" value="${esc(x.email || '')}" oninput="partySet('shareholders',${i},'email',this.value)">
-        ${needs ? `<span class="tag ${x.verified ? 'ok' : ''}">${x.verified ? 'VERIFIED' : 'NOT VERIFIED'}</span>` : ''}
+        ${needs ? `<span class="tag ${isVerified(x) ? 'ok' : ''}">${isVerified(x) ? 'VERIFIED' : 'NOT VERIFIED'}</span>` : ''}
         <button class="btn ghost small" onclick="partyDel('shareholders',${i})" aria-label="Remove">✕</button>
       </div>`; }).join('')}</div>
     <button class="btn ghost small" onclick="partyAdd('shareholders')">+ Add shareholder</button>
@@ -1052,7 +1061,7 @@ function partiesPanel() {
     <span class="microlabel">BENEFICIAL OWNERS</span>
     <p class="fee-note" style="margin:4px 0 8px;">Anyone above ${UBO_THRESHOLD}% on the list above is taken from it — no need to retype. Add only the ones the shareholder list cannot show: owners behind a corporate shareholder, control by other means, or senior management where nobody is above ${UBO_THRESHOLD}%.</p>
     ${overThreshold.length ? `<div class="kv" style="margin-bottom:10px">${overThreshold.map(x =>
-      `<div class="r"><span class="k">${esc(x.name || 'unnamed shareholder')}${x.email ? `<div style="font-size:12px; color:var(--ink-muted)">${esc(x.email)}</div>` : ''}</span><span class="v"><span class="tag ${x.verified ? 'ok' : ''}">${esc(x.pct)}% · ${x.verified ? 'VERIFIED' : 'NOT VERIFIED'}</span></span></div>`).join('')}</div>` : ''}
+      `<div class="r"><span class="k">${esc(x.name || 'unnamed shareholder')}${x.email ? `<div style="font-size:12px; color:var(--ink-muted)">${esc(x.email)}</div>` : ''}</span><span class="v"><span class="tag ${isVerified(x) ? 'ok' : ''}">${esc(x.pct)}% · ${isVerified(x) ? 'VERIFIED' : 'NOT VERIFIED'}</span></span></div>`).join('')}</div>` : ''}
     <div class="party-list">${p.ubos.map((x, i) => row('ubos', i, x, [
       { k: 'name', ph: 'Full name' }, { k: 'email', ph: 'Email address' }, { k: 'basis', ph: 'Basis, e.g. via Holdco OÜ' }], true)).join('')}</div>
     <button class="btn ghost small" onclick="partyAdd('ubos')">+ Add beneficial owner not shown above</button>
