@@ -977,8 +977,6 @@ function checkList(p, overThreshold) {
   };
   // lisa 4 s1 names the project owner itself, not only its people — a company
   // has a register entry of its own and it is required evidence.
-  const co = (state.application && state.application.company) || (state.applyDraft && state.applyDraft.apName);
-  if (co) seen.set('__company__', { name: co, email: '', why: ['the company itself'], key: '__company__' });
   // A corporate shareholder above the threshold has a register entry of its own,
   // so it needs an entity extract even though it can never be a beneficial owner.
   (p.shareholders || []).forEach(x => {
