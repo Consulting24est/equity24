@@ -4,6 +4,7 @@
     --bg: #0B0D10; --surface: #10151A; --surface-raised: #19202A;
     --ink: #E8EBF0; --ink-muted: #9AA4B1; --hairline: #273040;
     --accent: #5C8DFF; --on-accent: #081226;
+    --corp-bg: #131C2E; --corp-border: #24365C; --corp-edge: #7FA6FF;
     --risk-bg: #221B0B; --risk-ink: #F2D588; --risk-border: #4A3D1D;
     --ok: #4DB380; --warn: #D9A441;
     --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -11,12 +12,18 @@
   }
   @media (prefers-color-scheme: light) {
     :root { --bg:#F6F7F9; --surface:#FFFFFF; --surface-raised:#EDF1F6; --ink:#141A22; --ink-muted:#556070;
-      --hairline:#DEE3EA; --accent:#0052FF; --on-accent:#FFFFFF; --risk-bg:#FBF1D6; --risk-ink:#5F4A0E; --risk-border:#E4D2A0; }
+      --hairline:#DEE3EA; --accent:#0052FF; --on-accent:#FFFFFF; --risk-bg:#FBF1D6; --risk-ink:#5F4A0E; --risk-border:#E4D2A0;
+      --corp-bg:#EDF3FF; --corp-border:#C7D9FF; --corp-edge:#2F63D6; }
   }
   :root[data-theme="light"] { --bg:#F6F7F9; --surface:#FFFFFF; --surface-raised:#EDF1F6; --ink:#141A22; --ink-muted:#556070;
-    --hairline:#DEE3EA; --accent:#0052FF; --on-accent:#FFFFFF; --risk-bg:#FBF1D6; --risk-ink:#5F4A0E; --risk-border:#E4D2A0; }
+    --hairline:#DEE3EA; --accent:#0052FF; --on-accent:#FFFFFF; --risk-bg:#FBF1D6; --risk-ink:#5F4A0E; --risk-border:#E4D2A0;
+      --corp-bg:#EDF3FF; --corp-border:#C7D9FF; --corp-edge:#2F63D6; }
+  /* Every token the light media block sets has to be set back here too. That
+     block is not guarded against data-theme="dark", so anything it defines and
+     this rule omits leaks light values into the dark theme. */
   :root[data-theme="dark"] { --bg:#0B0D10; --surface:#10151A; --surface-raised:#19202A; --ink:#E8EBF0; --ink-muted:#9AA4B1;
-    --hairline:#273040; --accent:#5C8DFF; --on-accent:#081226; --risk-bg:#221B0B; --risk-ink:#F2D588; --risk-border:#4A3D1D; }
+    --hairline:#273040; --accent:#5C8DFF; --on-accent:#081226; --risk-bg:#221B0B; --risk-ink:#F2D588; --risk-border:#4A3D1D;
+    --corp-bg:#131C2E; --corp-border:#24365C; --corp-edge:#7FA6FF; }
 
   * { box-sizing: border-box; }
   body {
@@ -352,6 +359,17 @@
   @media (max-width: 620px) { .rules-wrap { overflow-x: auto; } .rules { min-width: 460px; } }
   .party-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
   .party-row { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 8px; align-items: center; }
+  /* A corporate shareholder is not one more row in a list — it is a second
+     company whose whole file has to be built. Tinting it says that before any
+     of the words do, and keeps its people visibly separate from the
+     applicant's own. */
+  .corp-block { border: 1px solid var(--corp-border); border-left: 3px solid var(--corp-edge);
+    background: var(--corp-bg); border-radius: 8px; padding: 16px 18px; margin: 14px 0; }
+  .corp-block .microlabel { color: var(--corp-edge); }
+  .corp-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
+  .corp-head .corp-name { font-weight: 600; font-size: 15.5px; }
+  .saved-flag { display: flex; justify-content: flex-end; margin-bottom: -6px; }
+  @media (max-width: 620px) { .corp-block { padding: 14px 12px; } }
   .party-row.with-status { grid-template-columns: 1fr 1fr 1fr auto auto; }
   .party-row.four { grid-template-columns: 1fr 1fr .6fr 1fr auto; }
   .party-row.four.with-status { grid-template-columns: 1fr 1fr .6fr 1fr auto auto; }
@@ -954,7 +972,17 @@ function partyDel(kind, i) { parties()[kind].splice(i, 1); persist(); render(); 
    "50" became "5" and the caret jumped to the next input, so a 50% holder
    silently failed to reach the beneficial-owner threshold. */
 function partySet(kind, i, field, v) { parties()[kind][i][field] = v; persist(); }
-function partyCommit() { render(); }
+
+/* Saving on blur is invisible, and invisible saving reads as lost work — people
+   retype, or hesitate to navigate away. One marker for the whole panel, not one
+   per field: tabbing through three inputs should not produce three notices. */
+let savedTimer = null;
+function flagSaved() {
+  state.saved = true;
+  clearTimeout(savedTimer);
+  savedTimer = setTimeout(() => { state.saved = false; render(); }, 2600);
+}
+function partyCommit() { flagSaved(); render(); }
 
 /* One criminal-record extract per person, not per role. Someone who is both a
    board member and a 60% shareholder needs one extract, and listing them twice
@@ -999,6 +1027,18 @@ function checkList(p, overThreshold) {
         { name: x.name, email: x.email || '', why: ['corporate shareholder above ' + UBO_THRESHOLD + '%'],
           roles: ['shareholder'], pct: v, key: 'co:' + x.name.trim().toLowerCase(), entity: true });
     }
+  });
+  // The board and owners of a corporate shareholder are checked on the same
+  // terms as the applicant's own. Leaving them out of these two lists would
+  // publish a rule on the panel above that the form below never collects.
+  Object.entries(p.corps || {}).forEach(([key, c]) => {
+    // The key is folded to lower case so it survives retyping; the company's
+    // name is not. Reading it back off the shareholder row keeps "Holdco Invest
+    // OÜ" from reaching the applicant's screen as "holdco invest oü".
+    const holder = (p.shareholders || []).find(sh => 'co:' + String(sh.name || '').trim().toLowerCase() === key);
+    const co = (holder && holder.name) || key.replace(/^co:/, '');
+    (c.board || []).forEach(q => add(q, 'board of ' + co, 'board'));
+    (c.ubos || []).forEach(q => add(q, 'beneficial owner of ' + co, 'ubo'));
   });
   (p.board || []).forEach(x => add(x, 'board', 'board'));
   (overThreshold || []).forEach(x => add(x, 'shareholder above ' + UBO_THRESHOLD + '%', 'shareholder',
@@ -1189,6 +1229,177 @@ function rulesTable() {
     </div>
   </div>`;
 }
+/* The company's own documents. Registry extract and articles are evidence about
+   the entity, not about a person, so they sit above the people rather than in
+   the criminal-record list where an entity row never belonged. */
+const COMPANY_DOCS = [
+  { k: 'registry', t: 'Registry extract',
+    d: 'From the register the company is entered in, no older than three months.' },
+  { k: 'articles',  t: 'Articles of association',
+    d: 'The version currently in force, as filed with the register.' }
+];
+
+function uploadCompanyDoc(k, ev) {
+  const f = ev.target.files && ev.target.files[0];
+  if (!f) return;
+  if (f.type !== 'application/pdf' && !/\.pdf$/i.test(f.name)) return toast('Please upload a PDF.');
+  if (f.size > 10 * 1024 * 1024) return toast('That file is over 10 MB.');
+  const p = parties();
+  p.companyDocs = p.companyDocs || {};
+  p.companyDocs[k] = { name: f.name, at: new Date().toISOString().slice(0, 10) };
+  persist(); flagSaved(); render();
+  toast((COMPANY_DOCS.find(x => x.k === k) || {}).t + ' attached');
+}
+function removeCompanyDoc(k) {
+  const p = parties();
+  if (p.companyDocs) delete p.companyDocs[k];
+  persist(); flagSaved(); render();
+}
+
+/* Taken from the application, never re-typed. Asking for the company's own name
+   a second time invites two spellings of it in one file, and the register entry
+   is the thing both the extract and the KYB check are matched against. */
+function companyBlock() {
+  const a = state.application || {};
+  const d = state.applyDraft || {};
+  const pick = (x, y) => String(a[x] || d[y] || '').trim();
+  const rows = [
+    ['Legal name',              pick('company', 'apName')],
+    ['Registry code',           pick('registry', 'apReg')],
+    ['Country of registration', pick('country', 'apCountry')],
+    ['Registered address',      pick('address', 'apAddr')]
+  ];
+  const missing = rows.filter(r => !r[1]).map(r => r[0]);
+  const docs = (parties().companyDocs) || {};
+
+  return `<span class="microlabel">THE COMPANY</span>
+    <p class="fee-note" style="margin:4px 0 8px;">Taken from your application, so there is only ever one version of it. Change it in the application and it changes here.</p>
+    <div class="kv">
+      ${rows.map(r => `<div class="r"><span class="k">${r[0]}</span>
+        <span class="v ${r[1] ? 'mono' : ''}">${r[1] ? esc(r[1]) : '<span class="tag warn">MISSING</span>'}</span></div>`).join('')}
+    </div>
+    ${missing.length
+      ? `<p class="fee-note" style="margin-top:8px;">${missing.join(' and ')} ${missing.length > 1 ? 'are' : 'is'} not in your application yet.
+         <button class="btn ghost small" style="margin-left:6px" onclick="editApp()">Add ${missing.length > 1 ? 'them' : 'it'}</button></p>`
+      : `<button class="btn ghost small" style="margin-top:8px" onclick="editApp()">Edit in application</button>`}
+
+    <div style="height:1px; background:var(--hairline); margin:18px 0;"></div>
+
+    <span class="microlabel">COMPANY DOCUMENTS</span>
+    <p class="fee-note" style="margin:4px 0 8px;">PDF, straight from the register where possible. These are checked against the details above, so the name and code have to match what the register holds.</p>
+    <div class="kv">
+      ${COMPANY_DOCS.map(doc => {
+        const f = docs[doc.k];
+        return `<div class="r">
+          <span class="k">${doc.t}
+            <div style="font-size:12px; color:var(--ink-muted)">${doc.d}</div></span>
+          <span class="v" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
+            ${f ? `<span class="tag ok">${esc(f.name)} · ${esc(f.at)}</span>
+                   <button class="btn ghost small" onclick="removeCompanyDoc('${doc.k}')">Remove</button>`
+                : `<span class="tag">NOT PROVIDED</span>`}
+            <label class="btn ghost small" style="cursor:pointer; margin:0">${f ? 'Replace' : 'Upload'}
+              <input type="file" accept="application/pdf,.pdf" style="display:none" onchange="uploadCompanyDoc('${doc.k}', event)"></label>
+          </span></div>`;
+      }).join('')}
+    </div>
+    <p class="fee-note" style="margin-top:8px;">${COMPANY_DOCS.filter(x => docs[x.k]).length} of ${COMPANY_DOCS.length} provided.</p>
+
+    <div style="height:1px; background:var(--hairline); margin:18px 0;"></div>`;
+}
+
+/* ---------------------------------------------------- corporate shareholders --
+   A company holding over 25% provides the same file the applicant does. That is
+   already published on the rules panel; this is where it is actually collected,
+   so the two cannot drift apart. Keyed by name rather than index so reordering
+   the shareholder list does not hand one company another's documents. */
+const CORP_DOCS = [
+  { k: 'registry',    t: 'Registry extract',        d: 'From its own national register, no older than three months.' },
+  { k: 'articles',    t: 'Articles of association', d: 'The version currently in force.' },
+  { k: 'shareholders', t: 'Shareholder list',       d: 'Adding up to 100%, showing who owns this company.' }
+];
+
+function corpKey(x) { return 'co:' + String(x.name || '').trim().toLowerCase(); }
+function corpData(key) {
+  const p = parties();
+  p.corps = p.corps || {};
+  if (!p.corps[key]) p.corps[key] = { reg: '', country: '', addr: '', docs: {}, board: [], ubos: [] };
+  const c = p.corps[key];
+  c.docs = c.docs || {}; c.board = c.board || []; c.ubos = c.ubos || [];
+  return c;
+}
+function corpSet(key, field, v) { corpData(key)[field] = v; persist(); }
+function corpPartySet(key, kind, i, field, v) { corpData(key)[kind][i][field] = v; persist(); }
+function corpPartyAdd(key, kind) { corpData(key)[kind].push({}); persist(); flagSaved(); render(); }
+function corpPartyDel(key, kind, i) { corpData(key)[kind].splice(i, 1); persist(); flagSaved(); render(); }
+function uploadCorpDoc(key, k, ev) {
+  const f = ev.target.files && ev.target.files[0];
+  if (!f) return;
+  if (f.type !== 'application/pdf' && !/\.pdf$/i.test(f.name)) return toast('Please upload a PDF.');
+  if (f.size > 10 * 1024 * 1024) return toast('That file is over 10 MB.');
+  corpData(key).docs[k] = { name: f.name, at: new Date().toISOString().slice(0, 10) };
+  persist(); flagSaved(); render();
+  toast((CORP_DOCS.find(x => x.k === k) || {}).t + ' attached');
+}
+function removeCorpDoc(key, k) { delete corpData(key).docs[k]; persist(); flagSaved(); render(); }
+
+function corpPanel(x) {
+  const name = String(x.name || '').trim();
+  if (!name) {
+    return `<div class="corp-block">
+      <span class="microlabel">CORPORATE SHAREHOLDER</span>
+      <p class="fee-note" style="margin:6px 0 0;">Give this shareholder a name and the documents it has to provide will appear here.</p>
+    </div>`;
+  }
+  const key = corpKey(x);
+  const c = corpData(key);
+  const docsIn = CORP_DOCS.filter(dd => c.docs[dd.k]).length;
+  const field = (f, ph, val) => `<label class="f"><span class="microlabel">${ph}</span>
+    <input class="field" value="${esc(val || '')}" oninput="corpSet('${esc(key)}','${f}',this.value)" onblur="partyCommit()"></label>`;
+
+  const people = (kind, label, note) => `<span class="microlabel">${label}</span>
+    <p class="fee-note" style="margin:4px 0 8px;">${note}</p>
+    <div class="party-list">${c[kind].map((q, i) => `<div class="party-row">
+      <input class="field" placeholder="Full name" value="${esc(q.name || '')}" oninput="corpPartySet('${esc(key)}','${kind}',${i},'name',this.value)" onblur="partyCommit()">
+      <input class="field" type="email" placeholder="Email address" value="${esc(q.email || '')}" oninput="corpPartySet('${esc(key)}','${kind}',${i},'email',this.value)" onblur="partyCommit()">
+      <input class="field" placeholder="${kind === 'ubos' ? '% held' : 'Country of residence'}" value="${esc(q[kind === 'ubos' ? 'pct' : 'country'] || '')}" oninput="corpPartySet('${esc(key)}','${kind}',${i},'${kind === 'ubos' ? 'pct' : 'country'}',this.value)" onblur="partyCommit()">
+      <button class="btn ghost small" onclick="corpPartyDel('${esc(key)}','${kind}',${i})" aria-label="Remove">✕</button>
+    </div>`).join('')}</div>
+    <button class="btn ghost small" onclick="corpPartyAdd('${esc(key)}','${kind}')">+ Add</button>`;
+
+  return `<div class="corp-block">
+    <div class="corp-head">
+      <span class="microlabel">CORPORATE SHAREHOLDER</span>
+      <span class="corp-name">${esc(name)}</span>
+      ${x.pct ? `<span class="tag">${esc(x.pct)}%</span>` : ''}
+      <span class="tag ${docsIn === CORP_DOCS.length ? 'ok' : 'warn'}">${docsIn}/${CORP_DOCS.length} DOCUMENTS</span>
+    </div>
+    <p class="fee-note" style="margin:2px 0 12px;">It provides exactly what the applicant provides. Nothing is reduced because it is a shareholder rather than the company raising.</p>
+
+    <div class="field-row">${field('reg', 'REGISTRY CODE', c.reg)}${field('country', 'COUNTRY OF REGISTRATION', c.country)}</div>
+    ${field('addr', 'REGISTERED ADDRESS', c.addr)}
+
+    <div class="kv" style="margin-top:12px;">
+      ${CORP_DOCS.map(dd => {
+        const f = c.docs[dd.k];
+        return `<div class="r">
+          <span class="k">${dd.t}<div style="font-size:12px; color:var(--ink-muted)">${dd.d}</div></span>
+          <span class="v" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
+            ${f ? `<span class="tag ok">${esc(f.name)} · ${esc(f.at)}</span>
+                   <button class="btn ghost small" onclick="removeCorpDoc('${esc(key)}','${dd.k}')">Remove</button>`
+                : `<span class="tag">NOT PROVIDED</span>`}
+            <label class="btn ghost small" style="cursor:pointer; margin:0">${f ? 'Replace' : 'Upload'}
+              <input type="file" accept="application/pdf,.pdf" style="display:none" onchange="uploadCorpDoc('${esc(key)}','${dd.k}', event)"></label>
+          </span></div>`;
+      }).join('')}
+    </div>
+
+    <div style="height:1px; background:var(--corp-border); margin:16px 0;"></div>
+    ${people('board', 'ITS BOARD MEMBERS', 'Named, identity-verified, criminal-record extract each — exactly as for the applicant. They appear in the verification list below.')}
+    <div style="height:1px; background:var(--corp-border); margin:16px 0;"></div>
+    ${people('ubos', 'ITS BENEFICIAL OWNERS', 'The natural persons above ' + UBO_THRESHOLD + '%. If this company is itself owned by a company, that is the second and last level — the owners above it must be natural persons.')}
+  </div>`;
+}
+
 function partiesPanel() {
   const p = parties();
   const pct = x => parseFloat(String(x.pct || '').replace(',', '.')) || 0;
@@ -1205,14 +1416,16 @@ function partiesPanel() {
 
   const row = (kind, i, x, fields, withStatus) => `<div class="party-row${withStatus ? ' with-status' : ''}">
     ${fields.map(f => f.type === 'select'
-      ? `<select class="field" onchange="partySet('${kind}',${i},'${f.k}',this.value)">${f.opts.map(o =>
+      ? `<select class="field" onchange="partySet('${kind}',${i},'${f.k}',this.value);partyCommit()">${f.opts.map(o =>
           `<option value="${o}"${x[f.k] === o ? ' selected' : ''}>${o === 'person' ? 'Natural person' : 'Company'}</option>`).join('')}</select>`
-      : `<input class="field" type="${f.k === 'email' ? 'email' : 'text'}" placeholder="${f.ph}" value="${esc(x[f.k] || '')}" oninput="partySet('${kind}',${i},'${f.k}',this.value)">`).join('')}
+      : `<input class="field" type="${f.k === 'email' ? 'email' : 'text'}" placeholder="${f.ph}" value="${esc(x[f.k] || '')}" oninput="partySet('${kind}',${i},'${f.k}',this.value)" onblur="partyCommit()">`).join('')}
     ${withStatus ? `<span class="tag ${isVerified(x) ? 'ok' : ''}">${isVerified(x) ? 'VERIFIED' : 'NOT VERIFIED'}</span>` : ''}
     <button class="btn ghost small" onclick="partyDel('${kind}',${i})" aria-label="Remove">✕</button>
   </div>`;
 
   return `<div class="card" style="margin-bottom:16px;">
+    ${state.saved ? `<div class="saved-flag"><span class="tag ok">SAVED</span></div>` : ''}
+    ${companyBlock()}
     <span class="microlabel">PEOPLE WE MUST CHECK</span>
     <p class="fee-note" style="margin:8px 0 16px;">Every board member and every beneficial owner needs an identity check and a criminal-record extract from the country of establishment and of residence, no older than three months. Listing them here is what that check runs against.</p>
     ${rulesTable()}
@@ -1231,16 +1444,17 @@ function partiesPanel() {
     <div class="party-list">${p.shareholders.map((x, i) => {
       const needs = pct(x) > UBO_THRESHOLD;   // person or company — both are verified
       return `<div class="party-row four${needs ? ' with-status' : ''}">
-        <input class="field" placeholder="Name" value="${esc(x.name || '')}" oninput="partySet('shareholders',${i},'name',this.value)">
+        <input class="field" placeholder="Name" value="${esc(x.name || '')}" oninput="partySet('shareholders',${i},'name',this.value)" onblur="partyCommit()">
         <select class="field" onchange="partySet('shareholders',${i},'type',this.value);partyCommit()">
           <option value="person"${x.type !== 'company' ? ' selected' : ''}>Natural person</option>
           <option value="company"${x.type === 'company' ? ' selected' : ''}>Company</option></select>
         <input class="field" placeholder="% held" value="${esc(x.pct || '')}" oninput="partySet('shareholders',${i},'pct',this.value)" onchange="partyCommit()" onblur="partyCommit()">
-        <input class="field" type="email" placeholder="${needs ? 'Email address' : 'Email (only if over ' + UBO_THRESHOLD + '%)'}" value="${esc(x.email || '')}" oninput="partySet('shareholders',${i},'email',this.value)">
+        <input class="field" type="email" placeholder="${needs ? 'Email address' : 'Email (only if over ' + UBO_THRESHOLD + '%)'}" value="${esc(x.email || '')}" oninput="partySet('shareholders',${i},'email',this.value)" onblur="partyCommit()">
         ${needs ? `<span class="tag ${isVerified(x) ? 'ok' : ''}">${isVerified(x) ? 'VERIFIED' : 'NOT VERIFIED'}</span>` : ''}
         <button class="btn ghost small" onclick="partyDel('shareholders',${i})" aria-label="Remove">✕</button>
       </div>`; }).join('')}</div>
     <button class="btn ghost small" onclick="partyAdd('shareholders')">+ Add shareholder</button>
+    ${corporateHolders.filter(x => pct(x) > UBO_THRESHOLD).map(corpPanel).join('')}
 
     <div style="height:1px; background:var(--hairline); margin:18px 0;"></div>
 
@@ -2161,7 +2375,7 @@ function editApp() {
   const a = state.application || {};
   state.applyDraft = Object.assign({}, state.applyDraft, {
     apName: a.company || '', apReg: a.registry || '', apCountry: a.country || '',
-    apSector: a.sector || '', apWeb: a.website || '',
+    apSector: a.sector || '', apAddr: a.address || '', apWeb: a.website || '',
     apTarget: a.target || '', apEquity: a.equity || '', apValuation: a.valuation || '',
     apShares: a.shares || '', apSharesSold: a.sharesSold || '', apPrice: a.pricePerShare || '',
     apRev2024: a.rev2024 || '', apRev2025: a.rev2025 || '', apRev2026: a.rev2026 || '',
@@ -2242,6 +2456,7 @@ function applyForm() {
         <select class="field" id="apSector">${SECTORS.map(x =>
           `<option${d.apSector === x ? ' selected' : ''}>${x}</option>`).join('')}</select></label>
     </div>
+    <label class="f"><span class="microlabel">REGISTERED ADDRESS</span><input class="field" id="apAddr" placeholder="Street, city, postcode" value="${esc(d.apAddr || '')}"></label>
     <label class="f"><span class="microlabel">WEBSITE</span><input class="field" id="apWeb" placeholder="company.eu" value="${esc(d.apWeb || '')}"></label>
     <div class="wiz-nav"><button class="btn solid" onclick="applyNext()">Continue</button>
       ${state.editing ? `<button class="btn ghost" onclick="cancelEdit()">Cancel</button>` : ''}</div>`;
@@ -2329,7 +2544,7 @@ function applyForm() {
    step changes — otherwise it is gone. submitApp() used to read apName/apReg/
    apCountry while standing on step 3, where those inputs no longer exist, and
    silently submitted the placeholder defaults instead. */
-const APPLY_TEXT = ['apName','apReg','apCountry','apSector','apWeb','apTarget','apEquity','apValuation','apShares','apSharesSold','apPrice','apRev2024','apRev2025','apRev2026'];
+const APPLY_TEXT = ['apName','apReg','apCountry','apSector','apAddr','apWeb','apTarget','apEquity','apValuation','apShares','apSharesSold','apPrice','apRev2024','apRev2025','apRev2026'];
 const APPLY_CHECKS = ['apRev'];
 function captureApply() {
   const d = state.applyDraft || (state.applyDraft = {});
@@ -2348,6 +2563,7 @@ function submitApp() {
     registry: d.apReg || '16xxxxxx',
     country: d.apCountry || 'Estonia',
     sector: d.apSector || '',
+    address: d.apAddr || '',
     website: d.apWeb || '',
     target: d.apTarget || '',
     equity: d.apEquity || '',
