@@ -926,7 +926,12 @@ function parties() {
 }
 function partyAdd(kind) { parties()[kind].push({}); persist(); render(); }
 function partyDel(kind, i) { parties()[kind].splice(i, 1); persist(); render(); }
-function partySet(kind, i, field, v) { parties()[kind][i][field] = v; persist(); if (field === 'pct' || field === 'type') render(); }
+/* Store on every keystroke, re-render only when the field is committed.
+   Re-rendering on input tore the focused element out of the DOM mid-typing:
+   "50" became "5" and the caret jumped to the next input, so a 50% holder
+   silently failed to reach the beneficial-owner threshold. */
+function partySet(kind, i, field, v) { parties()[kind][i][field] = v; persist(); }
+function partyCommit() { render(); }
 
 /* One criminal-record extract per person, not per role. Someone who is both a
    board member and a 60% shareholder needs one extract, and listing them twice
@@ -1105,10 +1110,10 @@ function partiesPanel() {
       const needs = x.type !== 'company' && pct(x) > UBO_THRESHOLD;
       return `<div class="party-row four${needs ? ' with-status' : ''}">
         <input class="field" placeholder="Name" value="${esc(x.name || '')}" oninput="partySet('shareholders',${i},'name',this.value)">
-        <select class="field" onchange="partySet('shareholders',${i},'type',this.value)">
+        <select class="field" onchange="partySet('shareholders',${i},'type',this.value);partyCommit()">
           <option value="person"${x.type !== 'company' ? ' selected' : ''}>Natural person</option>
           <option value="company"${x.type === 'company' ? ' selected' : ''}>Company</option></select>
-        <input class="field" placeholder="% held" value="${esc(x.pct || '')}" oninput="partySet('shareholders',${i},'pct',this.value)">
+        <input class="field" placeholder="% held" value="${esc(x.pct || '')}" oninput="partySet('shareholders',${i},'pct',this.value)" onchange="partyCommit()" onblur="partyCommit()">
         <input class="field" type="email" placeholder="${needs ? 'Email address' : 'Email (only if over ' + UBO_THRESHOLD + '%)'}" value="${esc(x.email || '')}" oninput="partySet('shareholders',${i},'email',this.value)">
         ${needs ? `<span class="tag ${isVerified(x) ? 'ok' : ''}">${isVerified(x) ? 'VERIFIED' : 'NOT VERIFIED'}</span>` : ''}
         <button class="btn ghost small" onclick="partyDel('shareholders',${i})" aria-label="Remove">✕</button>
