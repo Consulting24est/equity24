@@ -1047,7 +1047,7 @@ function identityPanel(p, overThreshold) {
   const inv = p.invites || {};
   const done = people.filter(x => isVerified(x)).length;
   return `<div style="height:1px; background:var(--hairline); margin:18px 0;"></div>
-    <span class="microlabel">IDENTITY CHECKS</span>
+    <span class="microlabel">VERIFICATION</span>
     <p class="fee-note" style="margin:4px 0 10px;">Each one gets their own link by email. People complete an identity check; a corporate shareholder completes a company check (KYB) covering its own directors and owners. One check each, whatever roles they hold — nobody is asked twice.</p>
     <div class="kv">
       ${people.map(x => {
@@ -1102,16 +1102,16 @@ function rulesTable() {
   const Y = '<span class="rt-yes">&#10003;</span>', N = '<span class="rt-no">&mdash;</span>';
   const rows = [
     ['Shareholder, ' + UBO_THRESHOLD + '% or less', Y, N, N],
-    ['Shareholder over ' + UBO_THRESHOLD + '% &mdash; natural person', Y, Y, Y],
-    ['Shareholder over ' + UBO_THRESHOLD + '% &mdash; company', Y, Y, Y],
-    ['Every board member, whatever they own', Y, Y, Y],
-    ['Every beneficial owner', Y, Y, Y],
+    ['Shareholder over ' + UBO_THRESHOLD + '%', Y, Y, Y],
+    ['Corporate shareholder over ' + UBO_THRESHOLD + '%', Y, Y, Y],
+    ['Board members', Y, Y, Y],
+    ['Beneficial owners', Y, Y, Y],
     ['The company itself', N, N, Y]
   ];
   return `<div class="rules-wrap">
     <table class="rules">
       <thead><tr>
-        <th>Who</th><th>Listed</th><th>Identity check</th><th>Criminal record</th>
+        <th>Who</th><th>Listed</th><th>Verification</th><th>Criminal record</th>
       </tr></thead>
       <tbody>${rows.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join('')}</tbody>
     </table>
