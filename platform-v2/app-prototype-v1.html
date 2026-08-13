@@ -329,6 +329,22 @@
   .auth-note { font-size: 12.5px; color: var(--ink); border-left: 2px solid var(--hairline); padding-left: 10px; margin-top: 16px; }
   .btn.danger { color: var(--warn); border-color: var(--warn); }
   .btn.danger:hover { background: color-mix(in srgb, var(--warn) 10%, transparent); }
+  /* who-needs-what matrix */
+  .rules-wrap { border: 1px solid var(--hairline); border-radius: 8px; overflow: hidden; margin-bottom: 20px; background: var(--bg); }
+  .rules { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  .rules th { font-family: var(--font-mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--ink-muted); font-weight: 500; text-align: center; padding: 10px 8px; background: var(--surface-raised);
+    border-bottom: 1px solid var(--hairline); white-space: nowrap; }
+  .rules th:first-child { text-align: left; padding-left: 14px; }
+  .rules td { padding: 9px 8px; border-bottom: 1px solid var(--hairline); text-align: center; }
+  .rules td:first-child { text-align: left; padding-left: 14px; color: var(--ink); }
+  .rules tr:last-child td { border-bottom: 0; }
+  .rules tr:last-child td:first-child { color: var(--ink-muted); }
+  .rt-yes { color: var(--accent); font-weight: 700; }
+  .rt-no { color: var(--ink-muted); opacity: .5; }
+  .rules-foot { font-size: 12px; color: var(--ink-muted); line-height: 1.5; margin: 0;
+    padding: 10px 14px; border-top: 1px solid var(--hairline); background: var(--surface-raised); }
+  @media (max-width: 620px) { .rules-wrap { overflow-x: auto; } .rules { min-width: 460px; } }
   .party-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
   .party-row { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 8px; align-items: center; }
   .party-row.with-status { grid-template-columns: 1fr 1fr 1fr auto auto; }
@@ -1077,6 +1093,28 @@ function recordsPanel(p, overThreshold) {
     </div>
     <p class="fee-note" style="margin-top:8px;">${have} of ${people.length} provided.</p>`;
 }
+/* The rules in one place. Applicants ask "does this person need a check?" and
+   the answer is a small matrix, not a paragraph — so it is shown as one. */
+function rulesTable() {
+  const Y = '<span class="rt-yes">&#10003;</span>', N = '<span class="rt-no">&mdash;</span>';
+  const rows = [
+    ['Shareholder, ' + UBO_THRESHOLD + '% or less', Y, N, N],
+    ['Shareholder over ' + UBO_THRESHOLD + '% &mdash; natural person', Y, Y, Y],
+    ['Shareholder over ' + UBO_THRESHOLD + '% &mdash; company', Y, N, Y],
+    ['Every board member, whatever they own', Y, Y, Y],
+    ['Every beneficial owner', Y, Y, Y],
+    ['The company itself', N, N, Y]
+  ];
+  return `<div class="rules-wrap">
+    <table class="rules">
+      <thead><tr>
+        <th>Who</th><th>Listed</th><th>Identity check</th><th>Criminal record</th>
+      </tr></thead>
+      <tbody>${rows.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join('')}</tbody>
+    </table>
+    <p class="rules-foot">${UBO_THRESHOLD}% is the only threshold here, and it applies to shareholders alone &mdash; directors and beneficial owners are checked whatever they hold. A company may sit in the chain once: whoever owns a corporate shareholder must be a natural person.</p>
+  </div>`;
+}
 function partiesPanel() {
   const p = parties();
   const pct = x => parseFloat(String(x.pct || '').replace(',', '.')) || 0;
@@ -1103,6 +1141,7 @@ function partiesPanel() {
   return `<div class="card" style="margin-bottom:16px;">
     <span class="microlabel">PEOPLE WE MUST CHECK</span>
     <p class="fee-note" style="margin:8px 0 16px;">Every board member and every beneficial owner needs an identity check and a criminal-record extract from the country of establishment and of residence, no older than three months. Listing them here is what that check runs against.</p>
+    ${rulesTable()}
 
     <span class="microlabel">BOARD MEMBERS</span>
     <p class="fee-note" style="margin:4px 0 8px;">All of them, whatever they own. Each is sent their own verification link, so the email address has to be one they read.</p>
