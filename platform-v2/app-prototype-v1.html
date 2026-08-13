@@ -984,6 +984,19 @@ function flagSaved() {
 }
 function partyCommit() { flagSaved(); render(); }
 
+/* Row tags and the verification panel were reading two different sources — a
+   row could say NOT VERIFIED next to a panel saying the same person had already
+   finished. One function now answers for both. */
+function inviteFor(x) {
+  const k = String(x.email || '').trim().toLowerCase();
+  return (k && state.invites && state.invites[k]) || {};
+}
+function inviteTagFor(x) {
+  if (isVerified(x)) return ['ok', 'VERIFIED'];
+  const i = inviteFor(x);
+  return (typeof INVITE_TAG !== 'undefined' && INVITE_TAG[i.status]) || ['', 'NOT VERIFIED'];
+}
+
 /* One criminal-record extract per person, not per role. Someone who is both a
    board member and a 60% shareholder needs one extract, and listing them twice
    would have the applicant chasing a document they already sent.
@@ -1038,6 +1051,12 @@ function checkList(p, overThreshold) {
     const holder = (p.shareholders || []).find(sh => 'co:' + String(sh.name || '').trim().toLowerCase() === key);
     const co = (holder && holder.name) || key.replace(/^co:/, '');
     (c.board || []).forEach(q => add(q, 'board of ' + co, 'board'));
+    (c.owners || []).forEach(q => {
+      const v = parseFloat(String(q.pct || '').replace(',', '.')) || 0;
+      // A company at this level is the second and last link in the chain; it is
+      // not a person and cannot sit a check, so only natural persons are added.
+      if (v > UBO_THRESHOLD && q.type !== 'company') add(q, 'owner of ' + co + ' above ' + UBO_THRESHOLD + '%', 'ubo', v);
+    });
     (c.ubos || []).forEach(q => add(q, 'beneficial owner of ' + co, 'ubo'));
   });
   (p.board || []).forEach(x => add(x, 'board', 'board'));
@@ -1141,7 +1160,7 @@ function identityPanel(p, overThreshold) {
   const done = people.filter(x => isVerified(x) || lookup(x).status === 'complete').length;
   return `<div style="height:1px; background:var(--hairline); margin:18px 0;"></div>
     <span class="microlabel">VERIFICATION</span>
-    <p class="fee-note" style="margin:4px 0 10px;">Each one gets their own link by email. People complete an identity check; a corporate shareholder completes a company check (KYB) covering its own directors and owners. One check each, whatever roles they hold — nobody is asked twice.</p>
+    <p class="fee-note" style="margin:4px 0 10px;">This is the one place verification is sent from. Each person gets their own link by email &mdash; they open it, confirm who they are and complete the check; they never need an account here. One link each, whatever roles they hold, so nobody is asked twice. Resend as often as you need: a new link replaces the old one, which stops working.</p>
     <div class="kv">
       ${people.map(x => {
         const i = lookup(x);
@@ -1154,12 +1173,13 @@ function identityPanel(p, overThreshold) {
         const sent = !!i.status && i.status !== 'revoked';
         return `<div class="r">
           <span class="k">${esc(x.name || 'unnamed')}${x.entity ? ' <span class="tag" style="font-size:9px">KYB</span>' : ''}
-            <div style="font-size:12px; color:var(--ink-muted)">${esc(x.email || 'no email yet')} · ${x.why.join(' · ')}${
+            <div style="font-size:12px; color:var(--ink-muted)">${esc(x.email || 'no email address — add one above and the link can be sent')} · ${x.why.join(' · ')}${
               i.sent_at ? ' · sent ' + esc(String(i.sent_at).slice(0, 10)) : ''}</div>
             ${i.review_required ? `<div style="font-size:12px; color:var(--warn, #b26a00)">we are checking something on this one</div>` : ''}</span>
           <span class="v" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
             ${tag}
             ${v ? '' : `<button class="btn ${sent ? 'ghost' : 'solid'} small" ${x.email && !sending ? '' : 'disabled'}
+              title="${x.email ? 'Send the verification link to ' + esc(x.email) : 'Add an email address for this person first'}"
               onclick="sendPersonCheck('${esc(x.key)}', '${esc(x.name || '')}', '${esc(x.email || '')}', ${x.entity ? 'true' : 'false'})">${sent ? 'Resend' : 'Send verification'}</button>`}
           </span></div>`;
       }).join('')}
@@ -1328,18 +1348,17 @@ function companyBlock() {
    so the two cannot drift apart. Keyed by name rather than index so reordering
    the shareholder list does not hand one company another's documents. */
 const CORP_DOCS = [
-  { k: 'registry',    t: 'Registry extract',        d: 'From its own national register, no older than three months.' },
-  { k: 'articles',    t: 'Articles of association', d: 'The version currently in force.' },
-  { k: 'shareholders', t: 'Shareholder list',       d: 'Adding up to 100%, showing who owns this company.' }
+  { k: 'registry', t: 'Registry extract',        d: 'From its own national register, no older than three months.' },
+  { k: 'articles', t: 'Articles of association', d: 'The version currently in force.' }
 ];
 
 function corpKey(x) { return 'co:' + String(x.name || '').trim().toLowerCase(); }
 function corpData(key) {
   const p = parties();
   p.corps = p.corps || {};
-  if (!p.corps[key]) p.corps[key] = { reg: '', country: '', addr: '', docs: {}, board: [], ubos: [] };
+  if (!p.corps[key]) p.corps[key] = { reg: '', country: '', addr: '', docs: {}, owners: [], board: [], ubos: [] };
   const c = p.corps[key];
-  c.docs = c.docs || {}; c.board = c.board || []; c.ubos = c.ubos || [];
+  c.docs = c.docs || {}; c.owners = c.owners || []; c.board = c.board || []; c.ubos = c.ubos || [];
   return c;
 }
 function corpSet(key, field, v) { corpData(key)[field] = v; persist(); }
@@ -1373,10 +1392,11 @@ function corpPanel(x) {
 
   const people = (kind, label, note) => `<span class="microlabel">${label}</span>
     <p class="fee-note" style="margin:4px 0 8px;">${note}</p>
-    <div class="party-list">${c[kind].map((q, i) => `<div class="party-row">
+    <div class="party-list">${c[kind].map((q, i) => `<div class="party-row with-status">
       <input class="field" placeholder="Full name" value="${esc(q.name || '')}" oninput="corpPartySet('${esc(key)}','${kind}',${i},'name',this.value)" onblur="partyCommit()">
       <input class="field" type="email" placeholder="Email address" value="${esc(q.email || '')}" oninput="corpPartySet('${esc(key)}','${kind}',${i},'email',this.value)" onblur="partyCommit()">
       <input class="field" placeholder="${kind === 'ubos' ? '% held' : 'Country of residence'}" value="${esc(q[kind === 'ubos' ? 'pct' : 'country'] || '')}" oninput="corpPartySet('${esc(key)}','${kind}',${i},'${kind === 'ubos' ? 'pct' : 'country'}',this.value)" onblur="partyCommit()">
+      <span class="tag ${inviteTagFor(q)[0]}">${inviteTagFor(q)[1]}</span>
       <button class="btn ghost small" onclick="corpPartyDel('${esc(key)}','${kind}',${i})" aria-label="Remove">✕</button>
     </div>`).join('')}</div>
     <button class="btn ghost small" onclick="corpPartyAdd('${esc(key)}','${kind}')">+ Add</button>`;
@@ -1409,6 +1429,35 @@ function corpPanel(x) {
     </div>
 
     <div style="height:1px; background:var(--corp-border); margin:16px 0;"></div>
+    <span class="microlabel">ITS SHAREHOLDERS</span>
+    <p class="fee-note" style="margin:4px 0 8px;">Everyone on its list, adding up to 100% — the same way you listed your own. Holders above ${UBO_THRESHOLD}% are verified and need an email address, and they carry into its beneficial owners automatically.</p>
+    <div class="party-list">${c.owners.map((q, i) => {
+      const v = parseFloat(String(q.pct || '').replace(',', '.')) || 0;
+      const needs = v > UBO_THRESHOLD;
+      return `<div class="party-row four${needs ? ' with-status' : ''}">
+        <input class="field" placeholder="Name" value="${esc(q.name || '')}" oninput="corpPartySet('${esc(key)}','owners',${i},'name',this.value)" onblur="partyCommit()">
+        <select class="field" onchange="corpPartySet('${esc(key)}','owners',${i},'type',this.value);partyCommit()">
+          <option value="person"${q.type !== 'company' ? ' selected' : ''}>Natural person</option>
+          <option value="company"${q.type === 'company' ? ' selected' : ''}>Company</option></select>
+        <input class="field" placeholder="% held" value="${esc(q.pct || '')}" oninput="corpPartySet('${esc(key)}','owners',${i},'pct',this.value)" onblur="partyCommit()">
+        <input class="field" type="email" placeholder="${needs ? 'Email address' : 'Email (only if over ' + UBO_THRESHOLD + '%)'}" value="${esc(q.email || '')}" oninput="corpPartySet('${esc(key)}','owners',${i},'email',this.value)" onblur="partyCommit()">
+        ${needs ? `<span class="tag ${inviteTagFor(q)[0]}">${inviteTagFor(q)[1]}</span>` : ''}
+        <button class="btn ghost small" onclick="corpPartyDel('${esc(key)}','owners',${i})" aria-label="Remove">✕</button>
+      </div>`; }).join('')}</div>
+    <button class="btn ghost small" onclick="corpPartyAdd('${esc(key)}','owners')">+ Add shareholder</button>
+    ${(() => {
+      const notes = [];
+      const total = c.owners.reduce((t, q) => t + (parseFloat(String(q.pct || '').replace(',', '.')) || 0), 0);
+      if (c.owners.length && total > 100.5) notes.push('its shareholdings add up to ' + total.toFixed(1) + '%');
+      else if (c.owners.length && total < 99.5) notes.push('its shareholdings add up to ' + total.toFixed(1) + '% — the remainder is unaccounted for');
+      // The third level is where the chain stops. Saying so on the row that
+      // creates it beats saying it only in the rules panel further up.
+      if (c.owners.some(q => q.type === 'company'))
+        notes.push('a company owns this company — that is the second and last level. Its own owners must be natural persons, and they go in beneficial owners below');
+      return notes.length ? `<p class="fee-note" style="margin-top:8px;">${notes.join(' · ')}</p>` : '';
+    })()}
+
+    <div style="height:1px; background:var(--corp-border); margin:16px 0;"></div>
     ${people('board', 'ITS BOARD MEMBERS', 'Named, identity-verified, criminal-record extract each — exactly as for the applicant. They appear in the verification list below.')}
     <div style="height:1px; background:var(--corp-border); margin:16px 0;"></div>
     ${people('ubos', 'ITS BENEFICIAL OWNERS', 'The natural persons above ' + UBO_THRESHOLD + '%. If this company is itself owned by a company, that is the second and last level — the owners above it must be natural persons.')}
@@ -1434,7 +1483,7 @@ function partiesPanel() {
       ? `<select class="field" onchange="partySet('${kind}',${i},'${f.k}',this.value);partyCommit()">${f.opts.map(o =>
           `<option value="${o}"${x[f.k] === o ? ' selected' : ''}>${o === 'person' ? 'Natural person' : 'Company'}</option>`).join('')}</select>`
       : `<input class="field" type="${f.k === 'email' ? 'email' : 'text'}" placeholder="${f.ph}" value="${esc(x[f.k] || '')}" oninput="partySet('${kind}',${i},'${f.k}',this.value)" onblur="partyCommit()">`).join('')}
-    ${withStatus ? `<span class="tag ${isVerified(x) ? 'ok' : ''}">${isVerified(x) ? 'VERIFIED' : 'NOT VERIFIED'}</span>` : ''}
+    ${withStatus ? `<span class="tag ${inviteTagFor(x)[0]}">${inviteTagFor(x)[1]}</span>` : ''}
     <button class="btn ghost small" onclick="partyDel('${kind}',${i})" aria-label="Remove">✕</button>
   </div>`;
 
@@ -1465,7 +1514,7 @@ function partiesPanel() {
           <option value="company"${x.type === 'company' ? ' selected' : ''}>Company</option></select>
         <input class="field" placeholder="% held" value="${esc(x.pct || '')}" oninput="partySet('shareholders',${i},'pct',this.value)" onchange="partyCommit()" onblur="partyCommit()">
         <input class="field" type="email" placeholder="${needs ? 'Email address' : 'Email (only if over ' + UBO_THRESHOLD + '%)'}" value="${esc(x.email || '')}" oninput="partySet('shareholders',${i},'email',this.value)" onblur="partyCommit()">
-        ${needs ? `<span class="tag ${isVerified(x) ? 'ok' : ''}">${isVerified(x) ? 'VERIFIED' : 'NOT VERIFIED'}</span>` : ''}
+        ${needs ? `<span class="tag ${inviteTagFor(x)[0]}">${inviteTagFor(x)[1]}</span>` : ''}
         <button class="btn ghost small" onclick="partyDel('shareholders',${i})" aria-label="Remove">✕</button>
       </div>`; }).join('')}</div>
     <button class="btn ghost small" onclick="partyAdd('shareholders')">+ Add shareholder</button>
